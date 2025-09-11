@@ -12,7 +12,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {COLORS} from '../../Constant/Colors';
 import {FONTS} from '../../Constant/Font';
-import {moderateScale} from '../../PixelRatio';
+import {moderateScale, verticalScale} from '../../PixelRatio';
 // import Navigation from '../../Service/Navigation';
 import {useNavigation} from '@react-navigation/native';
 import model6 from '../../assets/model6.jpg';
@@ -63,13 +63,9 @@ export default function Landing() {
             <TouchableOpacity
               style={styles.exploreContainer}
               onPress={() => Navigation.navigate('Register')}>
-              <LinearGradient
-                colors={COLORS.gradient}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={styles.gradientButton}>
+              <View style={styles.gradientButton}>
                 <Text style={styles.buttonText}>Lets Explore</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         </ImageBackground>
@@ -131,71 +127,70 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logoContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
     alignItems: 'flex-start',
-    marginLeft: 20,
+    marginLeft: 24,
     width: '100%',
   },
   taglineContainer: {
-    marginBottom: 36,
+    marginBottom: 40,
     alignItems: 'flex-start',
-    marginLeft: 20,
+    marginLeft: 24,
     width: '100%',
   },
   logoText: {
-    fontSize: 30,
-    fontWeight: 'semibold',
-    color: 'red',
-    letterSpacing: 1,
+    fontSize: 32,
+    fontWeight: '600',
+    color: COLORS.button,
+    letterSpacing: 1.5,
   },
   logoBold: {
-    color: 'red',
-    fontWeight: '900',
+    color: COLORS.button,
+    fontWeight: '800',
   },
   tagline: {
     fontSize: moderateScale(16),
     fontFamily: FONTS.Regular,
     color: COLORS.white,
-    fontWeight: '500',
+    fontWeight: '300',
     marginBottom: moderateScale(32),
+    letterSpacing: 0.3,
   },
   exploreContainer: {
-    width: '75%',
+    width: '80%',
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 20
   },
   gradientButton: {
     width: '100%',
-    height: Platform.OS === 'ios' ? 90 : 60,
-    paddingVertical: Platform.OS === 'ios' ? 20 : 15,
-    paddingHorizontal: 0,
-    borderRadius: 30,
+    height: Platform.OS === 'ios' ? verticalScale(40) : verticalScale(35),
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.gradientButton[0],
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    overflow: 'hidden',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonText: {
-    fontSize: 16,
-    fontFamily: Platform.OS === 'ios' ? 'System' : FONTS.title,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',
-    textAlignVertical: 'center',
     includeFontPadding: false,
     paddingVertical: 0,
     paddingHorizontal: 0,
     marginVertical: 0,
     marginHorizontal: 0,
-    ...(Platform.OS === 'ios' && {
-      lineHeight: 18,
-      letterSpacing: 0.5,
-      transform: [{translateY: -20}],
-    }),
+    lineHeight: 26,
+    letterSpacing: 1.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 2,
   },
 });
 

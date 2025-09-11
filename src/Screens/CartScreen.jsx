@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -20,58 +21,62 @@ import { FONTS } from '../Constant/Font';
 import { COLORS } from '../Constant/Colors';
 
 const CartScreen = () => {
-  const { cartItems, deleteCartItem, totalPrice } = useContext(CartContext);
+  const { cartItems, deleteCartItem, totalPrice, user, token } = useContext(CartContext);
   const navigation = useNavigation();
 
   // constants for totals
   const shippingCost = 0.0;
   const grandTotal = (parseFloat(totalPrice) + shippingCost).toFixed(2);
 
-  const handleCheckout = async () => {
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      if (!token) {
-        Toast.show('No auth token found. Please log in again.');
-        return;
+    const handleCheckout = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) {
+          Toast.show('No auth token found. Please log in again.');
+          return;
+        }
+
+        if (cartItems.length === 0) {
+          Toast.show('Please add items to your cart before proceeding.');
+          return;
+        }
+
+        const userData = await AsyncStorage.getItem('userData');
+        const parsedUser = userData ? JSON.parse(userData) : null;
+        const userId = parsedUser?.id;
+
+        const payload = {
+          userId: user?.id || userId,
+          totalAmount: grandTotal,
+          items: cartItems.map(item => ({
+            productId: item.id || item.productId, 
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        };
+
+        console.log('Checkout payload:', payload);
+
+        const response = await axios.post('/add-cart', payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log('Add to cart response:', response.data);
+
+        if (response.data.status === 1) {
+          navigation.navigate('Payment', { grandTotal, cartItems });
+        } else {
+          Toast.show(response.data.message || 'Something went wrong on the server.');
+        }
+      } catch (error) {
+        console.error('Error during checkout:', error);
+        Toast.show('Checkout failed. Please try again.');
       }
-
-      if (cartItems.length === 0) {
-        Toast.show('Please add items to your cart before proceeding.');
-        return;
-      }
-
-      const payload = {
-        items: cartItems.map(item => ({
-          product_id: item.id || item.productId || 'unknown', // handle undefined id
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        subtotal: totalPrice,
-        shipping: shippingCost,
-        total: grandTotal,
-      };
-
-      console.log('Checkout payload:', payload);
-
-      const response = await axios.post('/add-cart', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log('Add to cart response:', response.data);
-
-      if (response.status === 200) {
-        navigation.navigate('Payment', { grandTotal, cartItems });
-      } else {
-        Toast.show(response.data.message || 'Something went wrong on the server.');
-      }
-    } catch (error) {
-      console.error('Error during checkout:', error);
-      Toast.show('Checkout failed. Please try again.');
-    }
   };
+
 
   const handleDeleteItem = async itemId => {
     try {
@@ -126,13 +131,13 @@ const CartScreen = () => {
         <View style={styles.totalSection}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal:</Text>
-            <Text style={styles.totalValue}>${totalPrice}</Text>
+            <Text style={styles.totalValue}>{'\u20B9'}{totalPrice}</Text>
           </View>
 
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Shipping:</Text>
             <Text style={styles.totalValue}>
-              {shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}
+              {shippingCost === 0 ? 'Free' : `{'\u20B9'}${shippingCost.toFixed(2)}`}
             </Text>
           </View>
 
@@ -140,7 +145,7 @@ const CartScreen = () => {
 
           <View style={styles.totalRow}>
             <Text style={styles.grandTotalLabel}>Total:</Text>
-            <Text style={styles.grandTotalValue}>${grandTotal}</Text>
+            <Text style={styles.grandTotalValue}>{'\u20B9'}{grandTotal}</Text>
           </View>
         </View>
 
@@ -159,6 +164,7 @@ export default CartScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: Platform.OS === 'ios' ? 20 : 10,
   },
   gradientContainer: {
     flex: 1,

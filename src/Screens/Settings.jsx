@@ -334,6 +334,7 @@ export default Settings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 10,
     width: '100%',
     height: '100%',
   },
@@ -370,16 +371,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(6),
   },
   menuContainer: {
-    // backgroundColor: '#FFFFFF',
+    backgroundColor: '#bfbfb5ff',
     borderRadius: moderateScale(16),
-    // elevation: 3,
-    // shadowColor: '#000',
-    // shadowOffset: {
-    // width: 0,
-    // height: 2,
-    // },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+    width: 0,
+    height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     overflow: 'hidden',
   },
   menuItem: {

@@ -14,6 +14,8 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {addToCart} from '../utils/helper';
 import {CartContext} from '../Context/CartContext';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import { COLORS } from '../Constant/Colors';
+import Icon from "react-native-vector-icons/Ionicons";
 // import {useTheme} from '../Context/ThemeContext';
 // import ThemeSelectionModal from './Modal/ThemeSelectionModal';
 
@@ -128,13 +130,10 @@ const Header = ({isCart, onSearchChange}) => {
     return (
       <TouchableOpacity onPress={onPress} style={style}>
         <View style={{position: 'relative'}}>
-          <Image
-            source={require('../assets/focused/shopping_cart.png')}
-            style={{
-              height: 24,
-              width: 24,
-              resizeMode: 'center',
-            }}
+          <Icon
+            name="cart-outline"
+            size={24}
+            color={COLORS.button}
           />
           {totalQuantity > 0 && (
             <View
@@ -144,7 +143,7 @@ const Header = ({isCart, onSearchChange}) => {
                 bottom: 15,
                 height: 14,
                 width: 14,
-                backgroundColor: '#E94560',
+                backgroundColor: COLORS.button,
                 borderRadius: 7,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -305,16 +304,19 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
     marginLeft: 10,
+    tintColor: COLORS.button
   },
   appFavoriteIcon: {
     height: 24,
     width: 24,
     marginLeft: 10,
+    tintColor: COLORS.button
   },
   appCartIcon: {
     height: 24,
     width: 24,
     marginLeft: 10,
+    tintColor: COLORS.button
   },
   iconContainer: {
     flexDirection: 'row',
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
     width: 18,
     marginLeft: 12,
     marginRight: 8,
-    tintColor: 'red'
+    tintColor: COLORS.button
   },
   inlineTextInput: {
     flex: 1,

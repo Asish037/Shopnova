@@ -138,7 +138,7 @@ const EditProfile = () => {
           <View style={styles.profileInfo}>
             <View style={styles.greetingContainer}>
               <Text style={styles.greetingText}>Welcome back,</Text>
-              <Text style={styles.userName}>{fullname || 'John Henry'}</Text>
+              <Text style={styles.userName}>{fullname}</Text>
               <Text style={styles.subText}>Let's update your profile</Text>
             </View>
           </View>
@@ -266,6 +266,7 @@ export default EditProfile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 10,
     width: '100%',
     height: '100%',
   },

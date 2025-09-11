@@ -1,3 +1,4 @@
+// screen after the add to cart, to select the payment method
 import {
   StyleSheet,
   Text,
@@ -40,7 +41,7 @@ const PaymentScreen = () => {
       onPress={() => setSelectedPaymentMethod(method.id)}>
       <View style={styles.paymentMethodContent}>
         <Text style={styles.paymentMethodIcon}>{method.icon}</Text>
-        <Text style={styles.paymentMethodText}>{method.name}</Text>
+        <Text style={selectedPaymentMethod === method.id ? styles.paymentMethodSelectedText : styles.paymentMethodText}>{method.name}</Text>
       </View>
       <View
         style={[
@@ -70,7 +71,7 @@ const PaymentScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
             <Text style={styles.summaryValue}>
-              ${parseFloat(total).toFixed(2)}
+              {'\u20B9'}{parseFloat(total).toFixed(2)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
@@ -81,7 +82,7 @@ const PaymentScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalValue}>
-              ${parseFloat(total).toFixed(2)}
+              {'\u20B9'}{parseFloat(total).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -168,7 +169,7 @@ const PaymentScreen = () => {
             // You can add payment processing logic here
           }}>
           <Text style={styles.payButtonText}>
-            Pay ${parseFloat(total).toFixed(2)}
+            Pay {'\u20B9'}{parseFloat(total).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>
@@ -181,6 +182,7 @@ export default PaymentScreen;
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
+    padding: 10,
     width: '100%',
     height: '100%',
   },
@@ -224,6 +226,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   cardTitle: {
+    textDecorationLine: 'underline',
     fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.black,
@@ -293,8 +296,8 @@ const styles = StyleSheet.create({
   },
   selectedPaymentMethod: {
     borderColor: 'transparent',
-    backgroundColor: COLORS.yellow,
-    // shadowColor: "#000",
+    backgroundColor: COLORS.button,
+   shadowColor: "#000",
   },
   paymentMethodContent: {
     flexDirection: 'row',
@@ -308,6 +311,12 @@ const styles = StyleSheet.create({
   paymentMethodText: {
     fontSize: 15,
     color: COLORS.black,
+    fontFamily: FONTS.Bold,
+    flex: 1,
+  },
+  paymentMethodSelectedText: {
+    fontSize: 15,
+    color: COLORS.white,
     fontFamily: FONTS.Medium,
     flex: 1,
   },
@@ -315,15 +324,15 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'grey',
+    borderWidth: 1,
+    borderColor: '#232222ff',
     position: 'absolute',
     right: 15,
     top: 15,
   },
   radioButtonSelected: {
     borderColor: 'grey',
-    backgroundColor: '#807979ff',
+    backgroundColor: '#232222ff',
   },
 
   // Address Section
@@ -431,7 +440,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   payButton: {
-    backgroundColor: COLORS.DarkPink,
+    backgroundColor: COLORS.button,
     height: 56,
     borderRadius: 16,
     alignItems: 'center',

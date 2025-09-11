@@ -540,6 +540,7 @@ export default EditAddress;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    padding: 10,
     width: '100%',
     height: '100%',
     backgroundColor: COLORS.gradient[0], // Set background color to match gradient start

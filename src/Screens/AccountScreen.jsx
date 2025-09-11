@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
 // import {useTheme} from '../Context/ThemeContext';
 import {COLORS} from '../Constant/Colors';
@@ -22,16 +23,17 @@ import {useAuth} from '../hooks/useAuth';
 import axios from '../Components/axios';
 import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { CartContext } from '../Context/CartContext';
 
 
 const ViewProfile = () => {
   const navigation = useNavigation();
-  const {user, loadAuthData} = useContext(CartContext);
+  const {user, loadAuthData, token} = useContext(CartContext);
   const { isAuthenticated, logout, getUserName, getUserPhone } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   // const {getThemeColors} = useTheme();
   // const themeColors = getThemeColors();
-
+  // const {user, token , loadUserData} = useContext(CartContext);
   // Reload user data whenever this screen comes into focus
 
   // useEffect(() => {
@@ -83,11 +85,17 @@ const ViewProfile = () => {
   //   fetchUserData();
   // }, [loadUserData]);
 
+
   useEffect(() => {
+  fetchUserData();
+}, []); 
+
+
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const token = await AsyncStorage.getItem('authToken');
+
+        const token = await AsyncStorage.getItem('userToken');
         if (!token) {
           console.log("No auth token found in storage");
           return;
@@ -122,8 +130,7 @@ const ViewProfile = () => {
       }
     };
 
-    fetchUserData();
-  }, [loadAuthData]);
+  
 
 
 
@@ -140,7 +147,7 @@ const ViewProfile = () => {
           <TouchableOpacity
             style={styles.settingsButton}
             onPress={() => navigation.navigate('Settings')}>
-            <Ionicons name="settings-outline" size={24} color={COLORS.black} />
+            <Ionicons name="settings-outline" size={24} color={COLORS.button} />
           </TouchableOpacity>
         </View>
         <View style={styles.profileSection}>
@@ -278,7 +285,7 @@ const ViewProfile = () => {
             <MaterialIcons
               name="chevron-right"
               size={moderateScale(24)}
-              color="#6C757D"
+              color={COLORS.button}
             />
           </TouchableOpacity>
 
@@ -297,7 +304,7 @@ const ViewProfile = () => {
             <MaterialIcons
               name="chevron-right"
               size={moderateScale(24)}
-              color="#6C757D"
+              color={COLORS.button}
             />
           </TouchableOpacity>
 
@@ -314,7 +321,7 @@ const ViewProfile = () => {
             <MaterialIcons
               name="chevron-right"
               size={moderateScale(24)}
-              color="#6C757D"
+              color={COLORS.button}
             />
           </TouchableOpacity>
 
@@ -333,7 +340,7 @@ const ViewProfile = () => {
             <MaterialIcons
               name="chevron-right"
               size={moderateScale(24)}
-              color="#6C757D"
+              color={COLORS.button}
             />
           </TouchableOpacity>
 
@@ -352,7 +359,7 @@ const ViewProfile = () => {
             <MaterialIcons
               name="chevron-right"
               size={moderateScale(24)}
-              color="#6C757D"
+              color={COLORS.button}
             />
           </TouchableOpacity>
         </View>
@@ -500,6 +507,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     minWidth: moderateScale(40),
+    borderColor: COLORS.button,
+    borderWidth: 1,
+    borderRadius: moderateScale(4),
+    paddingVertical: moderateScale(4),
+    paddingHorizontal: moderateScale(2),
+    marginHorizontal: moderateScale(2),
+    backgroundColor: '#f8f9fa',
   },
   orderIcon: {
     width: moderateScale(40),

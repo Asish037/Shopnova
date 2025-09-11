@@ -119,13 +119,33 @@ export const CartProvider = ({children}) => {
     }
   };
   const addToWishlist = (item) => {
-    setWishlist((prev) => [...prev, item]);
+    console.log('Adding to wishlist:', item);
+    setWishlist((prev) => {
+      const newWishlist = [...(prev || []), item];
+      console.log('Updated wishlist:', newWishlist);
+      return newWishlist;
+    });
   }
   const removeFromWishlist = (productId) => {
-    setWishlist((prev) => prev.filter((prod) => prod.productId !== productId));
+    console.log('Removing from wishlist, productId:', productId);
+    setWishlist((prev) => {
+      const newWishlist = (prev || []).filter((prod) => {
+        // Check both id and productId fields
+        const prodId = prod.id || prod.productId;
+        return prodId !== productId;
+      });
+      console.log('Updated wishlist after removal:', newWishlist);
+      return newWishlist;
+    });
   }
   const isFavorite = (productId) => {
-    return wishlist.some((prod) => prod.productId === productId);
+    const result = wishlist?.some((prod) => {
+      // Check both id and productId fields
+      const prodId = prod.id || prod.productId;
+      return prodId === productId;
+    }) || false;
+    console.log('Checking if favorite, productId:', productId, 'result:', result, 'wishlist:', wishlist);
+    return result;
   }
 
   const saveMessage = async (roomName, messageData) => {

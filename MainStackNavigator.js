@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isAuthenticated } from './src/utils/authUtils';
+import { CartContext } from './src/Context/CartContext';
 
-import Landing from './src/Screens/Auth/Landing';
 import AuthStack from './src/Navigation/AuthStack';
 import Landing from './src/Screens/Auth/Landing';
 import Register from './src/Screens/Auth/Register';
@@ -37,46 +37,34 @@ import PaymentScreen from './src/Screens/PaymentScreen';
 import PaymentMethod from './src/Screens/PaymentMethod';
 import OrderConfirm from './src/Screens/OrderConfirm';
 import ConfirmOrder from './src/Screens/ConfirmOrder';
-import SubCategoriesScreen from './src/Screens/SubCategoriesScreen';
 
 // Other Components
-import CircularLoader from './src/Components/CircularLoader';
+import AppLoader from './src/Components/AppLoader';
 import MyWishList from './src/Screens/MyWishList';
 import ProductDetailsScreen from './src/Screens/ProductDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
-  const [token, setToken] = useState(null);
-
-  const getToken = async () => {
-    try {
-      const res = await AsyncStorage.getItem("accessToken");
-      if (res) {
-        console.log("Token found:", res);
-        setToken(true);
-      } else {
-        setToken(false);
-      }
-    } catch (error) {
-      console.log("Error getting token:", error);
-      setToken(false);
-    }
-  };
+  const { user, token, isLoading } = useContext(CartContext);
 
   useEffect(() => {
-    getToken();
-  }, []);
+    // Check if we have both user and token
+    const hasAuth = !!(user && token);
+    console.log("Auth check - User:", !!user, "Token:", !!token, "HasAuth:", hasAuth);
+    console.log("Auth check - User data:", user);
+    console.log("Auth check - Token data:", token);
+  }, [user, token]);
 
-  if (token === null) {
-    return <CircularLoader />
+  if (isLoading) {
+    return <AppLoader message="Loading your data..." />
   }
+
+  const isAuthenticated = !!(user && token);
 
   return (
     <Stack.Navigator
-      initialRouteName={token ? 'MainHome' : 'AuthStack'}
-      // initialRouteName={'MainHome'}
-
+      initialRouteName={isAuthenticated ? 'MainHome' : 'AuthStack'}
       headerMode="none"
     >
       <Stack.Screen
@@ -123,11 +111,6 @@ const MainStackNavigator = () => {
       /> 
       {/* Main App Screens */}
       <Stack.Screen
-        name="Landing"
-        component={Landing}
-        options={{headerShown: false}}
-      />
-      <Stack.Screen
         name="Orders"
         component={Orders}
         options={() => ({
@@ -140,14 +123,6 @@ const MainStackNavigator = () => {
         component={CategoriesScreen}
         options={() => ({
           title: 'Categories',
-        })}
-      />
-      <Stack.Screen
-        name="SubCategories"
-        component={SubCategoriesScreen}
-        options={() => ({
-          title: 'Sub Categories',
-          headerShown: false,
         })}
       />
       <Stack.Screen
@@ -280,6 +255,11 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="PRODUCT_DETAILS"
         component={ProductDetailsScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="CART"
+        component={CartScreen}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

@@ -4,6 +4,7 @@ Text,
 TouchableOpacity,
 FlatList,
 View,
+Alert,
 ScrollView,
 } from 'react-native';
 import React, {useContext} from 'react';
@@ -13,11 +14,14 @@ import {CartContext} from '../Context/CartContext';
 import LinearGradient from 'react-native-linear-gradient';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
+import axios from '../Components/axios';
+import qs from 'qs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ConfirmOrder = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const {cartItems: contextCartItems, totalPrice} = useContext(CartContext);
+    const {cartItems: contextCartItems, totalPrice, user, token} = useContext(CartContext);
 
   // Use cartItems from route params first, fallback to context
     const cartItems = route.params?.cartItems || contextCartItems || [];
@@ -29,16 +33,67 @@ const ConfirmOrder = () => {
     console.log('ConfirmOrder - Items count:', cartItems.length);
     console.log('ConfirmOrder - Total:', total);
 
-    const handlePlaceOrder = () => {
-        // Logic to handle order placement
-        console.log('Order placed successfully!');
-        // Navigate to PaymentMethod with dynamic data
-        navigation.navigate('PaymentMethod', {
-        cartItems,
-        grandTotal: total,
-        selectedPaymentMethod,
-        });
+    const handlePlaceOrder = async () => {
+        try {
+            const token = await AsyncStorage.getItem('userToken'); 
+            if(!token){
+                Alert.alert('Not Logged In', 'Please log in to place an order.');
+                return; 
+            }
+            const userId = user?.id || await AsyncStorage.getItem('userId');
+
+            if (!userId) {
+                Alert.alert('User ID Missing', 'User ID not found. Please log in again.');
+                return;
+            }
+            if (cartItems.length === 0) {
+                Alert.alert('Empty Cart', 'Your cart is empty. Please add items before placing an order.');
+                return;
+            }
+
+            const payload = {
+                userId: user?.id || userId,
+                total: total,
+                order_items: cartItems.map(item => ({
+                    productId: item.id,
+                    product_name: item.name,
+                    quantity: item.quantity,
+                    product_image: item.image,  
+                    product_price: item.price,
+                    product_offer_price: item.offer_price || item.price, // fallback if no offer
+                })),
+                payment_method: selectedPaymentMethod || 'cash',
+            };
+
+            console.log('Place Order Payload:', payload);
+
+            const response = await axios.post('/place-order', payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+            });
+
+            if (response.data.status === 1) {
+                Alert.alert('Order Placed', 'Your order has been placed successfully!');
+                console.log('Order Placed Successfully:', response.data);
+                const orderId = response.data?.data?.order_id || response.data?.data?.id;
+                if (orderId) {
+                    navigation.navigate('OrderDetails', { orderId });
+                } else {
+                    console.warn("No orderId in response:", response.data);
+                }
+            } else {
+                Alert.alert('Order Failed', response.data.message || 'Please try again.');
+                console.error('Order Placement Failed:', response.data);
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            Alert.alert('Order Error', 'There was an error placing your order. Please try again.');
+        }
     };
+
+
 
     const renderItem = ({item}) => (
         <View style={styles.itemCard}>

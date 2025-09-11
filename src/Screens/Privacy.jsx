@@ -4,6 +4,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import React from 'react';
 // import { StatusBar } from "../../components/"
@@ -242,15 +243,18 @@ export default Privacy;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderColor: COLORS.black,
-    borderWidth: 2,
+     padding: Platform.OS === 'ios' ? 20 : 10,
+    // borderColor: COLORS.black,
+    // borderWidth: 2,
     borderRadius: 10,
     width: '100%',
-    height: '100%'
+    height: '100%',
+    marginBottom: 10,
   },
   contentWrapper: {
     flex: 1,
     padding: 10,
+
     // marginTop: 60, // Adjust this value based on your header height
   },
   headerSpacing: {
@@ -282,5 +286,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontFamily: fonts.regular,
     fontSize: 18,
+    marginVertical: 10,
+    // lineHeight: 10,
+    // textDecorationLine: 'underline',
+    textAlign: 'left'
   },
 });

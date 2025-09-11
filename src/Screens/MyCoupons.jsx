@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   View,
+  Platform,
 } from 'react-native';
 import React, {useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
@@ -61,7 +62,8 @@ const MyCoupons = () => {
 };
 const styles = StyleSheet.create({
   container: {
-     flex: 1,
+      flex: 1,
+      padding: Platform.OS === 'ios' ? 20 : 10,
       width: '100%',
       height: '100%',
   },

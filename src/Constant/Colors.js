@@ -5,7 +5,7 @@ export const COLORS = {
     //button: '#E94560',
     //button: '#FFC000',
     button: '#f54a00',
-    lightbutton: '#FFFDD0',
+    lightbutton: '#FF775C',
     bottomTab: '#151822',
     sbutton: '#aab29d',
     textInput: '#E1B4C0',

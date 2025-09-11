@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     //width: '90%',
     borderBottomWidth: 0.2,
     borderColor: COLORS.textInput,
-    // padding: 10,
+    padding: 10,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-start',
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     left: 5,
   },
   rateSection: {
-    // width: '100%',
+    width: '100%',
     flexDirection: 'row',
     backgroundColor: COLORS.white,
     width: Dimensions.get('screen').width, //moderateScale(390),

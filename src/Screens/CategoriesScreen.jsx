@@ -63,9 +63,8 @@ const CategoriesScreen = () => {
           method: 'get',
           url: '/get-categories',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
           },
-          data: qs.stringify({}),
         };
         const response = await axios(config);
         console.log(response.data);
@@ -106,7 +105,7 @@ const CategoriesScreen = () => {
         method: 'get',
         url: `/product-list?categoryId=${categoryId}`,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
       };
 
@@ -119,7 +118,20 @@ const CategoriesScreen = () => {
       return productsData;
     } catch (error) {
       console.error('Error fetching products by categoryId:', error);
-      setFilteredProducts([]);
+      
+      // Check if it's a network error or auth error
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        console.log('Network error detected, using fallback data');
+        // You can set some fallback products here or show a message
+        setFilteredProducts([]);
+      } else if (error.response?.status === 401) {
+        console.log('Authentication error, user may need to login again');
+        setFilteredProducts([]);
+      } else {
+        console.log('Other error:', error.message);
+        setFilteredProducts([]);
+      }
+      
       return [];
     } finally {
       setIsLoading(false);
@@ -136,9 +148,8 @@ const CategoriesScreen = () => {
         method: 'get',
         url: `/get-sub-categories?categoryId=${catId}`,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
-        data: qs.stringify({categoryId: catId}),
       };
       const response = await axios(config);
       console.log('Subcategories response:', response.data);
@@ -161,13 +172,24 @@ const CategoriesScreen = () => {
     } catch (error) {
       console.error('Error fetching subcategories:', error);
       setSubCategories([]);
-      // Try to fetch products directly if subcategories fail
-      console.log(
-        'Subcategories failed, trying to fetch products directly for categoryId:',
-        catId,
-      );
-      await fetchProductsBySpecificCategory(catId);
-      // Keep currentView as 'categories' - UI will automatically show products
+      
+      // Check if it's a network error
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        console.log('Network error in subcategories, skipping product fetch');
+        setFilteredProducts([]);
+      } else {
+        // Try to fetch products directly if subcategories fail (but not for network errors)
+        console.log(
+          'Subcategories failed, trying to fetch products directly for categoryId:',
+          catId,
+        );
+        try {
+          await fetchProductsBySpecificCategory(catId);
+        } catch (productError) {
+          console.error('Error fetching products after subcategory failure:', productError);
+          setFilteredProducts([]);
+        }
+      }
     } finally {
       if (showLoading) {
         setIsLoading(false);
@@ -641,7 +663,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginBottom: 15,
     paddingHorizontal: 20,
-    paddingTop: 25,
+    paddingTop: Platform.OS === 'ios' ? 55 : 25,
     paddingBottom: 15,
     zIndex: 1000,
   },

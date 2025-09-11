@@ -9,6 +9,7 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
@@ -23,10 +24,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const OrderDetails = ({route}) => {
   const navigation = useNavigation();
-  const {items} = route.params; // comes from order-list
+  const {orderId} = route.params; // comes from order-list
   const [rating, setRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [order, setOrder] = useState(null);
 
   const fetchOrderDetails = async () => {
     try {
@@ -37,7 +39,8 @@ const OrderDetails = ({route}) => {
       }
 
       const response = await axios.get(
-        `/order-details?orderId=${items.order_id}`,
+        `/order-details?orderId=${orderId}`,
+
         {
           headers: {
             'Content-Type': 'application/json',
@@ -45,13 +48,15 @@ const OrderDetails = ({route}) => {
           },
         },
       );
+      setOrder(response.data.data);
+      console.log('Order Details Response:', response.data);
 
       if (response.data.status === 1) {
         const apiData = response.data.data;
 
         // Normalize data
         const normalizedData = {
-          order_id: apiData.id,
+          order_Id: apiData.id,
           order_date: apiData.created_at,
           shipping_status: 'Processing', // backend missing → fallback
           tracking_number: null, // not available
@@ -97,7 +102,7 @@ const OrderDetails = ({route}) => {
 
   useEffect(() => {
     fetchOrderDetails();
-  }, [items.order_id]);
+  }, [orderId]);
 
   const getStatusIcon = status => {
     switch (status) {
@@ -207,6 +212,19 @@ const OrderDetails = ({route}) => {
           </View>
         </View>
 
+        {/* Basic Order Info
+        <View>
+          <Text>Order #{order.order_id}</Text>
+          <Text>Total: ${order.total_amount}</Text>
+
+          {order.order_items?.map((item, index) => (
+            <View key={index}>
+              <Text>{item.product_name} x {item.quantity}</Text>
+              <Text>${item.product_price}</Text>
+            </View>
+          ))}
+        </View> */}
+
         {/* Order Items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
@@ -315,6 +333,7 @@ const styles = StyleSheet.create({
   
   container: {
     flex: 1, 
+    padding: Platform.OS === 'ios' ? 20 : 10,
     width: '100%', 
     height: '100%'
   },

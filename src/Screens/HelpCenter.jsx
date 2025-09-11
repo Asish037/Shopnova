@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
@@ -140,6 +142,7 @@ export default HelpCenter;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: Platform.OS === 'ios' ? 20 : 10,
     width: '100%',
     height: '100%',
   },

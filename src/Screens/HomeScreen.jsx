@@ -6,15 +6,16 @@ import {
   Text,
   TextInput,
   View,
-  Alert
+  Alert,
+  Platform,
 } from 'react-native';
-import React, {useState, useEffect, useContext} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from '../Components/Header';
 import Tags from '../Components/Tags';
 import ProductCard from '../Components/ProductCard';
 import data from '../data/data.json';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import sale from '../assets/sale2.jpeg';
 import backgroundSlider from '../assets/backgroundSlider.png';
 import { COLORS } from '../Constant/Colors';
@@ -32,24 +33,22 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   // const {getThemeColors} = useTheme();
   // const themeColors = getThemeColors();
-    // const { userData } = useContext(CartContext);
-    const {user, token} = useContext(CartContext);
-    const { wishlist, isFavorite, addToWishlist, removeFromWishlist } = useContext(CartContext);
+  // const { userData } = useContext(CartContext);
+  const { user, token, wishlist, isFavorite, addToWishlist, removeFromWishlist } = useContext(CartContext);
   let productList = {
     method: 'GET',
     url: 'product-list',
-    header: {
+    headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    // data: qs.stringify({}),
   };
 
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
       const response = await axios(productList);
-      const product = response.data.data.map((item)=>{
+      const product = response.data.data.map((item) => {
         return {
           id: item.id,
           title: item.name,
@@ -59,6 +58,7 @@ const HomeScreen = () => {
           image: item.img,
 
           // rating: {rate: 0 , count: 0},
+          // isFavorite: false,
           isFavorite: isFavorite(item.id),
         };
       });
@@ -72,10 +72,10 @@ const HomeScreen = () => {
     }
   };
 
- 
+
   useEffect(() => {
     fetchProducts();
-  }, [wishlist]);
+  }, [wishlist?.length]);
 
   /** Add product to wishlist */
   const fetchAddLikeProducts = async (productId) => {
@@ -93,8 +93,8 @@ const HomeScreen = () => {
       }
 
       const payload = {
-        userId: String(user.id),           
-        productIds: [String(productId)],       
+        userId: String(user.id),
+        productIds: [String(productId)],
       };
 
       const response = await axios({
@@ -131,7 +131,7 @@ const HomeScreen = () => {
 
       const response = await axios({
         method: 'delete',
-        url: `/remove-wishlist?userId=${userId}&productId=${productId}`, 
+        url: `/remove-wishlist?userId=${userId}&productId=${productId}`,
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
@@ -162,10 +162,10 @@ const HomeScreen = () => {
 
       if (item.isFavorite) {
         await fetchRemoveLikeProducts(user.id, item.id);
-        removeFromWishlist(item.productId);
+        removeFromWishlist && removeFromWishlist(item.productId);
       } else {
         await fetchAddLikeProducts(item.id);
-        addToWishlist({ productId: item.id });
+        addToWishlist && addToWishlist({ productId: item.id });
       }
 
       // update local state
@@ -178,7 +178,7 @@ const HomeScreen = () => {
       console.error('Error toggling favorite:', err);
     }
   };
- 
+
   if (isLoading) {
     return <AppLoader message="Loading products..." />;
   }
@@ -186,14 +186,13 @@ const HomeScreen = () => {
   return (
     <LinearGradient colors={COLORS.gradient} style={styles.container}>
       <Header />
-
       <FlatList
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         ListHeaderComponent={
           <>
-            <ImageBackground 
-              source={backgroundSlider} 
+            <ImageBackground
+              source={backgroundSlider}
               style={styles.ImageBackground}
               resizeMode="contain"
             >
@@ -210,7 +209,7 @@ const HomeScreen = () => {
         }
         data={products}
         numColumns={2}
-        renderItem={({item}) => (
+        renderItem={({ item }) => (
           <ProductCard
             item={item}
             handleProductClick={handleProductDetails}
@@ -225,6 +224,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: Platform.OS === 'ios' ? 15 : 5,
     width: '100%',
     height: '100%',
   },

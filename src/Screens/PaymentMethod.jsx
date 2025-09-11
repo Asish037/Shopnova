@@ -1,3 +1,4 @@
+// screen after confirm order to payment
 import {
   StyleSheet,
   Text,
@@ -327,6 +328,7 @@ export default PaymentMethod;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 10,
     width: '100%',
     height: '100%',
   },

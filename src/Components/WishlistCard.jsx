@@ -2,8 +2,9 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {useContext} from 'react';
 import {fonts} from '../utils/fonts';
 import {CartContext} from '../Context/CartContext';
+import { COLORS } from '../Constant/Colors';
 
-const ProductCard = ({
+const WishlistCard = ({
   item,
   handleProductClick,
   toggleFavorite,
@@ -51,15 +52,36 @@ const ProductCard = ({
         <Text style={styles.title} numberOfLines={2}>
           {item.title}
         </Text>
-        <Text style={styles.price}>${item.price}</Text>
-        <Text style={styles.description} numberOfLines={2}>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            marginBottom: 6,
+            gap: 10,
+          }}>
+          <Text style={styles.productPrice}>
+            {'\u20B9'}
+            {item.offer_price}
+          </Text>
+          <Text style={styles.productOriginalPrice}>
+            {'\u20B9'}
+            {item.price}
+          </Text>
+        </View>
+        {/* <Text style={styles.description} numberOfLines={2}>
           {truncatedDescription}
-        </Text>
+        </Text> */}
 
         {/* Rating Section */}
         <View style={styles.ratingContainer}>
           <Text style={styles.rating}>
-            {renderStars(item.rating?.rate || item.rating || 0)}
+            {renderStars(
+              item.rating?.rate ||
+                item.rating ||
+                Math.floor(Math.random() * 5) + 1,
+            )}
           </Text>
           {(item.rating?.count || item.ratingCount) && (
             <Text style={styles.ratingCount}>
@@ -124,7 +146,7 @@ const ProductCard = ({
   );
 };
 
-export default ProductCard;
+export default WishlistCard;
 
 const styles = StyleSheet.create({
   container: {
@@ -162,11 +184,25 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     lineHeight: 20,
   },
+  productOriginalPrice: {
+    textDecorationLine: 'line-through',
+    color: '#383636ff',
+    fontWeight: '700',
+    fontFamily: fonts.medium,
+    fontSize: 15,
+  },
+  productPrice: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    fontWeight: '700',
+    color: '#f54a00',
+    // marginBottom: 6,
+  },
   price: {
     fontSize: 18,
     fontFamily: fonts.medium,
     fontWeight: '700',
-    color: '#E94560',
+    color: COLORS.blue,
     marginBottom: 6,
   },
   description: {
@@ -184,13 +220,14 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 12,
     fontFamily: fonts.regular,
-    color: '#FFA500',
+    color: COLORS.black,
     marginRight: 4,
+    fontWeight: '500',
   },
   ratingCount: {
     fontSize: 10,
     fontFamily: fonts.regular,
-    color: '#999999',
+    color: COLORS.grey,
   },
   cartButton: {
     flexDirection: 'row',
@@ -202,14 +239,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   cartButtonDefault: {
-    backgroundColor: '#FFE4E6',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#E94560',
+    borderColor: COLORS.button,
   },
   cartButtonAdded: {
-    backgroundColor: '#E94560',
+    backgroundColor: COLORS.button,
     borderWidth: 1,
-    borderColor: '#E94560',
+    borderColor: COLORS.button,
   },
   cartIcon: {
     width: 16,
@@ -217,7 +254,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   cartIconDefault: {
-    tintColor: '#E94560',
+    tintColor: COLORS.button,
   },
   cartIconAdded: {
     tintColor: '#FFFFFF',
@@ -228,7 +265,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cartButtonTextDefault: {
-    color: '#E94560',
+    color: COLORS.button,
   },
   cartButtonTextAdded: {
     color: '#FFFFFF',

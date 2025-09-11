@@ -2,7 +2,7 @@ import {View, Text, Image} from 'react-native';
 import React, {useContext} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-// import Icon from "react-native-vector-icons/dist/FontAwesome";
+import Icon from "react-native-vector-icons/Ionicons";
 // import Entypo from "react-native-vector-icons/dist/Entypo";
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {CartContext, CartProvider} from './../Context/CartContext';
@@ -17,31 +17,28 @@ import AccountScreen from '../Screens/AccountScreen';
 import PaymentScreen from '../Screens/PaymentScreen';
 import AddressScreen from '../Screens/AddressScreen';
 import MyWishList from '../Screens/MyWishList';
+import { COLORS } from '../Constant/Colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-const CartTabIcon = ({focused, size}) => {
+const CartTabIcon = ({focused, color, size}) => {
   const {cartItems, getTotalQuantity} = useContext(CartContext);
   const totalQuantity = getTotalQuantity();
 
-  if (focused) {
-    return (
-      <View style={{position: 'relative'}}>
-        <Image
-          source={require('../assets/focused/shopping_cart.png')}
-          style={{
-            height: size,
-            width: size,
-            resizeMode: 'center',
-            
-          }}
-        />
+  return (
+    <View style={{position: 'relative'}}>
+      <Icon 
+        name={focused ? "cart" : "cart-outline"} 
+        size={size || 24} 
+        color={color} 
+      />
+      {totalQuantity > 0 && (
         <View
           style={{
             position: 'absolute',
             right: -3,
-            bottom: 22,
+            bottom: 15,
             height: 14,
             width: 14,
             backgroundColor: '#E94560',
@@ -49,38 +46,13 @@ const CartTabIcon = ({focused, size}) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <Text style={{color: 'white', fontSize: 10}}>{totalQuantity}</Text>
+          <Text style={{color: 'white', fontSize: 10, fontWeight: 'bold'}}>
+            {totalQuantity}
+          </Text>
         </View>
-      </View>
-    );
-  } else {
-    return (
-      <View style={{position: 'relative'}}>
-        <Image
-          source={require('../assets/normal/shopping_cart.png')}
-          style={{
-            height: size,
-            width: size,
-            resizeMode: 'center',
-          }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            right: -3,
-            bottom: 22,
-            height: 14,
-            width: 14,
-            backgroundColor: '#666666',
-            borderRadius: 7,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text style={{color: 'white', fontSize: 10}}>{totalQuantity}</Text>
-        </View>
-      </View>
-    );
-  }
+      )}
+    </View>
+  );
 };
 
 const MyHomeStack = () => {
@@ -151,78 +123,42 @@ const BottomTab = () => {
             // backgroundColor: 'transparent',
             backgroundColor: '#ffffffff', 
           },
-          tabBarActiveTintColor: '#E94560',
-          tabBarInactiveTintColor: '#040101ff',
+          tabBarActiveTintColor: COLORS.button,
+          tabBarInactiveTintColor: COLORS.grey,
           
         }}>
         <Tab.Screen
           name="HOME_STACK"
           component={MyHomeStack}
           options={{
-            tabBarIcon: ({focused, size}) => {
-              if (focused) {
-                return (
-                  <Image
-                    source={require('../assets/focused/home.png')}
-                    style={{
-                      height: 24,
-                      width: 24,
-                      resizeMode: 'center',
-                    }}
-                  />
-                );
-              } else {
-                return (
-                  <Image
-                    source={require('../assets/normal/home.png')}
-                    style={{
-                      height: 24,
-                      width: 24,
-                      resizeMode: 'center',
-                    }}
-                  />
-                );
-              }
-            },
+            tabBarIcon: ({focused, color, size}) => (
+              <Icon 
+                name={focused ? "home" : "home-outline"} 
+                size={size || 24} 
+                color={color} 
+              />
+            ),
           }}
         />
         <Tab.Screen
           name="categories"
           component={CategoriesScreen}
           options={{
-            tabBarIcon: ({focused, size}) => {
-              if (focused) {
-                return (
-                  <Image
-                    source={require('../assets/focused/reorder.png')}
-                    style={{
-                      height: 24,
-                      width: 24,
-                      resizeMode: 'center',
-                    }}
-                  />
-                );
-              } else {
-                return (
-                  <Image
-                    source={require('../assets/normal/reorder.png')}
-                    style={{
-                      height: 24,
-                      width: 24,
-                      resizeMode: 'center',
-                    }}
-                  />
-                );
-              }
-            },
+            tabBarIcon: ({focused, color, size}) => (
+              <Icon 
+                name={focused ? "grid" : "grid-outline"} 
+                size={size || 24} 
+                color={color} 
+              />
+            ),
           }}
         />
         <Tab.Screen
           name="CART"
           component={CartScreen}
           options={{
-            tabBarIcon: ({focused, size}) => (
-              <CartTabIcon focused={focused} size={30} />
+            tabBarIcon: ({focused, color, size}) => (
+              <CartTabIcon focused={focused} color={color} size={size} />
             ),
           }}
         />
@@ -230,31 +166,13 @@ const BottomTab = () => {
           name="ACCOUNT"
           component={AccountScreen}
           options={{
-            tabBarIcon: ({focused, size}) => {
-              if (focused) {
-                return (
-                  <Image
-                    source={require('../assets/focused/account.png')}
-                    style={{
-                      height: size,
-                      width: size,
-                      resizeMode: 'center',
-                    }}
-                  />
-                );
-              } else {
-                return (
-                  <Image
-                    source={require('../assets/normal/account.png')}
-                    style={{
-                      height: size,
-                      width: size,
-                      resizeMode: 'center',
-                    }}
-                  />
-                );
-              }
-            },
+            tabBarIcon: ({focused, color, size}) => (
+              <Icon 
+                name={focused ? "person" : "person-outline"} 
+                size={size || 24} 
+                color={color} 
+              />
+            ),
           }}
         />
       </Tab.Navigator>

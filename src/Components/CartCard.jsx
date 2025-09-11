@@ -155,7 +155,7 @@ const CartCard = ({item, handleDelete}) => {
         </View>
 
         <Text style={styles.price}>
-          ${(item.price * currentQuantity).toFixed(2)}
+          {'\u20B9'}{(item.price * currentQuantity).toFixed(2)}
         </Text>
 
         <View style={styles.bottomRow}>

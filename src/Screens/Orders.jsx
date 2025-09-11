@@ -43,73 +43,77 @@ const Orders = () => {
   }, [filter]);
 
   const fetchOrders = async () => {
-  try {
-    setIsLoading(true);
-    const token = await asyncStorage.getItem('userToken');
-    const userId = await asyncStorage.getItem('userId');
+    try {
+      setIsLoading(true);
+      const token = await asyncStorage.getItem('userToken');
+      const userId = await asyncStorage.getItem('userId');
 
-    if (!token) {
-      Alert.alert('Error', 'No auth token found. Please log in again.');
-      return;
-    }
-
-    const response = await axios({
-      method: 'get',
-      url: `/order-list?userId=${userId}`,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.status === 200) {
-      let fetchedOrders = response.data.data;
-
-      const updatedOrders = fetchedOrders.map(order => ({
-        ...order,
-        shipping_status: order.shipping_status || 'Processing',
-        payment: order.payment || { payment_status: 'Pending' },
-      }));
-
-      let filteredOrders = updatedOrders;
-      if (filter) {
-        switch (filter) {
-          case 'unpaid':
-            filteredOrders = updatedOrders.filter(
-              o => o.payment.payment_status !== 'Completed'
-            );
-            break;
-          case 'paid':
-            filteredOrders = updatedOrders.filter(
-              o =>
-                o.payment.payment_status === 'Completed' &&
-                o.shipping_status === 'Processing'
-            );
-            break;
-          case 'shipped':
-            filteredOrders = updatedOrders.filter(
-              o => o.shipping_status === 'Shipped'
-            );
-            break;
-          case 'delivered':
-            filteredOrders = updatedOrders.filter(
-              o => o.shipping_status === 'Delivered'
-            );
-            break;
-        }
+      if (!token) {
+        Alert.alert('Error', 'No auth token found. Please log in again.');
+        return;
       }
 
-      setOrdersData(filteredOrders);
-    } else {
-      Alert.alert('Error', response.data.message || 'Something went wrong.');
-    }
-  } catch (err) {
-    console.error('Error fetching orders:', err);
-    // ✅ fallback to local dummy data
-    setOrdersData(myorderData.orders);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const response = await axios({
+        method: 'get',
+        url: `/order-list?userId=${userId}`,
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    // Filter orders based on the parameters passed from AccountScreen
+      if (response.status === 200) {
+        // 👇 Safe extraction
+        let fetchedOrders = response.data?.data ?? [];
+
+        // Normalize each order
+        const updatedOrders = fetchedOrders.map(order => ({
+          ...order,
+          shipping_status: order.shipping_status || 'Processing', // default if missing
+          payment: order.payment || { payment_status: 'Pending', payment_method: 'N/A' },
+          order_items: order.order_items ?? [], // safe default
+        }));
+
+        // Apply filter
+        let filteredOrders = updatedOrders;
+        if (filter) {
+          switch (filter) {
+            case 'unpaid':
+              filteredOrders = updatedOrders.filter(
+                o => o.payment?.payment_status !== 'Completed'
+              );
+              break;
+            case 'paid':
+              filteredOrders = updatedOrders.filter(
+                o =>
+                  o.payment?.payment_status === 'Completed' &&
+                  o.shipping_status === 'Processing'
+              );
+              break;
+            case 'shipped':
+              filteredOrders = updatedOrders.filter(
+                o => o.shipping_status === 'Shipped'
+              );
+              break;
+            case 'delivered':
+              filteredOrders = updatedOrders.filter(
+                o => o.shipping_status === 'Delivered'
+              );
+              break;
+          }
+        }
+
+        setOrdersData(filteredOrders);
+      } else {
+        Alert.alert('Error', response.data.message || 'Something went wrong.');
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setOrdersData(myorderData.orders ?? []); // fallback safe
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  // Filter orders based on the parameters passed from AccountScreen
   // let filteredOrders = allOrders;
   // setOrdersData(filteredOrders);
 
@@ -139,97 +143,104 @@ const Orders = () => {
     }
   };
 
-  const renderOrderItem = ({item}) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('OrderDetails', {items: item})}
-      style={styles.orderCard}>
-      
-      {/* Header */}
-      <View style={styles.orderHeader}>
-        <View style={styles.orderIdSection}>
-          <Text style={styles.orderIdText}>Order #{item.id}</Text>
-          <Text style={styles.orderDateText}>
-            {Moment(item.created_at).format('YYYY-MM-DD')}
-          </Text>
-        </View>
-        <View style={styles.statusContainer}>
-          <MaterialCommunityIcons
-            name={getStatusIcon(item.shipping_status)}
-            size={20}
-            color={getStatusColor(item.shipping_status)}
-          />
-          <Text
-            style={[
-              styles.statusText,
-              {color: getStatusColor(item.shipping_status)},
-            ]}>
-            {item.shipping_status}
-          </Text>
-        </View>
-      </View>
+  const renderOrderItem = ({item}) => {
+    const firstItem = item.order_items?.[0]; // safe check
 
-      {/* Order Content */}
-      <View style={styles.orderContent}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={{
-              uri: `https://yourdomain.com/storage/${item.order_items[0].product_image}`, 
-            }}
-            style={styles.productImage}
-          />
-        </View>
-
-        <View style={styles.productDetails}>
-          <Text style={styles.productName} numberOfLines={2}>
-            {item.order_items[0].product_name}
-          </Text>
-          <Text style={styles.brandText}>N/A</Text>
-
-          <View style={styles.quantityPriceRow}>
-            <Text style={styles.quantityText}>
-              Qty: {item.order_items[0].quantity}
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate('OrderDetails', {items: item})}
+        style={styles.orderCard}
+      >
+        {/* Header */}
+        <View style={styles.orderHeader}>
+          <View style={styles.orderIdSection}>
+            <Text style={styles.orderIdText}>Order #{item.id}</Text>
+            <Text style={styles.orderDateText}>
+              {Moment(item.created_at).format('YYYY-MM-DD')}
             </Text>
-            <Text style={styles.priceText}>${item.total.toFixed(2)}</Text>
+          </View>
+          <View style={styles.statusContainer}>
+            <MaterialCommunityIcons
+              name={getStatusIcon(item.shipping_status)}
+              size={20}
+              color={getStatusColor(item.shipping_status)}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                {color: getStatusColor(item.shipping_status)},
+              ]}
+            >
+              {item.shipping_status || 'Processing'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Order Content */}
+        <View style={styles.orderContent}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{
+                uri: firstItem?.product_image || 'https://via.placeholder.com/150',
+              }}
+              style={styles.productImage}
+            />
           </View>
 
-          {item.order_items.length > 1 && (
-            <Text style={styles.moreItemsText}>
-              +{item.order_items.length - 1} more item
-              {item.order_items.length > 2 ? 's' : ''}
+          <View style={styles.productDetails}>
+            <Text style={styles.productName} numberOfLines={2}>
+              {firstItem?.product_name || 'Unknown product'}
+            </Text>
+            <Text style={styles.brandText}>N/A</Text>
+
+            <View style={styles.quantityPriceRow}>
+              <Text style={styles.quantityText}>
+                Qty: {firstItem?.quantity ?? 0}
+              </Text>
+              <Text style={styles.priceText}>
+                ${item.total?.toFixed(2) || '0.00'}
+              </Text>
+            </View>
+
+            {item.order_items?.length > 1 && (
+              <Text style={styles.moreItemsText}>
+                +{item.order_items.length - 1} more item
+                {item.order_items.length > 2 ? 's' : ''}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.arrowContainer}>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={24}
+              color={COLORS.gray || '#757575'}
+            />
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.orderFooter}>
+          <View style={styles.paymentInfo}>
+            <MaterialCommunityIcons
+              name="credit-card"
+              size={16}
+              color={COLORS.button}
+            />
+            <Text style={styles.paymentText}>
+              {item.payment?.payment_method || 'N/A'} •{' '}
+              {item.payment?.payment_status || 'Pending'}
+            </Text>
+          </View>
+          {item.tracking_number && (
+            <Text style={styles.trackingText}>
+              Tracking: {item.tracking_number}
             </Text>
           )}
         </View>
-
-        <View style={styles.arrowContainer}>
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={24}
-            color={COLORS.gray || '#757575'}
-          />
-        </View>
-      </View>
-
-      {/* Footer */}
-      <View style={styles.orderFooter}>
-        <View style={styles.paymentInfo}>
-          <MaterialCommunityIcons
-            name="credit-card"
-            size={16}
-            color={COLORS.button}
-          />
-          <Text style={styles.paymentText}>
-            {item.payment?.payment_method || 'N/A'} • {item.payment?.payment_status || 'Pending'}
-          </Text>
-        </View>
-        {item.tracking_number && (
-          <Text style={styles.trackingText}>
-            Tracking: {item.tracking_number}
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <LinearGradient
@@ -256,15 +267,18 @@ const Orders = () => {
               Total: $
               {ordersData
                 .reduce((sum, order) => {
-                  const orderTotal = order.order_items.reduce((itemSum, item) => {
-                    const price = item.product_offer_price || item.product_price || 0;
-                    return itemSum + price * item.quantity;
-                  }, 0);
+                  const orderTotal = (order.order_items ?? []).reduce(
+                    (itemSum, item) => {
+                      const price =
+                        item.product_offer_price || item.product_price || 0;
+                      return itemSum + price * (item.quantity || 0);
+                    },
+                    0,
+                  );
                   return sum + orderTotal;
                 }, 0)
                 .toFixed(2)}
             </Text>
-
           </View>
         )}
         ListEmptyComponent={() => {
@@ -322,6 +336,7 @@ export default Orders;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 10,
     width: '100%',
     height: '100%',
   },
