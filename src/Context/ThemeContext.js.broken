@@ -1,0 +1,160 @@
+import React, {createContext, useContext, useState, useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Define theme types
+export const THEME_TYPES = {
+  LIGHT: 'light',
+  DARK: 'dark',
+  CUSTOM: 'custom',
+};
+
+// Define theme configurations
+export const THEMES = {
+  light: {
+    name: 'Light Theme',
+    type: THEME_TYPES.LIGHT,
+    colors: {
+      primary: '#DB9BAA',
+      secondary: '#E94560',
+      background: '#FFFFFF',
+      surface: '#F8F9FA',
+      card: '#FFFFFF',
+      text: '#2C2C2C',
+      textSecondary: '#666666',
+      border: '#E1E1E1',
+      success: '#229954',
+      warning: '#FFA500',
+      error: '#FF0000',
+      info: '#1F44A3',
+      accent: '#F4ADBD',
+      bottomTab: '#151822',
+      gradient: ['#e3e3e3ff', '#c3adb1ff'],
+      gradientButton: ['#d97979ff', '#E94560'],
+    },
+  },
+  dark: {
+    name: 'Dark Theme',
+    type: THEME_TYPES.DARK,
+    colors: {
+      primary: '#E94560',
+      secondary: '#DB9BAA',
+      background: '#121212',
+      surface: '#1E1E1E',
+      card: '#2C2C2C',
+      text: '#FFFFFF',
+      textSecondary: '#B0B0B0',
+      border: '#404040',
+      success: '#4CAF50',
+      warning: '#FF9800',
+      error: '#F44336',
+      info: '#2196F3',
+      accent: '#FF6B9D',
+      bottomTab: '#000000',
+      gradient: ['#2C2C2C', '#1E1E1E'],
+      gradientButton: ['#E94560', '#DB9BAA'],
+    },
+  },
+  custom: {
+    name: 'Custom Theme',
+    type: THEME_TYPES.CUSTOM,
+    colors: {
+      primary: '#9C27B0',
+      secondary: '#FF5722',
+      background: '#F3E5F5',
+      surface: '#E1BEE7',
+      card: '#FFFFFF',
+      text: '#4A148C',
+      textSecondary: '#7B1FA2',
+      border: '#CE93D8',
+      success: '#4CAF50',
+      warning: '#FF9800',
+      error: '#F44336',
+      info: '#2196F3',
+      accent: '#E91E63',
+      bottomTab: '#4A148C',
+      gradient: ['#F3E5F5', '#E1BEE7'],
+      gradientButton: ['#9C27B0', '#FF5722'],
+    },
+  },
+};
+
+const ThemeContext = createContext();
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
+
+export const ThemeProvider = ({children}) => {
+  const [currentTheme, setCurrentTheme] = useState(THEME_TYPES.LIGHT);
+  const [theme, setTheme] = useState(THEMES.light);
+
+  // Load saved theme on app start
+  useEffect(() => {
+    loadSavedTheme();
+  }, []);
+
+  // Update theme when currentTheme changes
+  useEffect(() => {
+    setTheme(THEMES[currentTheme]);
+  }, [currentTheme]);
+
+  const loadSavedTheme = async () => {
+    try {
+      const savedTheme = await AsyncStorage.getItem('selectedTheme');
+      if (savedTheme && THEMES[savedTheme]) {
+        setCurrentTheme(savedTheme);
+      }
+    } catch (error) {
+      console.log('Error loading saved theme:', error);
+    }
+  };
+
+  const changeTheme = async (themeType) => {
+    try {
+      if (THEMES[themeType]) {
+        setCurrentTheme(themeType);
+        await AsyncStorage.setItem('selectedTheme', themeType);
+      }
+    } catch (error) {
+      console.log('Error saving theme:', error);
+    }
+  };
+
+  const getThemeColors = () => {
+    return theme.colors;
+  };
+
+  const isDarkTheme = () => {
+    return currentTheme === THEME_TYPES.DARK;
+  };
+
+  const isLightTheme = () => {
+    return currentTheme === THEME_TYPES.LIGHT;
+  };
+
+  const isCustomTheme = () => {
+    return currentTheme === THEME_TYPES.CUSTOM;
+  };
+
+  const value = {
+    currentTheme,
+    theme,
+    changeTheme,
+    getThemeColors,
+    isDarkTheme,
+    isLightTheme,
+    isCustomTheme,
+    THEME_TYPES,
+    THEMES,
+  };
+
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};

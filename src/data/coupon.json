@@ -1,0 +1,50 @@
+{
+    "coupons": [
+      {
+        "id": "C001",
+        "title": "Flat $199 off",
+        "code": "SAVE10",
+        "description": "Save 10% on your next order",
+        "discount_type": "percentage",
+        "discount_value": 10,
+        "valid_from": "2025-03-01",
+        "valid_until": "2025-04-01",
+        "minimum_order_value": 50,
+        "max_usage_limit": 100,
+        "usage_count": 25,
+        "is_active": true,
+        "image_url": "https://cdn.dummyjson.com/products/images/beauty/Powder%20Canister/thumbnail.png"
+      },
+      {
+        "id": "C002",
+        "code": "FREESHIP",
+        "title": "Flat 5% off",
+        "description": "Free shipping on orders over $30",
+        "discount_type": "shipping",
+        "discount_value": 0,
+        "minimum_order_value": 30,
+        "valid_from": "2025-03-01",
+        "valid_until": "2025-05-01",
+        "max_usage_limit": 200,
+        "usage_count": 50,
+        "is_active": true,
+        "image_url": "https://cdn.dummyjson.com/products/images/beauty/Eyeshadow%20Palette%20with%20Mirror/thumbnail.png"
+      },
+      {
+        "id": "C003",
+        "code": "BLACKFRIDAY",
+        "title": "Flat 15% off",
+        "description": "50% off on all electronics",
+        "discount_type": "percentage",
+        "discount_value": 50,
+        "valid_from": "2025-11-01",
+        "valid_until": "2025-11-30",
+        "minimum_order_value": 100,
+        "max_usage_limit": 300,
+        "usage_count": 0,
+        "is_active": false,
+        "image_url":  "https://cdn.dummyjson.com/products/images/fragrances/Dior%20J'adore/thumbnail.png"
+      }
+    ]
+  }
+  

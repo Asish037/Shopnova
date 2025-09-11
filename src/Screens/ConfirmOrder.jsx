@@ -1,0 +1,292 @@
+import {
+StyleSheet,
+Text,
+TouchableOpacity,
+FlatList,
+View,
+ScrollView,
+} from 'react-native';
+import React, {useContext} from 'react';
+import Header from '../Components/Header';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {CartContext} from '../Context/CartContext';
+import LinearGradient from 'react-native-linear-gradient';
+import {COLORS} from '../Constant/Colors';
+import {FONTS} from '../Constant/Font';
+
+const ConfirmOrder = () => {
+    const navigation = useNavigation();
+    const route = useRoute();
+    const {cartItems: contextCartItems, totalPrice} = useContext(CartContext);
+
+  // Use cartItems from route params first, fallback to context
+    const cartItems = route.params?.cartItems || contextCartItems || [];
+    const selectedPaymentMethod =
+    route.params?.selectedPaymentMethod || 'Not Selected';
+    const total = route.params?.total || totalPrice || 0;
+
+    console.log('ConfirmOrder - Cart Items:', cartItems);
+    console.log('ConfirmOrder - Items count:', cartItems.length);
+    console.log('ConfirmOrder - Total:', total);
+
+    const handlePlaceOrder = () => {
+        // Logic to handle order placement
+        console.log('Order placed successfully!');
+        // Navigate to PaymentMethod with dynamic data
+        navigation.navigate('PaymentMethod', {
+        cartItems,
+        grandTotal: total,
+        selectedPaymentMethod,
+        });
+    };
+
+    const renderItem = ({item}) => (
+        <View style={styles.itemCard}>
+        <View style={styles.itemHeader}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemSubtotal}>₹{item.price * item.quantity}</Text>
+        </View>
+        <View style={styles.itemDetailsContainer}>
+            <View style={styles.itemDetailRow}>
+            <Text style={styles.itemDetails}>Qty: {item.quantity}</Text>
+            <Text style={styles.itemDetails}>Price: ₹{item.price}</Text>
+            </View>
+        </View>
+        </View>
+    );
+
+    return (
+        <LinearGradient colors={COLORS.gradient} style={{flex: 1}}>
+        <View style={styles.container}>
+            <Header title="Confirm Order" />
+
+            {cartItems.length > 0 ? (
+            <ScrollView
+                style={styles.scrollContainer}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}>
+                <View style={styles.card}>
+                <Text style={styles.title}>Order Summary</Text>
+
+                <View style={styles.itemsContainer}>
+                    <FlatList
+                    data={cartItems}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={renderItem}
+                    scrollEnabled={false}
+                    ItemSeparatorComponent={() => (
+                        <View style={styles.separator} />
+                    )}
+                    />
+                </View>
+
+                <View style={styles.summarySection}>
+                    <View style={styles.paymentRow}>
+                    <Text style={styles.paymentLabel}>Payment Method:</Text>
+                    <Text style={styles.paymentValue}>
+                        {selectedPaymentMethod}
+                    </Text>
+                    </View>
+
+                    <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>Total Amount:</Text>
+                    <Text style={styles.totalAmount}>₹{total}</Text>
+                    </View>
+                </View>
+
+                <LinearGradient
+                    colors={COLORS.gradientButton}
+                    style={styles.button}>
+                    <TouchableOpacity
+                    style={styles.buttonTouchable}
+                    onPress={handlePlaceOrder}
+                    activeOpacity={0.8}>
+                    <Text style={styles.buttonText}>Place Order</Text>
+                    </TouchableOpacity>
+                </LinearGradient>
+                </View>
+            </ScrollView>
+            ) : (
+            <View style={styles.emptyContainer}>
+                <Text style={styles.empty}>No items in cart</Text>
+                <Text style={styles.emptySubtext}>
+                Add some items to your cart to place an order
+                </Text>
+            </View>
+            )}
+        </View>
+        </LinearGradient>
+    );
+};
+
+export default ConfirmOrder;
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 16,
+        
+    },
+    scrollContainer: {
+        flex: 1,
+        marginTop: 10,
+        marginBottom: 20,
+        // alignItems: 'center',
+
+    },
+    scrollContent: {
+        paddingBottom: 20,
+    },
+    card: {
+        backgroundColor: COLORS.white,
+        borderRadius: 20,
+        elevation: 8,
+        shadowColor: COLORS.black,
+        shadowOffset: {
+        width: 0,
+        height: 4,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        padding: 20,
+        marginBottom: 20,
+    
+    },
+    title: {
+        fontSize: 24,
+        fontFamily: FONTS.Bold,
+        color: COLORS.black,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    itemsContainer: {
+        marginBottom: 20,
+    },
+    itemCard: {
+        backgroundColor: COLORS.lightgray,
+        borderRadius: 12,
+        padding: 16,
+        marginVertical: 4,
+    },
+    itemHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    itemName: {
+        fontSize: 16,
+        fontFamily: FONTS.SemiBold,
+        color: "black",
+        flex: 1,
+        marginRight: 10,
+    },
+    itemSubtotal: {
+        fontSize: 16,
+        fontFamily: FONTS.Bold,
+        color: "red",
+    },
+    itemDetailsContainer: {
+        marginTop: 4,
+    },
+    itemDetailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    itemDetails: {
+        fontSize: 14,
+        fontFamily: FONTS.Regular,
+        color: "#2c2c2c",
+    },
+    separator: {
+        height: 8,
+        // backgroundColor: "#000",
+        borderWidth: 1,
+        borderColor: "#000",
+
+    },
+    summarySection: {
+        borderTopWidth: 1,
+        borderTopColor: COLORS.lightgray,
+        paddingTop: 20,
+        marginBottom: 20,
+    },
+    paymentRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    paymentLabel: {
+        fontSize: 16,
+        fontFamily: FONTS.Medium,
+        color: COLORS.black,
+    },
+    paymentValue: {
+        fontSize: 16,
+        fontFamily: FONTS.SemiBold,
+        color: "red",
+    },
+    totalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: COLORS.lightgray,
+        padding: 16,
+        borderRadius: 12,
+    },
+    totalLabel: {
+        fontSize: 18,
+        fontFamily: FONTS.SemiBold,
+        color: COLORS.black,
+    },
+    totalAmount: {
+        fontSize: 20,
+        fontFamily: FONTS.Bold,
+        color: "red",
+    },
+    button: {
+        borderRadius: 15,
+        elevation: 5,
+        shadowColor: COLORS.black,
+        shadowOffset: {
+        width: 0,
+        height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    buttonTouchable: {
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        borderRadius: 15,
+        backgroundColor: COLORS.button,
+    },
+    buttonText: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontFamily: FONTS.Bold,
+        letterSpacing: 0.5,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+    },
+    empty: {
+        fontSize: 20,
+        fontFamily: FONTS.SemiBold,
+        color: COLORS.grey,
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    emptySubtext: {
+        fontSize: 14,
+        fontFamily: FONTS.Regular,
+        color: COLORS.grey,
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+    });

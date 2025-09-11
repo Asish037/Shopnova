@@ -1,0 +1,446 @@
+
+{
+    "products": [
+        {
+            "id": "1",
+            "name": "! Mukhi Rudraksha",
+            "price": 29.99,
+            "description": "A rare spiritual bead used for meditation and healing.",
+            "image": "https://i.pinimg.com/736x/42/a1/25/42a1254e46e5f7d94db9a8c5a2450761.jpg",
+            "category": "Category 1",
+            "rating": 3.5,
+            "reviews": [
+                {
+                    "user": "User A",
+                    "rating": 4,
+                    "comment": "Great product!"
+                },
+                {
+                    "user": "User B",
+                    "rating": 5,
+                    "comment": "Exceeded my expectations."
+                }
+            ]
+        },
+        {
+            "id": "2",
+            "name": "2 Mukhi Rudraksha",
+            "price":  39.99,
+            "description": "A bead symbolizing unity and harmony.",
+            "image": "https://i.pinimg.com/736x/42/8e/ac/428eacd0d522171d6d31b05538f031df.jpg",
+            "category": "Category 2",
+            "rating": 4.1,
+            "reviews": [
+                {
+                    "user": "User C",
+                    "rating": 4,
+                    "comment": "Very good quality."
+                },
+                {
+                    "user": "User D",
+                    "rating": 5,
+                    "comment": "I love this product!"
+                }
+            ]
+        },
+        {
+            "id": "3",
+            "name": "3 Mukhi Rudraksha",
+            "price": 49.99,
+            "description": "A bead representing the fire element and promoting self-confidence.",
+            "image": "https://i.pinimg.com/736x/8f/fc/85/8ffc85dc77263cb14f6997f8cd0dacbd.jpg",
+            "category": "Category 3",
+            "rating": 4.0,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "4",
+            "name": "4 Mukhi Rudraksha",
+            "price": 59.99,
+            "description": "A bead representing the four elements and promoting balance.",
+            "image": "https://i.pinimg.com/1200x/43/71/e7/4371e7f9264cc64d30d63e4cc1779757.jpg",
+            "category": "Category 4",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User G",
+                    "rating": 4,
+                    "comment": "Very satisfied with this purchase."
+                },
+                {
+                    "user": "User H",
+                    "rating": 5,
+                    "comment": "Best product ever!"
+                }
+            ]
+        },
+        {
+            "id": "5",
+            "name": "5 Mukhi Rudraksha",
+            "price": 59.99,
+            "description": "A bead representing the five elements and promoting overall well-being.",
+            "image": "https://i.pinimg.com/736x/40/f5/20/40f52029e95adf8cff3ee74dec1b1cc6.jpg",
+            "category": "Category 5",
+            "rating": 5.0,
+            "reviews": [
+                {
+                    "user": "User G",
+                    "rating": 4,
+                    "comment": "Very satisfied with this purchase."
+                },
+                {
+                    "user": "User H",
+                    "rating": 5,
+                    "comment": "Best product ever!"
+                }
+            ]
+        },
+        {
+            "id": "6",
+            "name": "6 Mukhi Rudraksha",
+            "price": 49.99,
+            "description": "A bead representing the six elements and promoting balance.",
+            "image": "https://i.pinimg.com/736x/ed/94/fd/ed94fd1ee4e54c20ac14db7d65943e45.jpg",
+            "category": "Category 6",
+            "rating": 5.0,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "7",
+            "name": "7 Mukhi Rudraksha",
+            "price": 49.99,
+            "description": "A bead representing the seven elements and promoting spiritual growth.",
+            "image": "https://i.pinimg.com/736x/f2/cd/df/f2cddfac3e75121651da2042f577d05f.jpg",
+            "category": "Category 7",
+            "rating": 4.7,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "8",
+            "name": "8 Mukhi Rudraksha",
+            "price": 49.99,
+            "description": "A bead representing the eight elements and promoting abundance.",
+            "image": "https://i.pinimg.com/1200x/33/ca/f8/33caf861a175220e8ea9c5ecd64ef51d.jpg",
+            "category": "Category 8",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "9",
+            "name": "9 Mukhi Rudraksha",
+            "price": 49.99,
+            "description": "A bead representing the nine elements and promoting protection.",
+            "image": "https://i.pinimg.com/1200x/4e/6b/a4/4e6ba4f0947b785b2e1ca6c257ff36ad.jpg",
+            "category": "Category 9",
+            "rating": 4.0,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "10",
+            "name": "10 Mukhi Rudraksha",
+            "price": 49.99,
+            "description": "A bead representing the ten elements and promoting harmony.",
+            "image": "https://i.pinimg.com/1200x/69/5d/ec/695dec712a7d51d5227764a64568979f.jpg",
+            "category": "Category 10",
+            "rating": 4.2,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "11",
+            "name": "11 Mukhi Rudraksha Mala",
+            "price": 79.99,
+            "description": "A bead representing the eleven elements and promoting enlightenment.",
+            "image": "https://i.pinimg.com/1200x/7f/27/18/7f2718bba102e542ffda9d9654fc76b0.jpg",
+            "category": "Category 11",
+            "rating": 4.2,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "12",
+            "name": "12 Mukhi Rudraksha Bracelet",
+            "price": 79.99,
+            "description": "A bead representing the twelve elements and promoting cosmic connection.",
+            "image": "https://i.pinimg.com/1200x/8f/7e/3f/8f7e3f2e53b9131f5946d23a2d7f77f5.jpg",
+            "category": "Category 12",
+            "rating": 4.0,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "13",
+            "name": "13 Mukhi Rudraksha",
+            "price": 89.99,
+            "description": "A bead representing the thirteen elements and promoting spiritual growth.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 13",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "14",
+            "name": "14 Mukhi Rudraksha",
+            "price": 99.99,
+            "description": "A bead representing the fourteen elements and promoting inner peace.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 14",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "15",
+            "name": "15 Mukhi Rudraksha",
+            "price": 109.99,
+            "description": "A bead representing the fifteen elements and promoting universal love.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 15",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "16",
+            "name": "16 Mukhi Rudraksha",
+            "price": 119.99,
+            "description": "A bead representing the sixteen elements and promoting spiritual awakening.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 16",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        }, 
+        {
+            "id": "17",
+            "name": "17 Mukhi Rudraksha",
+            "price": 129.99,
+            "description": "A bead representing the seventeen elements and promoting self-realization.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 17",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "18",
+            "name": "18 Mukhi Rudraksha",
+            "price": 139.99,
+            "description": "A bead representing the eighteen elements and promoting material abundance.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 18",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "19",
+            "name": "19 Mukhi Rudraksha",
+            "price": 149.99,
+            "description": "A bead representing the nineteen elements and promoting spiritual growth.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 19",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "20",
+            "name": "20 Mukhi Rudraksha",
+            "price": 159.99,
+            "description": "A bead representing the twenty elements and promoting cosmic connection.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 20",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        },
+        {
+            "id": "21",
+            "name": "21 Mukhi Rudraksha",
+            "price": 169.99,
+            "description": "A bead representing the twenty-one elements and promoting divine connection.",
+            "image": "https://i.pinimg.com/1200x/4b/5e/3e/4b5e3e4c5b8c5e4c5b8c5e4c5b8c5e4c.jpg",
+            "category": "Category 21",
+            "rating": 4.5,
+            "reviews": [
+                {
+                    "user": "User E",
+                    "rating": 4,
+                    "comment": "Good value for money."
+                },
+                {
+                    "user": "User F",
+                    "rating": 5,
+                    "comment": "Highly recommend!"
+                }
+            ]
+        }
+    ]
+}

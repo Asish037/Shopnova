@@ -1,0 +1,247 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+// import {useTheme} from '../../Context/ThemeContext';
+import {fonts} from '../../utils/fonts';
+
+const {width, height} = Dimensions.get('window');
+
+const ThemeSelectionModal = ({visible, onClose}) => {
+  // const {currentTheme, changeTheme, THEME_TYPES, THEMES} = useTheme();
+
+  const handleThemeChange = (themeType) => {
+    changeTheme(themeType);
+    onClose();
+  };
+
+  const renderThemeOption = (themeKey, themeData) => {
+    const isSelected = currentTheme === themeKey;
+    
+    return (
+      <TouchableOpacity
+        key={themeKey}
+        style={[
+          styles.themeOption,
+          isSelected && styles.selectedThemeOption,
+        ]}
+        onPress={() => handleThemeChange(themeKey)}>
+        
+        {/* Theme Preview */}
+        <View style={styles.themePreview}>
+          <View style={[styles.previewHeader, {backgroundColor: themeData.colors.primary}]}>
+            <View style={[styles.previewDot, {backgroundColor: themeData.colors.secondary}]} />
+            <View style={[styles.previewDot, {backgroundColor: themeData.colors.accent}]} />
+          </View>
+          <View style={[styles.previewContent, {backgroundColor: themeData.colors.background}]}>
+            <View style={[styles.previewCard, {backgroundColor: themeData.colors.card}]}>
+              <View style={[styles.previewText, {backgroundColor: themeData.colors.text}]} />
+              <View style={[styles.previewText, {backgroundColor: themeData.colors.textSecondary, width: '60%'}]} />
+            </View>
+          </View>
+        </View>
+
+        {/* Theme Info */}
+        <View style={styles.themeInfo}>
+          <Text style={[
+            styles.themeName,
+            {color: isSelected ? '#FFFFFF' : '#2C2C2C'}
+          ]}>
+            {themeData.name}
+          </Text>
+          <Text style={[
+            styles.themeDescription,
+            {color: isSelected ? '#E0E0E0' : '#666666'}
+          ]}>
+            {themeKey === 'light' && 'Clean and bright interface'}
+            {themeKey === 'dark' && 'Easy on the eyes in low light'}
+            {themeKey === 'custom' && 'Unique purple and orange blend'}
+          </Text>
+        </View>
+
+        {/* Selection Indicator */}
+        {isSelected && (
+          <View style={styles.selectionIndicator}>
+            <Text style={styles.checkmark}>✓</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Choose Theme</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Theme Options */}
+          <ScrollView style={styles.themeOptionsContainer} showsVerticalScrollIndicator={false}>
+            {Object.entries(THEMES).map(([themeKey, themeData]) =>
+              renderThemeOption(themeKey, themeData)
+            )}
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={styles.modalFooter}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: height * 0.8,
+    minHeight: height * 0.6,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E1E1E1',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: fonts.bold,
+    color: '#2C2C2C',
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  themeOptionsContainer: {
+    padding: 20,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedThemeOption: {
+    backgroundColor: '#E94560',
+    borderColor: '#E94560',
+  },
+  themePreview: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginRight: 16,
+  },
+  previewHeader: {
+    height: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    gap: 4,
+  },
+  previewDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  previewContent: {
+    flex: 1,
+    padding: 8,
+  },
+  previewCard: {
+    flex: 1,
+    borderRadius: 4,
+    padding: 4,
+    gap: 2,
+  },
+  previewText: {
+    height: 3,
+    borderRadius: 2,
+  },
+  themeInfo: {
+    flex: 1,
+  },
+  themeName: {
+    fontSize: 16,
+    fontFamily: fonts.semibold,
+    marginBottom: 4,
+  },
+  themeDescription: {
+    fontSize: 12,
+    fontFamily: fonts.regular,
+    lineHeight: 16,
+  },
+  selectionIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkmark: {
+    fontSize: 14,
+    color: '#E94560',
+    fontWeight: 'bold',
+  },
+  modalFooter: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E1E1E1',
+  },
+  cancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: '#666666',
+  },
+});
+
+export default ThemeSelectionModal;

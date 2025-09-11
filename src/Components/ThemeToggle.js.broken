@@ -1,0 +1,80 @@
+import React from 'react';
+import {TouchableOpacity, Text, StyleSheet} from 'react-native';
+// import {useTheme} from '../Context/ThemeContext';
+import {fonts} from '../utils/fonts';
+
+const ThemeToggle = ({style, textStyle}) => {
+  // const {currentTheme, changeTheme, THEME_TYPES} = useTheme();
+
+  const getNextTheme = () => {
+    switch (currentTheme) {
+      case THEME_TYPES.LIGHT:
+        return THEME_TYPES.DARK;
+      case THEME_TYPES.DARK:
+        return THEME_TYPES.CUSTOM;
+      case THEME_TYPES.CUSTOM:
+        return THEME_TYPES.LIGHT;
+      default:
+        return THEME_TYPES.LIGHT;
+    }
+  };
+
+  const handleThemeChange = () => {
+    const nextTheme = getNextTheme();
+    changeTheme(nextTheme);
+  };
+
+  const getThemeIcon = () => {
+    switch (currentTheme) {
+      case THEME_TYPES.LIGHT:
+        return '☀️';
+      case THEME_TYPES.DARK:
+        return '🌙';
+      case THEME_TYPES.CUSTOM:
+        return '🎨';
+      default:
+        return '☀️';
+    }
+  };
+
+  const getThemeText = () => {
+    switch (currentTheme) {
+      case THEME_TYPES.LIGHT:
+        return 'Light';
+      case THEME_TYPES.DARK:
+        return 'Dark';
+      case THEME_TYPES.CUSTOM:
+        return 'Custom';
+      default:
+        return 'Light';
+    }
+  };
+
+  return (
+    <TouchableOpacity style={[styles.container, style]} onPress={handleThemeChange}>
+      <Text style={[styles.icon, textStyle]}>{getThemeIcon()}</Text>
+      <Text style={[styles.text, textStyle]}>{getThemeText()}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 6,
+  },
+  icon: {
+    fontSize: 16,
+  },
+  text: {
+    fontSize: 12,
+    fontFamily: fonts.medium,
+    color: '#FFFFFF',
+  },
+});
+
+export default ThemeToggle;

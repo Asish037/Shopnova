@@ -1,0 +1,144 @@
+{
+    "products": [
+        {
+            "id": 1,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Jacket",
+            "rating": 4.6,
+            "price": 49.99
+        },
+        {
+            "id": 2,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Jeans",
+            "rating": 4.2,
+            "price": 39.99
+        },
+        {
+            "id": 3,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/vy2q98s8ucsywwxjx2cf.png",
+            "title": "Acrylic Sweater",
+            "rating": 4.0,
+            "price": 29.99
+        },
+        {
+            "id": 4,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Winter Coat",
+            "rating": 4.1,
+            "price": 99.99
+        },
+        {
+            "id": 5,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/cvafl35dv9wzisdsgtd6.png",
+            "title": "Winter Shirts",
+            "rating": 4.7,
+            "price": 59.99
+        },
+        {
+            "id": 6,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Shirts With Jacket",
+            "rating": 4.2,
+            "price": 149.99
+        },
+        {
+            "id": 7,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Leather Jacket",
+            "rating": 4.0,
+            "price": 79.99
+        },
+        {
+            "id": 8,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Blue Jeans",
+            "rating": 4.1,
+            "price": 49.99
+        },
+        {
+            "id": 9,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/vy2q98s8ucsywwxjx2cf.png",
+            "title": "Wool Sweater",
+            "rating": 4.8,
+            "price": 39.99
+        },
+        {
+            "id": 10,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Parka",
+            "rating": 4.5,
+            "price": 129.99
+        },
+        {
+            "id": 11,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/cvafl35dv9wzisdsgtd6.png",
+            "title": "Sweatshirt",
+            "rating": 4.4,
+            "price": 19.99
+        },
+        {
+            "id": 12,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Denim Jacket",
+            "rating": 4.9,
+            "price": 69.99
+        },
+        {
+            "id": 13,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Hoodie",
+            "rating": 4.2,
+            "price": 29.99
+        },
+        {
+            "id": 14,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Black Jeans",
+            "rating": 4.0,
+            "price": 59.99
+        },
+        {
+            "id": 15,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/vy2q98s8ucsywwxjx2cf.png",
+            "title": "Cable-Knit Sweater",
+            "rating": 4.1,
+            "price": 49.99
+        },
+        {
+            "id": 16,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Peacoat",
+            "rating": 4.8,
+            "price": 89.99
+        },
+        {
+            "id": 17,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/cvafl35dv9wzisdsgtd6.png",
+            "title": "Flannel Shirt",
+            "rating": 4.4,
+            "price": 34.99
+        },
+        {
+            "id": 18,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Windbreaker",
+            "rating": 4.3,
+            "price": 59.99
+        },
+        {
+            "id": 19,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Puffer Jacket",
+            "rating": 4.2,
+            "price": 119.99
+        },
+        {
+            "id": 20,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Ripped Jeans",
+            "rating": 4.0,
+            "price": 69.99
+        }
+    ]
+}

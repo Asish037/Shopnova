@@ -1,0 +1,330 @@
+{
+    "products": [
+        {
+            "id": 1,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Jacket",
+            "description": "A stylish and comfortable jacket perfect for layering. Made from a durable blend of cotton and polyester.",
+            "rating": 4.6,
+            "price": 49.99,
+            "gender": "men",
+            "category": "outerwear",
+            "colors": ["Black", "#36454F", "#000080"],
+            "sizes": ["S", "M", "L", "XL", "XXL"],
+            "reviews": [
+                {
+                    "reviewerName": "John D.",
+                    "reviewText": "Great fit and quality. It's my go-to jacket for a casual day out.",
+                    "rating": 5.0
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Jeans",
+            "description": "Classic straight-fit jeans with a faded wash. A timeless addition to any wardrobe.",
+            "rating": 4.2,
+            "price": 39.99,
+            "gender": "women",
+            "category": "pants",
+            "colors": ["Blue", "#eedd82"],
+            "sizes": ["26", "28", "30", "32"],
+            "reviews": [
+                {
+                    "reviewerName": "Jane S.",
+                    "reviewText": "Super comfortable and they fit perfectly. Love the style.",
+                    "rating": 4.0
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/vy2q98s8ucsywwxjx2cf.png",
+            "title": "Acrylic Sweater",
+            "description": "A cozy, lightweight sweater ideal for autumn weather. Available in multiple vibrant colors.",
+            "rating": 4.0,
+            "price": 29.99,
+            "gender": "women",
+            "category": "sweaters",
+            "colors": ["#FFFDD0", "#800000", "#808000"],
+            "sizes": ["XS", "S", "M", "L"],
+            "reviews": [
+                {
+                    "reviewerName": "Emily L.",
+                    "reviewText": "The material is soft and not itchy. Great value for the price.",
+                    "rating": 4.0
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Winter Coat",
+            "description": "Stay warm and stylish with this heavy-duty winter coat. Features a quilted lining and a detachable hood.",
+            "rating": 4.1,
+            "price": 99.99,
+            "gender": "men",
+            "category": "outerwear",
+            "colors": ["Black", "#808080"],
+            "sizes": ["M", "L", "XL", "XXL"],
+            "reviews": []
+        },
+        {
+            "id": 5,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/cvafl35dv9wzisdsgtd6.png",
+            "title": "Winter Shirts",
+            "description": "Thick flannel shirt with a relaxed fit. Perfect for casual wear or layering in colder months.",
+            "rating": 4.7,
+            "price": 59.99,
+            "gender": "men",
+            "category": "shirts",
+            "colors": ["Red", "#000080"],
+            "sizes": ["S", "M", "L"],
+            "reviews": []
+        },
+        {
+            "id": 6,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Shirts With Jacket",
+            "description": "A versatile combo featuring a denim jacket over a cotton shirt. The perfect ready-to-wear look.",
+            "rating": 4.2,
+            "price": 149.99,
+            "gender": "men",
+            "category": "sets",
+            "colors": ["#2243B6", "White"],
+            "sizes": ["M", "L", "XL"],
+            "reviews": []
+        },
+        {
+            "id": 7,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Leather Jacket",
+            "description": "Sleek and classic faux leather jacket with a modern cut. Features a zipper closure and side pockets.",
+            "rating": 4.0,
+            "price": 79.99,
+            "gender": "men",
+            "category": "outerwear",
+            "colors": ["Black", "Brown"],
+            "sizes": ["S", "M", "L", "XL"],
+            "reviews": [
+                {
+                    "reviewerName": "Mark P.",
+                    "reviewText": "Looks great but runs a little small. Order a size up!",
+                    "rating": 3.0
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Blue Jeans",
+            "description": "Classic blue jeans with a comfortable slim fit. Easy to dress up or down for any occasion.",
+            "rating": 4.1,
+            "price": 49.99,
+            "gender": "men",
+            "category": "pants",
+            "colors": ["#000080", "#2243B6"],
+            "sizes": ["28", "30", "32", "34", "36"],
+            "reviews": []
+        },
+        {
+            "id": 9,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/vy2q98s8ucsywwxjx2cf.png",
+            "title": "Wool Sweater",
+            "description": "A premium wool sweater with a soft texture and a warm feel. Ideal for cold weather.",
+            "rating": 4.8,
+            "price": 39.99,
+            "gender": "women",
+            "category": "sweaters",
+            "colors": ["#808080", "#C19A6B"],
+            "sizes": ["XS", "S", "M", "L"],
+            "reviews": [
+                {
+                    "reviewerName": "Olivia R.",
+                    "reviewText": "Absolutely love this sweater! It's super warm and the quality is amazing.",
+                    "rating": 5.0
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Parka",
+            "description": "A durable and weather-resistant parka with a fur-lined hood. Designed for extreme cold.",
+            "rating": 4.5,
+            "price": 129.99,
+            "gender": "men",
+            "category": "outerwear",
+            "colors": ["#808000", "Black"],
+            "sizes": ["L", "XL", "XXL"],
+            "reviews": []
+        },
+        {
+            "id": 11,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/cvafl35dv9wzisdsgtd6.png",
+            "title": "Sweatshirt",
+            "description": "A classic fleece sweatshirt with a crewneck. Great for a comfortable, casual look.",
+            "rating": 4.4,
+            "price": 19.99,
+            "gender": "women",
+            "category": "sweaters",
+            "colors": ["#9aa297", "Black", "#FFC0CB"],
+            "sizes": ["XS", "S", "M", "L"],
+            "reviews": [
+                {
+                    "reviewerName": "Sophia B.",
+                    "reviewText": "Soft and breathable. It's my favorite sweatshirt now.",
+                    "rating": 5.0
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Denim Jacket",
+            "description": "A timeless denim jacket that goes with everything. Features a button-up front and classic collar.",
+            "rating": 4.9,
+            "price": 69.99,
+            "gender": "women",
+            "category": "outerwear",
+            "colors": ["#2243B6"],
+            "sizes": ["S", "M", "L"],
+            "reviews": [
+                {
+                    "reviewerName": "Isabella V.",
+                    "reviewText": "I'm obsessed! This jacket is the perfect shade of denim and the quality is fantastic.",
+                    "rating": 5.0
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Hoodie",
+            "description": "Comfortable and stylish hoodie with a drawstring. Perfect for lounging or a quick run to the store.",
+            "rating": 4.2,
+            "price": 29.99,
+            "gender": "men",
+            "category": "sweaters",
+            "colors": ["Black", "Green"],
+            "sizes": ["S", "M", "L", "XL"],
+            "reviews": []
+        },
+        {
+            "id": 14,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Black Jeans",
+            "description": "Versatile black jeans with a modern slim fit. A staple for any fashion-forward wardrobe.",
+            "rating": 4.0,
+            "price": 59.99,
+            "gender": "men",
+            "category": "pants",
+            "colors": ["Black"],
+            "sizes": ["28", "30", "32", "34", "36"],
+            "reviews": [
+                {
+                    "reviewerName": "Ethan F.",
+                    "reviewText": "Exactly what I was looking for. Comfortable and a true black color.",
+                    "rating": 4.0
+                }
+            ]
+        },
+        {
+            "id": 15,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/vy2q98s8ucsywwxjx2cf.png",
+            "title": "Cable-Knit Sweater",
+            "description": "A classic cable-knit sweater with a crewneck design. Made from a soft cotton blend for comfort.",
+            "rating": 4.1,
+            "price": 49.99,
+            "gender": "women",
+            "category": "sweaters",
+            "colors": ["Ivory", "#000080", "#808080"],
+            "sizes": ["XS", "S", "M", "L"],
+            "reviews": []
+        },
+        {
+            "id": 16,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/smf81ubnfjennk9qbjm4.png",
+            "title": "Peacoat",
+            "description": "A traditional peacoat with a double-breasted button front. Perfect for a refined, classic look.",
+            "rating": 4.8,
+            "price": 89.99,
+            "gender": "men",
+            "category": "outerwear",
+            "colors": ["#000080", "#36454F"],
+            "sizes": ["M", "L", "XL"],
+            "reviews": [
+                {
+                    "reviewerName": "James G.",
+                    "reviewText": "Top-notch quality and an elegant cut. Very happy with this purchase.",
+                    "rating": 5.0
+                }
+            ]
+        },
+        {
+            "id": 17,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/cvafl35dv9wzisdsgtd6.png",
+            "title": "Flannel Shirt",
+            "description": "A soft flannel shirt with a classic plaid pattern. Perfect for a casual, rugged look.",
+            "rating": 4.4,
+            "price": 34.99,
+            "gender": "men",
+            "category": "shirts",
+            "colors": ["Red", "Black", "Blue", "Green"],
+            "sizes": ["S", "M", "L", "XL"],
+            "reviews": []
+        },
+        {
+            "id": 18,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Windbreaker",
+            "description": "Lightweight and water-resistant windbreaker. Features a zippered front and a high collar.",
+            "rating": 4.3,
+            "price": 59.99,
+            "gender": "women",
+            "category": "outerwear",
+            "colors": ["#FFC0CB", "Light Blue", "White"],
+            "sizes": ["S", "M", "L"],
+            "reviews": [
+                {
+                    "reviewerName": "Chloe N.",
+                    "reviewText": "Exactly what I needed for my morning runs. Very light and comfortable.",
+                    "rating": 4.0
+                }
+            ]
+        },
+        {
+            "id": 19,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png",
+            "title": "Puffer Jacket",
+            "description": "Ultra-warm puffer jacket with a stylish, modern fit. Features a water-repellent shell.",
+            "rating": 4.2,
+            "price": 119.99,
+            "gender": "men",
+            "category": "outerwear",
+            "colors": ["Black", "#808000"],
+            "sizes": ["S", "M", "L", "XL"],
+            "reviews": []
+        },
+        {
+            "id": 20,
+            "image": "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567612/qichw3wrcioebkvzudib.png",
+            "title": "Ripped Jeans",
+            "description": "Distressed black skinny jeans with a comfortable, stretchy fit. The perfect distressed look.",
+            "rating": 4.0,
+            "price": 69.99,
+            "gender": "women",
+            "category": "pants",
+            "colors": ["Black"],
+            "sizes": ["26", "28", "30"],
+            "reviews": [
+                {
+                    "reviewerName": "Megan L.",
+                    "reviewText": "Fits like a glove and looks exactly as pictured. Love them!",
+                    "rating": 4.0
+                }
+            ]
+        }
+    ]
+}

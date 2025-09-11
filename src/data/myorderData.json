@@ -1,0 +1,299 @@
+{
+  "orders": [
+    {
+      "order_id": 12345,
+      "category": "beauty",
+      "customer": {
+        "customer_id": 67890,
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "phone": 9876543210,
+        "shipping_address": {
+          "street": "123 Main St",
+          "city": "Anytown",
+          "state": "AN",
+          "zip_code": "12345",
+          "country": "CountryName"
+        }
+      },
+      "items": [
+        {
+          "item_id": "abc123",
+          "product_name": "Essence Mascara Lash Princess",
+          "description": "The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.",
+          "category": "beauty",
+          "quantity": 1,
+          "price": 19.99,
+          "total": 19.99,
+          "brand": "Essence",
+          "sku": "RCH45Q1A",
+          "size": "5-7ml",
+          "product_image": "https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/1.png",
+          "thumbnail_image": "https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png"
+        }
+      ],
+      "payment": {
+        "payment_method": "Credit Card",
+        "total_amount": 49.98,
+        "payment_status": "Completed"
+      },
+      "reviews": [
+        {
+          "rating": 2,
+          "comment": "Very unhappy with my purchase!",
+          "date": "2024-05-23T08:56:21.618Z",
+          "reviewerName": "John Doe",
+          "reviewerEmail": "john.doe@x.dummyjson.com"
+        },
+        {
+          "rating": 2,
+          "comment": "Not as described!",
+          "date": "2024-05-23T08:56:21.618Z",
+          "reviewerName": "Nolan Gonzalez",
+          "reviewerEmail": "nolan.gonzalez@x.dummyjson.com"
+        },
+        {
+          "rating": 5,
+          "comment": "Very satisfied!",
+          "date": "2024-05-23T08:56:21.618Z",
+          "reviewerName": "Scarlett Wright",
+          "reviewerEmail": "scarlett.wright@x.dummyjson.com"
+        }
+      ],
+      "order_date": "2025-03-10",
+      "shipping_status": "Shipped",
+      "tracking_number": "1Z9999999999999999"
+    },
+    {
+      "order_id": 12346,
+      "category": "beauty",
+      "customer": {
+        "customer_id": 67890,
+        "name": "ohn Doe",
+        "email": "johndoe@example.com",
+        "phone": 9876543219,
+        "shipping_address": {
+          "street": "123 Main St",
+          "city": "Anytown",
+          "state": "AN",
+          "zip_code": "12345",
+          "country": "CountryName"
+        }
+      },
+      "items": [
+        {
+          "item_id": "def789",
+          "product_name": "Eyeshadow Palette with Mirror",
+          "description": "The Eyeshadow Palette with Mirror offers a versatile range of eyeshadow shades for creating stunning eye looks. With a built-in mirror, it's convenient for on-the-go makeup application.",
+          "category": "beauty",
+          "quantity": 2,
+          "price": 49.99,
+          "total": 99.98,
+          "brand": "Glamour Beauty",
+          "sku": "MVCFH27F",
+          "weight": 3,
+          "product_image": "https://cdn.dummyjson.com/products/images/beauty/Eyeshadow%20Palette%20with%20Mirror/1.png",
+          "thumbnail_image": "https://cdn.dummyjson.com/products/images/beauty/Eyeshadow%20Palette%20with%20Mirror/thumbnail.png"
+        }
+      ],
+      "payment": {
+        "payment_method": "PayPal",
+        "total_amount": 99.98,
+        "payment_status": "Pending"
+      },
+      "reviews": [
+        {
+          "rating": 4,
+          "comment": "Very satisfied!",
+          "date": "2024-05-23T08:56:21.618Z",
+          "reviewerName": "Liam Garcia",
+          "reviewerEmail": "liam.garcia@x.dummyjson.com"
+        },
+        {
+          "rating": 1,
+          "comment": "Very disappointed!",
+          "date": "2024-05-23T08:56:21.618Z",
+          "reviewerName": "Nora Russell",
+          "reviewerEmail": "nora.russell@x.dummyjson.com"
+        },
+        {
+          "rating": 5,
+          "comment": "Highly impressed!",
+          "date": "2024-05-23T08:56:21.618Z",
+          "reviewerName": "Elena Baker",
+          "reviewerEmail": "elena.baker@x.dummyjson.com"
+        }
+      ],
+      "order_date": "2025-03-09",
+      "shipping_status": "Processing",
+      "tracking_number": null
+    },
+    {
+      "order_id": 12347,
+      "category": "beauty",
+      "customer": {
+        "customer_id": 67890,
+        "name": "ohn Doe",
+        "email": "johndoe@example.com",
+        "phone": 9876543219,
+        "shipping_address": {
+          "street": "123 Main St",
+          "city": "Anytown",
+          "state": "AN",
+          "zip_code": "12345",
+          "country": "CountryName"
+        }
+      },
+      "items": [
+        {
+          "item_id": "ghi012",
+          "product_name": "Powder Canister",
+          "description": "The Powder Canister is a finely milled setting powder designed to set makeup and control shine. With a lightweight and translucent formula, it provides a smooth and matte finish.",
+          "category": "beauty",
+          "discountPercentage": 18.14,
+          "rating": 3.82,
+          "quantity": 1,
+          "price": 799.99,
+          "total": 799.99,
+          "brand": "Velvet Touch",
+          "sku": "9EN8WLT2",
+          "weight": 8,
+          "size": "5-7ml",
+          "product_image": "https://cdn.dummyjson.com/products/images/beauty/Powder%20Canister/1.png",
+          "thumbnail_image": "https://cdn.dummyjson.com/products/images/beauty/Powder%20Canister/thumbnail.png"
+        }
+      ],
+      "payment": {
+        "payment_method": "Credit Card",
+        "total_amount": 799.99,
+        "payment_status": "Completed"
+      },
+      "order_date": "2025-03-08",
+      "shipping_status": "Shipped",
+      "tracking_number": "1Z8888888888888888"
+    },
+    {
+      "order_id": "12344",
+      "customer": {
+        "customer_id": "67892",
+        "name": "Michael Brown",
+        "email": "michaelbrown@example.com",
+        "phone": "9876543215",
+        "shipping_address": {
+          "street": "789 Pine St",
+          "city": "Newcity",
+          "state": "NC",
+          "zip_code": 67890,
+          "country": "CountryName"
+        }
+      },
+      "items": [
+        {
+          "item_id": "ghi013",
+          "product_name": "Red Nail Polish",
+          "description": "The Red Nail Polish offers a rich and glossy red hue for vibrant and polished nails. With a quick-drying formula, it provides a salon-quality finish at home.",
+          "category": "beauty",
+          "price": 8.99,
+          "discountPercentage": 2.46,
+          "rating": 3.91,
+          "brand": "Nail Couture",
+          "sku": "YUIIIP4W",
+          "weight": 9,
+          "quantity": 1,
+          "product_image": "https://cdn.dummyjson.com/products/images/beauty/Red%20Nail%20Polish/1.png",
+          "thumbnail_image": "https://cdn.dummyjson.com/products/images/beauty/Red%20Nail%20Polish/thumbnail.png"
+        }
+      ],
+      "payment": {
+        "payment_method": "Credit Card",
+        "total_amount": 799.99,
+        "payment_status": "Completed"
+      },
+      "order_date": "2025-03-08",
+      "shipping_status": "Shipped",
+      "tracking_number": "1Z8888888888888888"
+    },
+    {
+      "order_id": "12340",
+      "customer": {
+        "customer_id": 67892,
+        "name": "Michael Brown",
+        "email": "michaelbrown@example.com",
+        "phone": 9876543213,
+        "shipping_address": {
+          "street": "789 Pine St",
+          "city": "Newcity",
+          "state": "NC",
+          "zip_code": 67890,
+          "country": "CountryName"
+        }
+      },
+      "items": [
+        {
+          "item_id": "ghi014",
+          "product_name": "Calvin Klein CK One",
+          "description": "CK One by Calvin Klein is a classic unisex fragrance, known for its fresh and clean scent. It's a versatile fragrance suitable for everyday wear.",
+          "category": "fragrances",
+          "price": 49.99,
+          "discountPercentage": 0.32,
+          "rating": 4.85,
+          "brand": "Calvin Klein",
+          "sku": "DZM2JQZE",
+          "weight": 5,
+          "quantity": 2,
+          "product_image": "https://cdn.dummyjson.com/products/images/fragrances/Calvin%20Klein%20CK%20One/1.png",
+          "thumbnail_image": "https://cdn.dummyjson.com/products/images/fragrances/Calvin%20Klein%20CK%20One/thumbnail.png"
+        }
+      ],
+      "payment": {
+        "payment_method": "Credit Card",
+        "total_amount": 799.99,
+        "payment_status": "Completed"
+      },
+      "order_date": "2025-03-08",
+      "shipping_status": "Shipped",
+      "tracking_number": "1Z8888888888888888"
+    },
+    {
+      "order_id": "12348",
+      "customer": {
+        "customer_id": "67892",
+        "name": "Michael Brown",
+        "email": "michaelbrown@example.com",
+        "phone": 9876543216,
+        "shipping_address": {
+          "street": "789 Pine St",
+          "city": "Newcity",
+          "state": "NC",
+          "zip_code": 67890,
+          "country": "CountryName"
+        }
+      },
+      "items": [
+        {
+          "item_id": "ghi014",
+          "product_name": "Dior J'adore",
+          "description": "J'adore by Dior is a luxurious and floral fragrance, known for its blend of ylang-ylang, rose, and jasmine. It embodies femininity and sophistication.",
+          "category": "fragrances",
+          "price": 89.99,
+          "discountPercentage": 17.44,
+          "rating": 3.31,
+          "brand": "Dior",
+          "sku": "E70NB03B",
+          "weight": 10,
+          "quantity": 1,
+          "product_image": "https://cdn.dummyjson.com/products/images/fragrances/Dior%20J'adore/1.png",
+          "thumbnail_image": "https://cdn.dummyjson.com/products/images/fragrances/Dior%20J'adore/thumbnail.png"
+        }
+      ],
+      "payment": {
+        "payment_method": "Credit Card",
+        "total_amount": 799.99,
+        "payment_status": "Completed"
+      },
+      "order_date": "2025-03-08",
+      "shipping_status": "Shipped",
+      "tracking_number": "1Z8888888888888888"
+    }
+  ]
+}
