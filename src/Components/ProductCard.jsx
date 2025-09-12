@@ -44,10 +44,10 @@ const ProductCard = ({item, handleProductClick, toggleFavorite, isCompact = fals
       resizeMode: 'contain',
     },
     title: {
-      fontSize: 13,
+      fontSize: 12,
       fontFamily: fonts.medium,
       fontWeight: '600',
-      color: COLORS.black,
+      color: 'black',
       textAlign: 'center',
       lineHeight: 16,
     },
@@ -306,7 +306,7 @@ const ProductCard = ({item, handleProductClick, toggleFavorite, isCompact = fals
           </View> */}
         </View>
 
-        <Text style={compactStyles.title} numberOfLines={1}>
+        <Text style={compactStyles.title} numberOfLines={2} >
           {item.name || item.title}
         </Text>
         

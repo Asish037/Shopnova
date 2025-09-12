@@ -427,7 +427,7 @@ export default AddressScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 20 : 10,
+    padding: Platform.OS === 'ios' ? 20 : 10,
     width: '100%',
     height: '100%',
   },
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   addressCard: {
     backgroundColor: COLORS.white,
     borderRadius: moderateScale(12),
-    padding: moderateScale(14),
+    padding: moderateScale(10),
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     borderColor: '#f0f0f0',
   },
   selectedAddressCard: {
-    backgroundColor: COLORS.lightbutton,
+    backgroundColor: COLORS.button,
     borderColor: COLORS.lightbutton,
     elevation: 4,
     shadowOpacity: 0.2,
@@ -560,14 +560,14 @@ const styles = StyleSheet.create({
   },
   addressLine: {
     fontSize: moderateScale(14),
-    color: COLORS.gray || '#666',
+    color: COLORS.gray || '#3f3d3dff',
     fontFamily: FONTS.Regular,
     lineHeight: moderateScale(20),
     marginBottom: verticalScale(2),
   },
   phoneNumber: {
     fontSize: moderateScale(14),
-    color: COLORS.gray || '#666',
+    color: COLORS.gray || '#3f3d3dff',
     fontFamily: FONTS.Regular,
     marginTop: verticalScale(4),
   },

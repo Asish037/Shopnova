@@ -165,9 +165,22 @@ const CategoriesScreen = () => {
           catId,
         );
         await fetchProductsBySpecificCategory(catId);
-        // Keep currentView as 'categories' - UI will automatically show products
+        setCurrentView('products');
+        // Set currentView to 'products' since there are no subcategories
       } else {
-        setCurrentView('categories');
+        // setCurrentView('categories');
+        const allEmpty = subcategoriesData.every(
+              subcat => !subcat.product_count || subcat.product_count === 0,
+            );
+
+            if (allEmpty) {
+              console.log('All subcategories empty, loading products instead...');
+              await fetchProductsBySpecificCategory(catId);
+              setCurrentView('products');
+            } else {
+              setSubCategories(subcategoriesData);
+              setCurrentView('categories'); // normal flow
+            }
       }
     } catch (error) {
       console.error('Error fetching subcategories:', error);
@@ -444,6 +457,7 @@ const CategoriesScreen = () => {
   }
 
   // Render category item for left side
+  // Render category item for left side
   const renderCategoryItem = ({item}) => (
     <TouchableOpacity
       style={[
@@ -452,7 +466,22 @@ const CategoriesScreen = () => {
       ]}
       onPress={() => handleCategoryPress(item)}
       activeOpacity={0.7}>
+      
       <View style={styles.categoryContent}>
+        {/* Image placeholder */}
+        <View style={styles.categoryImageContainer}>
+          {item.image_url ? (
+            <Image
+              source={{uri: item.image_url}}
+              style={styles.categoryImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.categoryImagePlaceholder} />
+          )}
+        </View>
+
+        {/* Text */}
         <Text
           style={[
             styles.categoryText,
@@ -465,31 +494,52 @@ const CategoriesScreen = () => {
     </TouchableOpacity>
   );
 
+
   // Render subcategory item for right side
-  const renderSubCategoryItem = ({item}) => (
+  const renderSubCategoryItem = ({ item }) => (
     <TouchableOpacity
       style={[
         styles.subCategoryItem,
         selectedSubCategory?.id === item.id && styles.selectedSubCategoryItem,
       ]}
       onPress={() => handleSubCategoryPress(item)}
-      activeOpacity={0.7}>
+      activeOpacity={0.7}
+    >
       <View style={styles.subCategoryContent}>
-        <Text
-          style={[
-            styles.subCategoryText,
-            selectedSubCategory?.id === item.id &&
-              styles.selectedSubCategoryText,
-          ]}
-          numberOfLines={2}>
-          {item.name}
-        </Text>
-        {item.product_count && (
-          <Text style={styles.productCount}>{item.product_count} items</Text>
-        )}
+        {/* Image on top */}
+        <View style={styles.subCategoryImageContainer}>
+          {item.image_url ? (
+            <Image
+              source={{ uri: item.image_url }}
+              style={styles.subCategoryImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.subCategoryImagePlaceholder} />
+          )}
+        </View>
+
+        {/* Text below */}
+        <View style={{ alignItems: 'center', marginTop: 8 }}>
+          <Text
+            style={[
+              styles.subCategoryText,
+              selectedSubCategory?.id === item.id && styles.selectedSubCategoryText,
+            ]}
+            numberOfLines={2}
+          >
+            {item.name}
+          </Text>
+          {item.product_count && (
+            <Text style={styles.productCount}>{item.product_count} items</Text>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
+
+
+
 
   if (isLoading && categories.length === 0) {
     return (
@@ -595,6 +645,8 @@ const CategoriesScreen = () => {
                   data={subCategories}
                   renderItem={renderSubCategoryItem}
                   keyExtractor={item => item.id.toString()}
+                  numColumns={2}
+                  columnWrapperStyle={{ justifyContent: 'flex-start' }}
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.subCategoryList}
                 />
@@ -621,7 +673,8 @@ const CategoriesScreen = () => {
                 <FlatList
                   data={filteredProducts}
                   renderItem={renderProductCard}
-                  numColumns={3}
+                  numColumns={2}
+                  columnWrapperStyle={{ justifyContent: 'space-between' }}
                   keyExtractor={item => item.id.toString()}
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.productsGrid}
@@ -666,6 +719,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 55 : 25,
     paddingBottom: 15,
     zIndex: 1000,
+    backgroundColor: 'transparent',
   },
   inputContainer: {
     width: '100%',
@@ -685,8 +739,8 @@ const styles = StyleSheet.create({
   },
   suggestionsContainer: {
     marginHorizontal: 20,
-    marginTop: -15,
-    backgroundColor: '#FFFFFF',
+    marginTop: -10,
+    backgroundColor: '#ffffff',
     borderRadius: 12,
     elevation: 5,
     shadowColor: '#000',
@@ -695,6 +749,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     maxHeight: 200,
     zIndex: 999,
+    // marginBottom: 10,
+
   },
   suggestionsList: {
     paddingVertical: 8,
@@ -758,25 +814,32 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+    // backgroundColor: 'black',
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingBottom: 25,
-    gap: 15,
+    marginTop: 5,
+    paddingHorizontal: 5,
+    paddingBottom: 5,
+    gap: 2,
   },
+  // caregory part
   leftPanel: {
-    width: '35%',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
+    width: '30%',
+    height: '100%',
+    // backgroundColor: 'rgba(255, 255, 255, 0.89)',
+    backgroundColor: '#d9d7d7ff',
+    borderRadius: 10,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
   },
+  // subCategory part
   rightPanel: {
     flex: 1,
+    height: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
+    // borderRadius: 20,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -784,27 +847,35 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   panelTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Poppins-Bold',
     color: COLORS.black,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#ffffff',
     textAlign: 'center',
   },
+
+  // category part`
   categoryList: {
     paddingBottom: 15,
     paddingTop: 5,
+    // width: 80,
+    // height: 70,
+    // borderRadius: 50,
   },
   categoryItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#d9d7d7ff',
   },
   selectedCategoryItem: {
-    backgroundColor: COLORS.lightbutton,
+    backgroundColor: COLORS.button,  
     borderLeftWidth: 4,
     borderLeftColor: COLORS.button,
   },
@@ -820,17 +891,55 @@ const styles = StyleSheet.create({
   },
   selectedCategoryText: {
     fontFamily: 'Poppins-Bold',
-    color: COLORS.button,
+    color: COLORS.white,
   },
+  categoryImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ddd3d3ff',
+    marginBottom: 8,
+  },
+  categoryImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover'
+  },
+  categoryImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+    backgroundColor: '#f4e7e7ff',
+  },
+
+  // subCategory part
   subCategoryList: {
-    paddingBottom: 15,
-    paddingTop: 5,
+    paddingBottom: 10,
+    paddingTop: 10,
+    // gap: 10,
   },
   subCategoryItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E0E0E0',
+    flex: 1, 
+    margin: 6,
+     maxWidth: '45%', // ensures 2 per row
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    elevation: 2, // small shadow for Android
+    shadowColor: '#000', // iOS shadow
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { 
+      width: 0, 
+      height: 2 
+    },
   },
   selectedSubCategoryItem: {
     backgroundColor: COLORS.lightbutton,
@@ -838,18 +947,43 @@ const styles = StyleSheet.create({
     borderLeftColor: COLORS.button,
   },
   subCategoryContent: {
-    flex: 1,
-  },
-  subCategoryText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: COLORS.black,
-    marginBottom: 4,
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   selectedSubCategoryText: {
     fontFamily: 'Poppins-Bold',
     color: COLORS.button,
   },
+  subCategoryImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#cdcacaff',
+  },
+  subCategoryImage: {
+    // width: '100%',
+    // height: '100%',
+    // resizeMode: 'cover',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  subCategoryImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+    backgroundColor: '#dad5d5ff',
+  },
+  subCategoryText:{
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: 'black',
+    textAlign: 'center',
+  },
+  // Product grid && loading
   productCount: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
@@ -884,18 +1018,19 @@ const styles = StyleSheet.create({
   backToSubcategoriesButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: COLORS.lightbutton,
+    backgroundColor: COLORS.button,
     borderRadius: 8,
     marginTop: 10,
   },
   backToSubcategoriesText: {
     fontSize: 14,
     fontFamily: 'Poppins-Medium',
-    color: COLORS.button,
+    color: COLORS.white,
   },
   productsGrid: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     paddingVertical: 15,
     justifyContent: 'center',
+    gap: 20,
   },
 });
