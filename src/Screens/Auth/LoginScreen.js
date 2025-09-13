@@ -20,7 +20,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import CustomInput from '../../Components/CustomInput';
-import model1 from '../../assets/model1.jpg';
+// import model1 from '../../assets/model1.jpg';
 
 export default function LoginScreen() {
   const dispatch = useDispatch();

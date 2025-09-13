@@ -16,6 +16,7 @@ import {moderateScale, verticalScale} from '../../PixelRatio';
 // import Navigation from '../../Service/Navigation';
 import {useNavigation} from '@react-navigation/native';
 import model6 from '../../assets/model6.jpg';
+import download from '../../assets/download1.jpeg';
 
 const {width, height} = Dimensions.get('window');
 
@@ -46,16 +47,16 @@ export default function Landing() {
   return (
     Platform.OS === 'ios' ? (
       <SafeAreaView style={styles.container}>
-        <ImageBackground source={model6} style={styles.bgimage} resizeMode="cover">
+        <ImageBackground source={download} style={styles.bgimage} resizeMode="cover">
           <View style={styles.topContent}>
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>
-                <Text>Style</Text>
-                <Text style={styles.logoBold}>ON</Text>
+                <Text>Shop</Text>
+                <Text style={styles.logoBold}>Nova</Text>
               </Text>
             </View>
             <View style={styles.taglineContainer}>
-              <Text style={styles.tagline}>Curating the Best You</Text>
+              <Text style={styles.tagline}>Discover the tour Spiritual World</Text>
             </View>
           </View>
 
@@ -71,16 +72,16 @@ export default function Landing() {
         </ImageBackground>
       </SafeAreaView>
     ) : (
-      <ImageBackground source={model6} style={styles.bgimage} resizeMode="cover">
+      <ImageBackground source={download} style={styles.bgimage} resizeMode="cover">
         <View style={styles.topContent}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>
-              <Text>Style</Text>
-              <Text style={styles.logoBold}>ON</Text>
+              <Text>Shop</Text>
+              <Text style={styles.logoBold}>Nova</Text>
             </Text>
           </View>
           <View style={styles.taglineContainer}>
-            <Text style={styles.tagline}>Curating the Best You</Text>
+            <Text style={styles.tagline}>Discover the tour Spiritual World</Text>
           </View>
         </View>
 
@@ -116,18 +117,21 @@ const styles = StyleSheet.create({
   },
   topContent: {
     flex: 1,
-    justifyContent: 'center',
+    // justifyContent: 'center',
     alignItems: 'flex-start',
     width: '100%',
-    paddingTop: 10,
+    // paddingTop: 10,
+    // paddingBottom: 50,
+    // paddingVertical: 50,
   },
   bottomContent: {
     alignItems: 'center',
-    paddingBottom: 25,
+    paddingBottom: 2,
     width: '100%',
   },
   logoContainer: {
-    marginBottom: 20,
+    marginBottom: 5,
+    marginTop: -10,
     alignItems: 'flex-start',
     marginLeft: 24,
     width: '100%',
@@ -139,17 +143,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logoText: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: '600',
-    color: COLORS.button,
-    letterSpacing: 1.5,
+    color: '#FF8C00',
+    // letterSpacing: 1.5,
   },
   logoBold: {
-    color: COLORS.button,
+    color: '#FF8C00',
     fontWeight: '800',
   },
   tagline: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(13),
     fontFamily: FONTS.Regular,
     color: COLORS.white,
     fontWeight: '300',

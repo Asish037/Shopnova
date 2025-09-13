@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useContext,  useState} from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
+import {PADDING} from '../Constant/Padding';
 import {moderateScale} from '../PixelRatio';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,15 +22,20 @@ import Moment from 'moment';
 import Header from '../Components/Header';
 import axios from '../Components/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect} from '@react-navigation/native';
+import {CartContext} from '../Context/CartContext';
 
 const OrderDetails = ({route}) => {
   const navigation = useNavigation();
-  const {orderId} = route.params; // comes from order-list
+  const {orderId, fromConfirm} = route.params; // comes from order-list
   const [rating, setRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState(null);
   const [order, setOrder] = useState(null);
 
+  const {user, token} = useContext(CartContext);
+
+  
   const fetchOrderDetails = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
@@ -37,35 +43,32 @@ const OrderDetails = ({route}) => {
         Alert.alert('Error', 'No auth token found. Please log in again.');
         return;
       }
+      console.log("Fetching details for orderId:", orderId);
 
-      const response = await axios.get(
-        `/order-details?orderId=${orderId}`,
-
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await axios.get(`/order-details?orderId=${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
-      setOrder(response.data.data);
-      console.log('Order Details Response:', response.data);
+      });
 
+      console.log("Order Details Response:", response.data);
+
+      console.log("API raw response:", JSON.stringify(response.data, null, 2));
+      
       if (response.data.status === 1) {
         const apiData = response.data.data;
 
-        // Normalize data
         const normalizedData = {
-          order_Id: apiData.id,
+          order_id: apiData.id,
           order_date: apiData.created_at,
-          shipping_status: 'Processing', // backend missing → fallback
-          tracking_number: null, // not available
+          shipping_status: apiData.shipping_status || 'Processing',
+          tracking_number: apiData.tracking_number || null,
           payment: {
-            payment_status: 'Paid', // fallback
-            payment_method: 'Online', // fallback
+            payment_status: apiData.payment_status || 'Pending',
+            payment_method: apiData.payment_method || 'N/A',
             total_amount: apiData.total,
           },
-          items: apiData.order_items.map(item => ({
+          items: apiData.order_items?.map(item => ({
             item_id: item.id,
             product_name: item.product_name,
             product_image: item.product_image,
@@ -73,17 +76,17 @@ const OrderDetails = ({route}) => {
             product_offer_price: item.product_offer_price,
             product_sku: item.product_sku,
             quantity: item.quantity,
-          })),
+          })) ?? [],
           customer: {
-            name: `${apiData.fname} ${apiData.lname}`,
+            name: `${apiData.fname || ''} ${apiData.lname || ''}`.trim(),
             email: apiData.email,
             phone: apiData.phone || 'N/A',
             shipping_address: {
-              street: 'N/A',
-              city: 'N/A',
-              state: 'N/A',
-              zip_code: 'N/A',
-              country: 'N/A',
+              street: apiData.street || 'N/A',
+              city: apiData.city || 'N/A',
+              state: apiData.state || 'N/A',
+              zip_code: apiData.zip_code || 'N/A',
+              country: apiData.country || 'N/A',
             },
           },
           reviews: [],
@@ -91,14 +94,16 @@ const OrderDetails = ({route}) => {
 
         setOrderDetails(normalizedData);
       } else {
-        Alert.alert('Error', 'Failed to fetch order details.');
+        Alert.alert('Error', response.data.message || 'Failed to fetch order details.');
       }
     } catch (error) {
-      console.error('Error fetching order details:', error);
+      console.error('Error fetching order details:', error.message);
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   useEffect(() => {
     fetchOrderDetails();
@@ -116,6 +121,19 @@ const OrderDetails = ({route}) => {
         return 'package-variant-closed';
     }
   };
+  useFocusEffect(
+      React.useCallback(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+          if (fromConfirm) {
+            e.preventDefault(); // stop default back
+            navigation.navigate('MainHome');
+          }
+        });
+  
+        return unsubscribe;
+      }, [fromConfirm, navigation])
+    );
+
 
   const getStatusColor = status => {
     switch (status) {
@@ -160,6 +178,9 @@ const OrderDetails = ({route}) => {
     </View>
   );
 
+  
+  
+
   if (isLoading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -195,7 +216,7 @@ const OrderDetails = ({route}) => {
           <View style={styles.statusTextContainer}>
             <Text style={styles.statusTitle}>Order Status</Text>
             <Text style={styles.statusSubtitle}>
-              Order #{orderDetails.order_id}
+              Order ID: {orderId}
             </Text>
             <Text style={styles.statusDate}>
               {Moment(orderDetails.order_date).format('MMMM DD, YYYY')}
@@ -333,7 +354,9 @@ const styles = StyleSheet.create({
   
   container: {
     flex: 1, 
-    padding: Platform.OS === 'ios' ? 20 : 10,
+    paddingHorizontal: PADDING.container.horizontal,
+    paddingTop: PADDING.container.vertical,
+    paddingBottom: PADDING.container.bottom,
     width: '100%', 
     height: '100%'
   },
@@ -341,14 +364,15 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingBottom: moderateScale(10)
+    paddingBottom: PADDING.flatList.bottom,
+    paddingTop: PADDING.flatList.top,
   },
   statusHeader: {
     backgroundColor: COLORS.card,
-    marginHorizontal: moderateScale(10),
-    marginTop: moderateScale(10),
+    marginHorizontal: PADDING.margin.medium,
+    marginTop: PADDING.margin.medium,
     borderRadius: moderateScale(15),
-    padding: moderateScale(10),
+    padding: PADDING.content.vertical,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -391,23 +415,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   section: {
-    marginHorizontal: moderateScale(10),
-    marginTop: moderateScale(10)
+    marginHorizontal: PADDING.margin.medium,
+    marginTop: PADDING.margin.medium
   },
   sectionTitle: {
     color: COLORS.black,
     fontFamily: FONTS.Bold,
     fontSize: moderateScale(15),
     fontWeight: '700',
-    marginBottom: moderateScale(5),
+    marginBottom: PADDING.margin.small,
+    paddingHorizontal: PADDING.section.horizontal,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
   orderItemCard: {
     flexDirection: 'row',
     borderRadius: moderateScale(12),
-    padding: moderateScale(5),
-    marginBottom: moderateScale(5),
+    padding: PADDING.card.vertical,
+    marginBottom: PADDING.margin.small,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: PADDING.section.horizontal,
   },
   orderItemImage: {
     width: moderateScale(70),
@@ -440,7 +467,9 @@ const styles = StyleSheet.create({
   },
   addressCard: {
     borderRadius: moderateScale(12),
-    padding: moderateScale(10)
+    padding: PADDING.content.vertical,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: PADDING.section.horizontal,
   },
   addressHeader: {
     flexDirection: 'row',
@@ -463,7 +492,9 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     borderRadius: moderateScale(12),
-    padding: moderateScale(10)
+    padding: PADDING.content.vertical,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: PADDING.section.horizontal,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -485,7 +516,9 @@ const styles = StyleSheet.create({
   },
   contactCard: {
     borderRadius: moderateScale(12),
-    padding: moderateScale(10)
+    padding: PADDING.content.vertical,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: PADDING.section.horizontal,
   },
   contactRow: {
     flexDirection: 'row',
@@ -497,9 +530,11 @@ const styles = StyleSheet.create({
   },
   ratingCard: {
     borderRadius: moderateScale(12),
-    padding: moderateScale(10),
+    padding: PADDING.content.vertical,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: PADDING.section.horizontal,
   },
   ratingProductImage: {
     width: moderateScale(60),

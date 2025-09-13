@@ -26,7 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { CartContext } from '../Context/CartContext';
 
 
-const ViewProfile = () => {
+const AccountScreen = () => {
   const navigation = useNavigation();
   const {user, loadAuthData, token} = useContext(CartContext);
   const { isAuthenticated, logout, getUserName, getUserPhone } = useAuth();
@@ -368,7 +368,7 @@ const ViewProfile = () => {
   );
 };
 
-export default ViewProfile;
+export default AccountScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -448,18 +448,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: moderateScale(24),
     paddingHorizontal: moderateScale(20),
-    backgroundColor: '#bfbfb5ff',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: moderateScale(16),
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-    height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     marginBottom: moderateScale(5),
     marginHorizontal: moderateScale(15),
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   statItem: {
     alignItems: 'center',
@@ -467,13 +469,13 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: moderateScale(20),
     fontWeight: '700',
-    color: COLORS.black,
+    color: COLORS.button,
     fontFamily: FONTS.Bold,
     marginBottom: moderateScale(4),
   },
   statLabel: {
     fontSize: moderateScale(13),
-    color: '#000000ff',
+    color: '#666666',
     fontFamily: FONTS.Regular,
     fontWeight: '500',
   },
@@ -483,7 +485,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: moderateScale(18),
     fontWeight: '600',
-    color: '#000000ff',
+    color: COLORS.button,
     fontFamily: FONTS.Bold,
     marginBottom: moderateScale(8),
     paddingHorizontal: moderateScale(12),
@@ -491,36 +493,38 @@ const styles = StyleSheet.create({
   orderTrackingContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    backgroundColor: '#bfbfb5ff',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     paddingVertical: moderateScale(13),
     paddingHorizontal: moderateScale(10),
     borderRadius: moderateScale(16),
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   orderTrackingItem: {
     alignItems: 'center',
     flex: 1,
     minWidth: moderateScale(40),
-    borderColor: COLORS.button,
+    borderColor: 'rgba(245, 74, 0, 0.2)',
     borderWidth: 1,
-    borderRadius: moderateScale(4),
-    paddingVertical: moderateScale(4),
-    paddingHorizontal: moderateScale(2),
+    borderRadius: moderateScale(8),
+    paddingVertical: moderateScale(6),
+    paddingHorizontal: moderateScale(4),
     marginHorizontal: moderateScale(2),
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   orderIcon: {
     width: moderateScale(40),
     height: moderateScale(40),
     borderRadius: moderateScale(12),
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: moderateScale(8),
@@ -533,32 +537,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   menuContainer: {
-    backgroundColor: '#bfbfb5ff',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: moderateScale(16),
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     marginBottom: moderateScale(20),
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: moderateScale(11),
     paddingHorizontal: moderateScale(10),
-    borderBottomWidth: 0.8,
-    borderBottomColor: '#000000ff',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
   menuIconContainer: {
     width: moderateScale(40),
     height: moderateScale(40),
     borderRadius: moderateScale(12),
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: moderateScale(15),

@@ -11,6 +11,7 @@ import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {COLORS} from '../Constant/Colors';
+import {PADDING} from '../Constant/Padding';
 import {moderateScale} from '../PixelRatio';
 import LinearGradient from 'react-native-linear-gradient';
 import {fonts} from '../utils/fonts';
@@ -243,31 +244,26 @@ export default Privacy;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-     padding: Platform.OS === 'ios' ? 20 : 10,
-    // borderColor: COLORS.black,
-    // borderWidth: 2,
-    borderRadius: 10,
+    paddingTop: PADDING.container.vertical,
+    paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
-    marginBottom: 10,
   },
   contentWrapper: {
     flex: 1,
-    padding: 10,
-
-    // marginTop: 60, // Adjust this value based on your header height
+    paddingHorizontal: PADDING.header.horizontal,
+    paddingVertical: PADDING.content.vertical,
   },
   headerSpacing: {
     height: 20,
   },
   titleContainer: {
     width: '100%',
-    paddingHorizontal: 0,
-    paddingVertical: 10,
-    marginHorizontal: 0,
+    paddingVertical: PADDING.margin.medium,
+    marginBottom: PADDING.margin.medium,
   },
   bodyContainer: {
-    margin: 10,
+    marginBottom: PADDING.margin.medium,
   },
   titleHead: {
     width: '100%',
@@ -275,20 +271,17 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     fontWeight: '800',
     fontFamily: fonts.bold,
-    fontSize: 30,
+    fontSize: moderateScale(28),
     textDecorationLine: 'underline',
-    paddingHorizontal: 0,
-    marginHorizontal: 0,
+    marginBottom: PADDING.margin.small,
   },
   subHead: {
-    alignContent: 'center',
     color: COLORS.black,
-    fontWeight: '500',
+    fontWeight: '400',
     fontFamily: fonts.regular,
-    fontSize: 18,
-    marginVertical: 10,
-    // lineHeight: 10,
-    // textDecorationLine: 'underline',
-    textAlign: 'left'
+    fontSize: moderateScale(16),
+    lineHeight: moderateScale(24),
+    marginBottom: PADDING.margin.medium,
+    textAlign: 'left',
   },
 });

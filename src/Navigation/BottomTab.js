@@ -14,6 +14,7 @@ import ProductDetailsScreen from '../Screens/ProductDetailsScreen';
 import CartScreen from '../Screens/CartScreen';
 import CategoriesScreen from '../Screens/CategoriesScreen';
 import AccountScreen from '../Screens/AccountScreen';
+import Orders from '../Screens/Orders';
 import PaymentScreen from '../Screens/PaymentScreen';
 import AddressScreen from '../Screens/AddressScreen';
 import MyWishList from '../Screens/MyWishList';
@@ -71,7 +72,7 @@ const MyHomeStack = () => {
       <Stack.Screen name="Payment" component={PaymentScreen} />
       <Stack.Screen name="AddressScreen" component={AddressScreen} />
       <Stack.Screen name="MyWishList" component={MyWishList} />
-      {/* <Stack.Screen name="ORDERS" component={Orders} /> */}
+      <Stack.Screen name="Orders" component={Orders} />
     </Stack.Navigator>
   );
 };

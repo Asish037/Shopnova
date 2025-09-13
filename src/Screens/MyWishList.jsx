@@ -8,13 +8,16 @@ import {
   Image,
   ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import { CartContext } from '../Context/CartContext';
 import WishlistCard from '../Components/WishlistCard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../Components/axios';
 import { verticalScale } from '../PixelRatio';
+import { PADDING } from '../Constant/Padding';
 import AppLoader from '../Components/AppLoader';
 
 const MyWishList = () => {
@@ -37,13 +40,20 @@ const MyWishList = () => {
 
   const removeFromWishlist = (item) => {
     console.log('Remove from wishlist:', item.id);
+
     if (removeFromWishlistContext) {
       removeFromWishlistContext(item.productId || item.id);
     }
-    // Update local state
+
+    // Call API to remove from backend
+    fetchRemoveLikeProducts(user.id, item.productId || item.id);
+
+    // Update local state immediately for responsiveness
     setProducts(prev => prev.filter(prod => prod.id !== item.id));
     setFilteredProducts(prev => prev.filter(prod => prod.id !== item.id));
   };
+
+
 
   const normalizeWishlistItems = (wishlistItems = []) => {
     console.log('Normalizing items:', wishlistItems.length);
@@ -104,6 +114,7 @@ const MyWishList = () => {
     }
   };
 
+
   useEffect(() => {
     console.log('MyWishList useEffect - User:', user?.id);
     if (user?.id) {
@@ -111,55 +122,94 @@ const MyWishList = () => {
     }
   }, [user]);
 
+  /** Remove product from wishlist */
+  const fetchRemoveLikeProducts = async (userId, productId) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        Alert.alert('Error', 'No auth token found. Please log in again.');
+        return;
+      }
+
+      // const payload = {
+      //   userId: String(userId),
+      //   productId: String(productId),
+      // };
+
+      const response = await axios({
+        method: 'delete',
+        url: `/remove-wishlist?userId=${userId}&productId=${productId}`,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        // data: payload,
+      });
+
+      console.log('Wishlist Remove Response:', response.data);
+    } catch (error) {
+      console.error('Error in fetchRemoveLikeProducts:', error.response?.data || error.message);
+    }
+  };
+
   if (isLoading) {
     return <AppLoader message="Loading your wishlist..." />;
   }
 
   if (filteredProducts.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No items in your wishlist</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No items in your wishlist</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>My Wishlist</Text>
-        <View style={styles.placeholder} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>My Wishlist</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
+        <Text style={styles.itemCount}>
+          Found {filteredProducts.length} wishlist items
+        </Text>
+        
+        <FlatList
+          data={filteredProducts}
+          numColumns={2}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({item, index}) => {
+            console.log(`Rendering item ${index}:`, item.title);
+            return (
+              <WishlistCard
+                item={item}
+                handleProductClick={handleProductDetails}
+                toggleFavorite={toggleFavorite}
+                removeFromWishlist={removeFromWishlist}
+              />
+            );
+          }}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+        />
       </View>
-      
-      <Text style={styles.itemCount}>
-        Found {filteredProducts.length} wishlist items
-      </Text>
-      
-      <FlatList
-        data={filteredProducts}
-        numColumns={2}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({item, index}) => {
-          console.log(`Rendering item ${index}:`, item.title);
-          return (
-            <WishlistCard
-              item={item}
-              handleProductClick={handleProductDetails}
-              toggleFavorite={toggleFavorite}
-              removeFromWishlist={removeFromWishlist}
-            />
-          );
-        }}
-        showsVerticalScrollIndicator={false}
-        style={styles.flatList}
-      />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -189,9 +239,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: Platform.OS === 'ios' ? verticalScale(35) : verticalScale(25),
-    paddingTop: Platform.OS === 'ios' ? verticalScale(45) : verticalScale(35),
+    paddingHorizontal: PADDING.content.horizontal,
+    paddingVertical: PADDING.content.vertical,
+    paddingTop: PADDING.margin.medium,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
@@ -209,15 +259,15 @@ const styles = StyleSheet.create({
     width: 50,
   },
   itemCount: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: PADDING.content.horizontal,
+    paddingVertical: PADDING.margin.medium,
     fontSize: 16,
     color: '#666666',
     backgroundColor: '#F8F8F8',
   },
   flatList: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: PADDING.flatList.horizontal,
   },
 });
 

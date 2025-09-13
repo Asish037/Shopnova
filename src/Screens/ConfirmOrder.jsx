@@ -75,17 +75,24 @@ const ConfirmOrder = () => {
             });
 
             if (response.data.status === 1) {
-                Alert.alert('Order Placed', 'Your order has been placed successfully!');
+                // Alert.alert('Order Placed', 'Your order has been placed successfully!');
                 console.log('Order Placed Successfully:', response.data);
                 const orderId = response.data?.data?.order_id || response.data?.data?.id;
                 if (orderId) {
-                    navigation.navigate('OrderDetails', { orderId });
-                } else {
-                    console.warn("No orderId in response:", response.data);
-                }
+                //     navigation.navigate('OrderDetails', { orderId });
+                // } 
+                    navigation.navigate('PaymentMethod', {
+                        orderId,
+                        grandTotal: total,
+                        cartItems,
+                        selectedPaymentMethod: 'Cash', // default Cash
+                    });
             } else {
-                Alert.alert('Order Failed', response.data.message || 'Please try again.');
-                console.error('Order Placement Failed:', response.data);
+                console.warn("No orderId in response:", response.data);
+            }
+        } else {
+            Alert.alert('Order Failed', response.data.message || 'Please try again.');
+            console.error('Order Placement Failed:', response.data);
             }
         } catch (error) {
             console.error('Error placing order:', error);

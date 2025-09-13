@@ -7,6 +7,7 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
+    ActivityIndicator,
     } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import model5 from '../../assets/model5.jpg';
@@ -18,6 +19,7 @@ import qs from 'qs';
 import ToastMessage from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CartContext } from '../../Context/CartContext';
+import download from '../../assets/download2.jpeg';
 
 const Otp = ({navigation, route}) => {
     const {user_id, phone} = route.params;
@@ -28,6 +30,7 @@ const Otp = ({navigation, route}) => {
     const [otp, setOtp] = React.useState(['', '', '', '', '', '']);
     const [timer, setTimer] = React.useState(30);
     const [isResendDisabled, setIsResendDisabled] = React.useState(true);
+    const [isLoading, setIsLoading] = React.useState(false);
     const refs = [];
 
     React.useEffect(() => {
@@ -59,6 +62,8 @@ const Otp = ({navigation, route}) => {
             Alert.alert('Error', 'Please enter a valid 6-digit OTP.');
             return;
         }
+        
+        setIsLoading(true);
         // Mock verification: accept 123456 as valid
         // if (enteredOtp === '123456') {
         //     navigation.reset({
@@ -133,6 +138,7 @@ const Otp = ({navigation, route}) => {
             
             // Navigate to MainHome after a short delay
             setTimeout(() => {
+              setIsLoading(false);
               navigation.reset({
                 index: 0,
                 routes: [{name: 'MainHome'}],
@@ -147,6 +153,7 @@ const Otp = ({navigation, route}) => {
               position: 'top',
               visibilityTime: 4000,
             });
+            setIsLoading(false);
           }
         } catch (error) {
           console.error('Registration error:', error);
@@ -160,6 +167,7 @@ const Otp = ({navigation, route}) => {
             position: 'top',
             visibilityTime: 4000,
           });
+          setIsLoading(false);
         }
     };
 
@@ -171,13 +179,13 @@ const Otp = ({navigation, route}) => {
     };
 
     return (
-        <ImageBackground source={model5} style={styles.bgImage} resizeMode="cover">
+        <ImageBackground source={download} style={styles.bgImage} resizeMode="cover">
             <View style={styles.overlay} />
             <View style={styles.container}>
                 <View style={{position: 'absolute', top: -5, left: 20}}>
                     <Text style={styles.logoText}>
-                        <Text>Style</Text>
-                        <Text style={styles.logoBold}>ON</Text>
+                        <Text>Shop</Text>
+                        <Text style={styles.logoBold}>Nova</Text>
                     </Text>
                 </View>
                 <View style={styles.card}>
@@ -221,17 +229,21 @@ const Otp = ({navigation, route}) => {
                         style={styles.continueContainer}
                         onPress={handleContinue}
                         activeOpacity={0.8}
-                        disabled={otp.join('').length !== 6}>
+                        disabled={otp.join('').length !== 6 || isLoading}>
                         <LinearGradient
                             colors={
-                                otp.join('').length !== 6
+                                otp.join('').length !== 6 || isLoading
                                 ? ['#ccc', '#ccc']
                                 : ['#FFD700', '#FFA500', '#FF8C00']
                             }
                             start={{x: 0, y: 0}}
                             end={{x: 1, y: 0}}
-                            style={styles.continueBtn}>
-                            <Text style={styles.continueText}>CONTINUE</Text>
+                            style={[styles.continueBtn, isLoading && styles.continueBtnDisabled]}>
+                            {isLoading ? (
+                                <ActivityIndicator color="#fff" size="small" />
+                            ) : (
+                                <Text style={styles.continueText}>CONTINUE</Text>
+                            )}
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -261,15 +273,15 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   logoText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'semibold',
-    color: 'red',
+    color: '#FF8C00',
     marginTop: 40,
     marginBottom: 10,
     textAlign: 'center',
   },
   logoBold: {
-    color: 'red',
+    color: '#FF8C00',
     fontWeight: '900',
   },
   card: {
@@ -361,6 +373,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     letterSpacing: 1,
+  },
+  continueBtnDisabled: {
+    opacity: 0.7,
   },
 });
 

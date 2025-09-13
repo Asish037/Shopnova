@@ -19,6 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import sale from '../assets/sale2.jpeg';
 import backgroundSlider from '../assets/backgroundSlider.png';
 import { COLORS } from '../Constant/Colors';
+import { PADDING } from '../Constant/Padding';
 // import { useTheme } from '../Context/ThemeContext';
 import { CartContext } from '../Context/CartContext';
 import axios from '../Components/axios';
@@ -224,7 +225,9 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: Platform.OS === 'ios' ? 15 : 5,
+    paddingHorizontal: PADDING.container.horizontal,
+    paddingTop: PADDING.container.vertical,
+    paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
   },
@@ -233,7 +236,8 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: PADDING.margin.large,
+    marginHorizontal: PADDING.margin.small,
   },
   headingText: {
     fontSize: 28,
@@ -279,12 +283,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   flatListContent: {
-    paddingBottom: 20,
+    paddingBottom: PADDING.flatList.bottom,
+    paddingTop: PADDING.flatList.top,
   },
   tagsContainer: {
-    marginTop: 10,
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    marginTop: PADDING.margin.medium,
+    marginBottom: PADDING.margin.medium,
+    paddingHorizontal: PADDING.margin.small,
   },
 });
 export default HomeScreen;

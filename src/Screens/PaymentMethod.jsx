@@ -30,9 +30,11 @@ const PaymentMethod = ({route}) => {
   const [ifscCode, setIfscCode] = useState('');
 
   // Handle the  parameters from CartScreen
-  const grandTotal = route.params?.grandTotal || '0.00';
-  const cartItems = route.params?.cartItems || [];
-  const selectedPaymentMethod = route.params?.selectedPaymentMethod || 'Card';
+  // const grandTotal = route.params?.grandTotal || '0.00';
+  // const cartItems = route.params?.cartItems || [];
+  // const selectedPaymentMethod = route.params?.selectedPaymentMethod || 'Card';
+  const { orderId, grandTotal, cartItems, selectedPaymentMethod } = route.params || {};
+
 
   console.log('PaymentMethod - Received params:', route.params);
   console.log('PaymentMethod - Grand Total:', grandTotal);
@@ -53,6 +55,7 @@ const PaymentMethod = ({route}) => {
             text: 'OK',
             onPress: () =>
               navigation.navigate('OrderConfirm', {
+                orderId,
                 selectedPaymentMethod,
                 total: grandTotal,
                 cartItems,

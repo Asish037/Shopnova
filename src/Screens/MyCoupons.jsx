@@ -18,6 +18,7 @@ import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {COLORS} from '../Constant/Colors';
 import {moderateScale} from '../PixelRatio';
+import {PADDING} from '../Constant/Padding';
 import Coupons from '../Components/Coupons';
 import CouponCard from '../Components/CouponCard';
 // import Header from "../Components/Header";
@@ -63,17 +64,18 @@ const MyCoupons = () => {
 const styles = StyleSheet.create({
   container: {
       flex: 1,
-      padding: Platform.OS === 'ios' ? 20 : 10,
+      paddingTop: PADDING.container.vertical,
+      paddingBottom: PADDING.container.bottom,
       width: '100%',
       height: '100%',
   },
 
   headingText: {
-    fontSize: 28,
-    color: '#000000',
-    marginVertical: 20,
-    fontFamily: 'Poppins-Regular',
-    fontWeight: '600',
+    fontSize: moderateScale(28),
+    color: COLORS.black,
+    marginVertical: PADDING.margin.xlarge,
+    fontFamily: 'Poppins-Bold',
+    fontWeight: '700',
     textAlign: 'center',
     flex: 1,
   },
@@ -99,17 +101,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 0.2,
-    borderColor: COLORS.textInput,
-    paddingBottom: 15,
+    paddingHorizontal: PADDING.header.horizontal,
+    paddingVertical: PADDING.content.vertical,
+    borderBottomWidth: 2,
+    borderColor: 'rgba(245, 74, 0, 0.2)',
+    paddingBottom: PADDING.margin.medium,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: moderateScale(12),
+    marginHorizontal: PADDING.margin.small,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   flatList: {
-    paddingHorizontal: 10,
+    paddingHorizontal: PADDING.flatList.horizontal,
   },
   flatListContent: {
-    paddingBottom: 20,
+    paddingBottom: PADDING.flatList.bottom,
+    paddingTop: PADDING.flatList.top,
   },
 });
 export default MyCoupons;

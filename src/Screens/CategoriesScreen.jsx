@@ -17,6 +17,9 @@ import {useRoute, useNavigation} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import ProductCard from '../Components/ProductCard';
 import {COLORS} from '../Constant/Colors';
+import {PADDING} from '../Constant/Padding';
+import {moderateScale, verticalScale} from '../PixelRatio';
+import Header from '../Components/Header';
 import axios from '../Components/axios';
 import AppLoader from '../Components/AppLoader';
 import GeneralLoader from '../Components/GeneralLoader';
@@ -366,7 +369,7 @@ const CategoriesScreen = () => {
     setShowSuggestions(suggestionArray.length > 0);
   };
 
-  //  Search filter
+  // Search filter
   const handleSearchChange = text => {
     setSearchText(text);
 
@@ -421,21 +424,6 @@ const CategoriesScreen = () => {
     setFilteredProducts(filtered);
   };
 
-  const handleProductClick = item => {
-    console.log('Navigating to product details with item:', item);
-    console.log('Product ID being passed:', item.id, typeof item.id);
-    navigation.navigate('PRODUCT_DETAILS', {productId: item.id});
-  };
-
-  const renderProductCard = ({item}) => (
-    <ProductCard
-      item={item}
-      handleProductClick={handleProductClick}
-      toggleFavorite={() => {}}
-      isCompact={true}
-    />
-  );
-
   // Render suggestion item
   const renderSuggestionItem = ({item, index}) => (
     <TouchableOpacity
@@ -451,6 +439,22 @@ const CategoriesScreen = () => {
       <Text style={styles.suggestionText}>{item}</Text>
     </TouchableOpacity>
   );
+
+  const handleProductClick = item => {
+    console.log('Navigating to product details with item:', item);
+    console.log('Product ID being passed:', item.id, typeof item.id);
+    navigation.navigate('PRODUCT_DETAILS', {productId: item.id});
+  };
+
+  const renderProductCard = ({item}) => (
+    <ProductCard
+      item={item}
+      handleProductClick={handleProductClick}
+      toggleFavorite={() => {}}
+      isCompact={true}
+    />
+  );
+
 
   if (isInitialLoading) {
     return <AppLoader message="Loading categories..." />;
@@ -477,7 +481,11 @@ const CategoriesScreen = () => {
               resizeMode="cover"
             />
           ) : (
-            <View style={styles.categoryImagePlaceholder} />
+            <View style={styles.categoryImagePlaceholder}>
+              <Text style={styles.categoryImageText}>
+                {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+              </Text>
+            </View>
           )}
         </View>
 
@@ -515,7 +523,11 @@ const CategoriesScreen = () => {
               resizeMode="cover"
             />
           ) : (
-            <View style={styles.subCategoryImagePlaceholder} />
+            <View style={styles.subCategoryImagePlaceholder}>
+              <Text style={styles.subCategoryImageText}>
+                {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+              </Text>
+            </View>
           )}
         </View>
 
@@ -552,6 +564,8 @@ const CategoriesScreen = () => {
 
   return (
     <LinearGradient colors={COLORS.gradient} style={styles.container}>
+      <Header />
+      
       {/* Search Input */}
       <View style={styles.searchContainer}>
         <View style={styles.inputContainer}>
@@ -615,7 +629,7 @@ const CategoriesScreen = () => {
       <View style={styles.mainContent}>
         {/* Left Side - Categories */}
         <View style={styles.leftPanel}>
-          <Text style={styles.panelTitle}>Categories</Text>
+          <Text style={styles.panelTitle} numberOfLines={1}>Categories</Text>
           <FlatList
             data={categories}
             renderItem={renderCategoryItem}
@@ -630,7 +644,7 @@ const CategoriesScreen = () => {
           {currentView === 'categories' && subCategories.length > 0 ? (
             // Show subcategories when they exist
             <>
-              <Text style={styles.panelTitle}>
+              <Text style={styles.panelTitle} numberOfLines={1}>
                 {selectedCategory ? selectedCategory.name : 'Subcategories'}
               </Text>
               {isLoading ? (
@@ -655,7 +669,7 @@ const CategoriesScreen = () => {
           ) : (
             // Show products when no subcategories OR when in products view
             <>
-              <Text style={styles.panelTitle}>
+              <Text style={styles.panelTitle} numberOfLines={1}>
                 {selectedSubCategory
                   ? selectedSubCategory.name
                   : selectedCategory
@@ -714,43 +728,45 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   searchContainer: {
-    marginBottom: 15,
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 55 : 25,
-    paddingBottom: 15,
+    marginBottom: PADDING.margin.medium,
+    paddingHorizontal: PADDING.header.horizontal,
+    paddingTop: PADDING.margin.small,
+    paddingBottom: PADDING.margin.medium,
     zIndex: 1000,
     backgroundColor: 'transparent',
   },
   inputContainer: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
-    height: 48,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    height: verticalScale(52),
+    borderRadius: moderateScale(16),
     alignItems: 'center',
     flexDirection: 'row',
-    elevation: 2,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1
+      height: 2
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   suggestionsContainer: {
-    marginHorizontal: 20,
-    marginTop: -10,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    elevation: 5,
+    marginHorizontal: PADDING.header.horizontal,
+    marginTop: -PADDING.margin.small,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: moderateScale(16),
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    maxHeight: 200,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    maxHeight: verticalScale(200),
     zIndex: 999,
-    // marginBottom: 10,
-
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   suggestionsList: {
     paddingVertical: 8,
@@ -779,15 +795,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   searchIcon: {
-    height: 26,
-    width: 26,
-    marginHorizontal: 12,
+    height: moderateScale(24),
+    width: moderateScale(24),
+    marginHorizontal: PADDING.margin.medium,
+    tintColor: COLORS.button,
   },
   textInput: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: 'Poppins-Regular',
-    color: '#110e0eff',
+    fontSize: moderateScale(16),
+    fontFamily: 'Poppins-Medium',
+    color: COLORS.black,
     paddingVertical: 0,
   },
   clearButton: {
@@ -814,94 +831,110 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    // backgroundColor: 'black',
     flexDirection: 'row',
-    marginTop: 5,
-    paddingHorizontal: 5,
-    paddingBottom: 5,
-    gap: 2,
+    marginTop: PADDING.margin.small,
+    paddingHorizontal: PADDING.margin.small,
+    paddingBottom: PADDING.margin.small,
+    gap: PADDING.margin.small,
   },
   // caregory part
   leftPanel: {
     width: '30%',
     height: '100%',
-    // backgroundColor: 'rgba(255, 255, 255, 0.89)',
-    backgroundColor: '#d9d7d7ff',
-    borderRadius: 10,
-    elevation: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: moderateScale(16),
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   // subCategory part
   rightPanel: {
     flex: 1,
     height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    // borderRadius: 20,
-    elevation: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: moderateScale(16),
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   panelTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontFamily: 'Poppins-Bold',
-    color: COLORS.black,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ffffff',
+    color: COLORS.button,
+    paddingHorizontal: PADDING.margin.small,
+    paddingVertical: PADDING.content.vertical,
+    borderBottomWidth: 2,
+    borderBottomColor: 'rgba(245, 74, 0, 0.2)',
     textAlign: 'center',
+    backgroundColor: 'rgba(245, 74, 0, 0.05)',
+    numberOfLines: 1,
   },
 
   // category part`
   categoryList: {
-    paddingBottom: 15,
-    paddingTop: 5,
-    // width: 80,
-    // height: 70,
-    // borderRadius: 50,
+    paddingBottom: PADDING.margin.medium,
+    paddingTop: PADDING.margin.small,
   },
   categoryItem: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: PADDING.margin.medium,
+    paddingVertical: PADDING.margin.medium,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#d9d7d7ff',
+    borderRadius: moderateScale(16),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(245, 74, 0, 0.1)',
+    marginHorizontal: PADDING.margin.small,
+    marginVertical: PADDING.margin.small,
   },
   selectedCategoryItem: {
-    backgroundColor: COLORS.button,  
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
     borderLeftWidth: 4,
     borderLeftColor: COLORS.button,
+    borderWidth: 2,
+    borderColor: COLORS.button,
+    shadowColor: COLORS.button,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   categoryContent: {
     alignItems: 'center',
   },
   categoryText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
+    fontSize: moderateScale(14),
+    fontFamily: 'Poppins-Medium',
     color: COLORS.black,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: moderateScale(18),
+    marginTop: PADDING.margin.small,
   },
   selectedCategoryText: {
     fontFamily: 'Poppins-Bold',
-    color: COLORS.white,
+    color: COLORS.button,
   },
   categoryImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: moderateScale(80),
+    height: moderateScale(80),
+    borderRadius: moderateScale(40),
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ddd3d3ff',
-    marginBottom: 8,
+    backgroundColor: 'rgba(245, 74, 0, 0.08)',
+    marginBottom: PADDING.margin.small,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   categoryImage: {
     width: '100%',
@@ -911,40 +944,53 @@ const styles = StyleSheet.create({
   categoryImagePlaceholder: {
     width: '100%',
     height: '100%',
-    borderRadius: 50,
-    backgroundColor: '#f4e7e7ff',
+    borderRadius: moderateScale(40),
+    backgroundColor: 'rgba(245, 74, 0, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryImageText: {
+    fontSize: moderateScale(28),
+    fontFamily: 'Poppins-Bold',
+    color: COLORS.button,
+    textAlign: 'center',
   },
 
   // subCategory part
   subCategoryList: {
-    paddingBottom: 10,
-    paddingTop: 10,
-    // gap: 10,
+    paddingBottom: PADDING.margin.medium,
+    paddingTop: PADDING.margin.medium,
+    paddingHorizontal: PADDING.margin.small,
   },
   subCategoryItem: {
     flex: 1, 
-    margin: 6,
-     maxWidth: '45%', // ensures 2 per row
-    backgroundColor: '#fff',
+    margin: PADDING.margin.small,
+    maxWidth: '45%', // ensures 2 per row
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
+    borderColor: 'rgba(245, 74, 0, 0.2)',
+    borderRadius: moderateScale(16),
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    elevation: 2, // small shadow for Android
-    shadowColor: '#000', // iOS shadow
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    padding: PADDING.margin.medium,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     shadowOffset: { 
       width: 0, 
-      height: 2 
+      height: 4 
     },
   },
   selectedSubCategoryItem: {
-    backgroundColor: COLORS.lightbutton,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.button,
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
+    borderWidth: 2,
+    borderColor: COLORS.button,
+    shadowColor: COLORS.button,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
   },
   subCategoryContent: {
     flexDirection: 'column',
@@ -955,82 +1001,99 @@ const styles = StyleSheet.create({
     color: COLORS.button,
   },
   subCategoryImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: moderateScale(80),
+    height: moderateScale(80),
+    borderRadius: moderateScale(40),
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#cdcacaff',
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   subCategoryImage: {
-    // width: '100%',
-    // height: '100%',
-    // resizeMode: 'cover',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: moderateScale(70),
+    height: moderateScale(70),
+    borderRadius: moderateScale(35),
   },
   subCategoryImagePlaceholder: {
     width: '100%',
     height: '100%',
-    borderRadius: 50,
-    backgroundColor: '#dad5d5ff',
+    borderRadius: moderateScale(40),
+    backgroundColor: 'rgba(245, 74, 0, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  subCategoryImageText: {
+    fontSize: moderateScale(24),
+    fontFamily: 'Poppins-Bold',
+    color: COLORS.button,
+    textAlign: 'center',
   },
   subCategoryText:{
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
-    color: 'black',
+    fontSize: moderateScale(14),
+    fontFamily: 'Poppins-Medium',
+    color: COLORS.black,
     textAlign: 'center',
+    marginTop: PADDING.margin.small,
   },
   // Product grid && loading
   productCount: {
-    fontSize: 12,
+    fontSize: moderateScale(12),
     fontFamily: 'Poppins-Regular',
     color: COLORS.grey,
+    marginTop: PADDING.margin.small,
   },
   rightPanelLoading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: PADDING.margin.xlarge,
   },
   rightPanelLoadingText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Regular',
+    fontSize: moderateScale(14),
+    fontFamily: 'Poppins-Medium',
     color: COLORS.black,
-    marginTop: 8,
+    marginTop: PADDING.margin.small,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    paddingVertical: PADDING.margin.xlarge,
+    paddingHorizontal: PADDING.content.horizontal,
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontFamily: 'Poppins-Medium',
     color: COLORS.grey,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: PADDING.margin.medium,
   },
   backToSubcategoriesButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: PADDING.button.horizontal,
+    paddingVertical: PADDING.button.vertical,
     backgroundColor: COLORS.button,
-    borderRadius: 8,
-    marginTop: 10,
+    borderRadius: moderateScale(12),
+    marginTop: PADDING.margin.medium,
+    shadowColor: COLORS.button,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   backToSubcategoriesText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
+    fontSize: moderateScale(14),
+    fontFamily: 'Poppins-Bold',
     color: COLORS.white,
   },
   productsGrid: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: PADDING.content.horizontal,
+    paddingVertical: PADDING.content.vertical,
     justifyContent: 'center',
-    gap: 20,
+    gap: PADDING.margin.xlarge,
   },
 });

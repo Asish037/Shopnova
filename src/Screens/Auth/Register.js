@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import GradientButton from '../../Components/Button/GradientButton';
 import ImageWithTitle from '../../Components/Header/ImageWithTitle';
@@ -34,6 +35,7 @@ import axios from '../../Components/axios';
 import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestNotificationPermission } from '../../utils/requestNotificationPermission';
+import download from '../../assets/namahShivay.jpeg';
 
 const datet = new Date();
 
@@ -47,6 +49,7 @@ export default function Register() {
   const [name, setName] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [error, setError] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
   const [fcmToken, setFcmToken] = React.useState('');
   const [select_code, setSelectCode] = useState('91');
   // const [email, setEmail] = React.useState('');
@@ -93,6 +96,7 @@ export default function Register() {
     }
     
     setError('');
+    setIsLoading(true);
     let data = {
       name: name,
       phone: phone
@@ -131,6 +135,7 @@ export default function Register() {
         setTimeout(() => {
           const userId = res.data.data?.user_id;
           console.log('Navigating with user_id:', userId);
+          setIsLoading(false);
           navigation.navigate('Otp', {user_id: userId, phone: phone});
         }, 1500);
       } else {
@@ -146,6 +151,7 @@ export default function Register() {
         setTimeout(() => {
           const userId = res.data.data?.user_id;
           console.log('Navigating with user_id (fallback):', userId);
+          setIsLoading(false);
           navigation.navigate('Otp', {user_id: userId, phone: phone});
         }, 1500);
       }
@@ -161,19 +167,20 @@ export default function Register() {
         position: 'top',
         visibilityTime: 4000,
       });
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={{flex: 1}}>
       <ImageBackground
-        source={model4}
+        source={download}
         style={styles.bgImage}
-        resizeMode="fit">
+        resizeMode="cover">
         {/* Logo at top left, over image */}
         <View style={styles.logoContainer}>
           <Text style={styles.logoText}>
-            <Text>Style</Text><Text style={styles.logoBold}>ON</Text>
+            <Text>Shop</Text><Text style={styles.logoBold}>Nova</Text>
           </Text>
         </View>
         {/* Login box at bottom, not full height */}
@@ -217,13 +224,18 @@ export default function Register() {
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             <TouchableOpacity
               style={styles.continueContainer}
-              onPress={registerUser}>
+              onPress={registerUser}
+              disabled={isLoading}>
               <LinearGradient
                 colors={['#FFD700', '#FFA500', '#FF8C00']}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 0}}
-                style={styles.continueBtn}>
-                <Text style={styles.continueText}>CONTINUE</Text>
+                style={[styles.continueBtn, isLoading && styles.continueBtnDisabled]}>
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.continueText}>CONTINUE</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </ScrollView>
@@ -268,13 +280,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   logoText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'semibold',
-    color: 'red',
-    letterSpacing: 1,
+    color: '#FF8C00',
+    // letterSpacing: 1,
   },
   logoBold: {
-    color: 'red',
+    color: '#FF8C00',
     fontWeight: '900',
   },
   loginBoxOuter: {
@@ -376,6 +388,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     includeFontPadding: false,
     textAlignVertical: 'center',
+  },
+  continueBtnDisabled: {
+    opacity: 0.7,
   },
   errorText: {
     color: 'red',

@@ -4,9 +4,12 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import { COLORS } from "../Constant/Colors";
+import { PADDING } from "../Constant/Padding";
+import { moderateScale } from "../PixelRatio";
 
 const Coupons = () => {
   const [selected, setSelected] = useState("Trending");
@@ -42,20 +45,39 @@ export default Coupons;
 const styles = StyleSheet.create({
   tagText: {
     fontSize: 16,
-    fontFamily: "Poppins-Regular",
-    borderRadius: 10,
-    paddingHorizontal: 30,
-    paddingVertical: 10,
-    marginHorizontal: 10,
-    backgroundColor: COLORS.cream,
+    fontFamily: "Poppins-Bold",
+    borderRadius: moderateScale(12),
+    paddingHorizontal: PADDING.button.horizontal,
+    paddingVertical: PADDING.button.vertical,
+    marginHorizontal: PADDING.margin.small,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     color: COLORS.grey,
     fontWeight: "700",
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.2)',
   },
   isSelected: {
-    backgroundColor: COLORS.lightbutton,
-    color: COLORS.orange,
+    backgroundColor: COLORS.button,
+    color: COLORS.white,
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   container: {
-    marginVertical: 10,
+    marginVertical: PADDING.margin.medium,
+    paddingHorizontal: PADDING.header.horizontal,
   },
 });

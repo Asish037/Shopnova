@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
+import {PADDING} from '../Constant/Padding';
 import {moderateScale, verticalScale} from '../PixelRatio';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -100,9 +101,9 @@ const HelpCenter = () => {
                   style={{color: COLORS.black, fontSize: moderateScale(30)}}
                 />
               </View>
-              <View style={{flexDirection: 'column', width: '70%'}}>
-                <Text style={styles.topicText}>Chat with us</Text>
-                <Text style={styles.topicText}>
+              <View style={{flexDirection: 'column', width: '70%', justifyContent: 'center'}}>
+                <Text style={styles.helpButtonTitle}>Chat with us</Text>
+                <Text style={styles.helpButtonSubtitle}>
                   Get instant query assistance
                 </Text>
               </View>
@@ -120,8 +121,8 @@ const HelpCenter = () => {
                   style={{color: COLORS.black, fontSize: moderateScale(30)}}
                 />
               </View>
-              <View style={{flexDirection: 'column', width: '70%'}}>
-                <Text style={styles.topicText}>Get in touch</Text>
+              <View style={{flexDirection: 'column', width: '70%', justifyContent: 'center'}}>
+                <Text style={styles.helpButtonTitle}>Get in touch</Text>
               </View>
               <View style={{width: '20%'}}>
                 <MaterialIcons
@@ -142,7 +143,8 @@ export default HelpCenter;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: Platform.OS === 'ios' ? 20 : 10,
+    paddingTop: PADDING.container.vertical,
+    paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
   },
@@ -151,10 +153,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    paddingHorizontal: PADDING.header.horizontal,
+    paddingVertical: PADDING.content.vertical,
     borderBottomWidth: 1,
     borderColor: COLORS.textInput,
-    // paddingBottom: 0,
   },
   headTitle: {
     color: COLORS.black,
@@ -170,10 +172,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   bodySection: {
-    padding: 10,
-    margin: 10,
-    width: moderateScale(300),
-    height: verticalScale(120),
+    paddingHorizontal: PADDING.margin.small,
+    paddingVertical: PADDING.margin.small,
+    marginHorizontal: PADDING.margin.small,
+    marginVertical: PADDING.margin.small,
+    width: moderateScale(320),
+    height: verticalScale(140),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -183,7 +187,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     width: moderateScale(320),
     justifyContent: 'space-evenly',
-    paddingBottom: 20,
+    paddingHorizontal: PADDING.header.horizontal,
+    paddingBottom: PADDING.margin.xlarge,
   },
   bodyPartSmall: {
     width: '40%',
@@ -194,7 +199,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: COLORS.lightgray,
     borderWidth: 2,
-    padding: 8,
+    padding: PADDING.margin.small,
     shadowColor: COLORS.theme,
     shadowOffset: {
       width: 0,
@@ -203,21 +208,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 14,
-    width: moderateScale(120),
-    height: moderateScale(100),
+    width: moderateScale(140),
+    height: moderateScale(120),
     justifyContent: 'center',
     alignItems: 'center',
   },
   topicText: {
     color: COLORS.black,
     fontFamily: FONTS.LightItalic,
-    fontSize: moderateScale(14),
-    fontWeight: '400',
-    textAlign: 'left',
+    fontSize: moderateScale(16),
+    fontWeight: '500',
+    textAlign: 'center',
   },
   buttonBox: {
-    margin: 10,
-    padding: 8,
+    marginHorizontal: PADDING.margin.medium,
+    marginVertical: PADDING.margin.small,
+    padding: PADDING.margin.small,
     backgroundColor: COLORS.white,
     width: moderateScale(300),
     height: moderateScale(60),
@@ -226,5 +232,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     flexDirection: 'row',
     justifyContent: 'space-around',
+  },
+  helpButtonTitle: {
+    color: COLORS.black,
+    fontFamily: FONTS.Bold,
+    fontSize: moderateScale(16),
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  helpButtonSubtitle: {
+    color: COLORS.gray || '#666666',
+    fontFamily: FONTS.Regular,
+    fontSize: moderateScale(12),
+    fontWeight: '400',
+    lineHeight: moderateScale(16),
   },
 });

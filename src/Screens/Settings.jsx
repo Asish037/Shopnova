@@ -18,6 +18,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../Constant/Colors';
 import { FONTS } from '../Constant/Font';
+import { PADDING } from '../Constant/Padding';
 
 const Settings = () => {
   const navigation = useNavigation();
@@ -334,13 +335,14 @@ export default Settings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    paddingTop: PADDING.container.vertical,
+    paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
   },
   headerContainer: {
-    marginBottom: moderateScale(24),
-    paddingHorizontal: moderateScale(4),
+    marginBottom: PADDING.margin.xlarge,
+    paddingHorizontal: PADDING.header.horizontal,
   },
   title: {
     fontSize: moderateScale(23),
@@ -360,65 +362,77 @@ const styles = StyleSheet.create({
     paddingBottom: moderateScale(16),
   },
   sectionContainer: {
-    marginBottom: moderateScale(20),
+    marginBottom: PADDING.margin.xlarge,
+    paddingHorizontal: PADDING.header.horizontal,
   },
   sectionTitle: {
-    fontSize: moderateScale(16),
-    fontWeight: '600',
-    color: COLORS.black,
-    fontFamily: FONTS.Medium,
-    marginBottom: moderateScale(10),
-    paddingHorizontal: moderateScale(6),
+    fontSize: moderateScale(18),
+    fontWeight: '700',
+    color: COLORS.button,
+    fontFamily: FONTS.Bold,
+    marginBottom: PADDING.margin.medium,
+    paddingHorizontal: PADDING.margin.small,
   },
   menuContainer: {
-    backgroundColor: '#bfbfb5ff',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: moderateScale(16),
-    elevation: 3,
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: {
-    width: 0,
-    height: 2,
+      width: 0,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: moderateScale(10),
-    paddingHorizontal: moderateScale(10),
-    borderBottomWidth: 0.5,
-    // borderBottomColor: '#F0F0F0',
+    paddingVertical: PADDING.content.vertical,
+    paddingHorizontal: PADDING.content.horizontal,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
     backgroundColor: 'transparent',
   },
   lastMenuItem: {
     borderBottomWidth: 0,
   },
   menuIconContainer: {
-    width: moderateScale(48),
-    height: moderateScale(48),
-    borderRadius: moderateScale(12),
+    width: moderateScale(52),
+    height: moderateScale(52),
+    borderRadius: moderateScale(14),
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: moderateScale(16),
+    marginRight: PADDING.margin.medium,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   menuTextContainer: {
     flex: 1,
     justifyContent: 'center',
   },
   menuText: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
     color: COLORS.black,
-    fontFamily: FONTS.Medium,
+    fontFamily: FONTS.Bold,
     fontWeight: '600',
-    lineHeight: moderateScale(20),
-    marginBottom: moderateScale(2),
+    lineHeight: moderateScale(22),
+    marginBottom: PADDING.margin.small,
   },
   menuSubText: {
-    fontSize: moderateScale(13),
-    color: '#6C757D',
+    fontSize: moderateScale(14),
+    color: '#666666',
     fontFamily: FONTS.Regular,
-    lineHeight: moderateScale(16),
+    lineHeight: moderateScale(18),
+    fontWeight: '400',
   },
 });

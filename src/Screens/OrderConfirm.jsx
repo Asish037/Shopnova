@@ -21,10 +21,12 @@ const OrderConfirm = ({route}) => {
   const navigation = useNavigation();
 
   // Get dynamic data from route parameters
-  const selectedPaymentMethod =
-    route.params?.selectedPaymentMethod || 'Not specified';
-  const total = route.params?.total || '0.00';
-  const cartItems = route.params?.cartItems || [];
+  // const selectedPaymentMethod =
+  //   route.params?.selectedPaymentMethod || 'Not specified';
+  // const total = route.params?.total || '0.00';
+  // const cartItems = route.params?.cartItems || [];
+  const { orderId, selectedPaymentMethod, total, cartItems } = route.params || {};
+
 
   console.log('OrderConfirm - Received params:', route.params);
   console.log('OrderConfirm - Payment Method:', selectedPaymentMethod);
@@ -47,6 +49,10 @@ const OrderConfirm = ({route}) => {
             Thank you for your purchase! Your order has been placed successfully
             and will be delivered soon.
           </Text>
+          {/* {orderId && (
+              <Text style={styles.orderId}>Order ID: {orderId}</Text>
+            )} */}
+
 
           {/* Order Summary Card */}
           <View style={styles.orderSummaryCard}>
@@ -70,12 +76,12 @@ const OrderConfirm = ({route}) => {
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Orders')}
+              onPress={() => navigation.navigate('OrderDetails', { orderId: orderId, fromConfirm: true })}
               style={[styles.button, styles.primaryButton]}>
               <LinearGradient
                 colors={COLORS.gradientButton}
                 style={styles.gradientButton}>
-                <Text style={styles.primaryButtonText}>View All Orders</Text>
+                <Text style={styles.primaryButtonText}>View Order Details</Text>
               </LinearGradient>
             </TouchableOpacity>
 

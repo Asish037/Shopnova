@@ -15,6 +15,7 @@ import {addToCart} from '../utils/helper';
 import {CartContext} from '../Context/CartContext';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import { COLORS } from '../Constant/Colors';
+import { PADDING } from '../Constant/Padding';
 import Icon from "react-native-vector-icons/Ionicons";
 // import {useTheme} from '../Context/ThemeContext';
 // import ThemeSelectionModal from './Modal/ThemeSelectionModal';
@@ -65,8 +66,8 @@ const Header = ({isCart, onSearchChange}) => {
       }
     } else {
       // Navigate to categories screen based on current context
-      if (route.name === 'HOME' || route.name === 'HOME_STACK' || route.name === 'MainHome') {
-        // If on home screen, navigate to bottom tab categories
+      if (route.name === 'HOME' || route.name === 'HOME_STACK' || route.name === 'MainHome' || route.name === 'CART') {
+        // If on home or cart screen, navigate to bottom tab categories
         navigation.navigate('categories', {focusSearch: true});
       } else {
         // Otherwise navigate to main stack Categories
@@ -276,14 +277,14 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    padding: 5,
-    paddingTop: Platform.OS === 'ios' ? 10 : 5,
+    paddingHorizontal: PADDING.header.horizontal,
+    paddingVertical: PADDING.header.vertical,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 5 : 0,
+    paddingTop: PADDING.header.top,
   },
   appDrawerContainer: {
     backgroundColor: 'transparent',
