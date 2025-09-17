@@ -17,6 +17,9 @@ import CategoriesScreen from '../Screens/CategoriesScreen';
 import AccountScreen from '../Screens/AccountScreen';
 import Orders from '../Screens/Orders';
 import PaymentScreen from '../Screens/PaymentScreen';
+import PaymentMethod from '../Screens/PaymentMethod';
+import ConfirmOrder from '../Screens/ConfirmOrder';
+import OrderConfirm from '../Screens/OrderConfirm';
 import AddressScreen from '../Screens/AddressScreen';
 import MyWishList from '../Screens/MyWishList';
 import { COLORS } from '../Constant/Colors';
@@ -78,6 +81,9 @@ const MyHomeStack = () => {
 
       <Stack.Screen name="PRODUCT_DETAILS" component={ProductDetailsScreen} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
+      <Stack.Screen name="PaymentMethod" component={PaymentMethod} />
+      <Stack.Screen name="ConfirmOrder" component={ConfirmOrder} />
+      <Stack.Screen name="OrderConfirm" component={OrderConfirm} />
       <Stack.Screen name="AddressScreen" component={AddressScreen} />
       <Stack.Screen name="MyWishList" component={MyWishList} />
       <Stack.Screen name="Orders" component={Orders} />

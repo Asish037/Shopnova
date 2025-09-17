@@ -71,6 +71,9 @@ const Orders = () => {
       setIsLoading(true);
       setError(null);
       
+      console.log('Orders - fetchOrders started');
+      console.log('Orders - myorderData.orders:', myorderData.orders?.length || 0);
+      
       // Use local data for now (since API might not be available)
       let ordersToUse = myorderData.orders || [];
       
@@ -80,9 +83,10 @@ const Orders = () => {
       const parsedUser = userData ? JSON.parse(userData) : null;
       const userId = parsedUser?.id;   
 
-      console.log('parsedUser:', parsedUser);
-      console.log('Fetched userId:', userId);
-      console.log('Fetched token:', token);
+      console.log('Orders - parsedUser:', parsedUser);
+      console.log('Orders - Fetched userId:', userId);
+      console.log('Orders - Fetched token:', token);
+      console.log('Orders - ordersToUse before API:', ordersToUse.length);
 
       if (token && userId) {
         try {
@@ -97,12 +101,15 @@ const Orders = () => {
             // 👇 Safe extraction
             let fetchedOrders = response.data?.data ?? [];
             ordersToUse = fetchedOrders;
+            console.log('Orders - API response received:', fetchedOrders.length);
           }
         } catch (apiErr) {
-          console.log('API call failed, using local data:', apiErr.message);
+          console.log('Orders - API call failed, using local data:', apiErr.message);
           // Continue with local data
         }
       }
+
+      console.log('Orders - ordersToUse after API:', ordersToUse.length);
 
       // Normalize each order
       const updatedOrders = ordersToUse.map(order => ({
@@ -111,6 +118,8 @@ const Orders = () => {
         payment: order.payment || { payment_status: 'Pending', payment_method: 'N/A' },
         order_items: order.order_items ?? [], // safe default
       }));
+
+      console.log('Orders - updatedOrders:', updatedOrders.length);
 
       // Apply filter
       let filteredOrders = updatedOrders;
@@ -139,19 +148,23 @@ const Orders = () => {
             );
             break;
         }
+        console.log('Orders - filteredOrders after filter:', filteredOrders.length);
       }
 
+      console.log('Orders - Final ordersData to set:', filteredOrders.length);
       setOrdersData(filteredOrders);
       setRetryCount(0); // Reset retry count on success
     } catch (err) {
-      console.error('Error in fetchOrders:', err);
+      console.error('Orders - Error in fetchOrders:', err);
       setError('Failed to load orders. Please try again.');
       
       // Use fallback data
+      console.log('Orders - Using fallback data:', myorderData.orders?.length || 0);
       if (myorderData.orders && myorderData.orders.length > 0) {
         setOrdersData(myorderData.orders);
       }
     } finally {
+      console.log('Orders - Setting isLoading to false');
       setIsLoading(false);
     }
   };
@@ -195,8 +208,31 @@ const Orders = () => {
   };
 
   const renderOrderItem = ({item}) => {
+    console.log('Orders - renderOrderItem called for item:', item.id);
     const firstItem = item.order_items?.[0]; // safe check
 
+    // Safe image source handling
+    const getImageSource = () => {
+      if (firstItem?.product_image) {
+        // Check if it's a valid HTTP URL
+        if (firstItem.product_image.startsWith('http')) {
+          return { uri: firstItem.product_image };
+        }
+        // If it's a local file path, use placeholder
+        console.log('Orders - Invalid image path for item:', item.id, firstItem.product_image);
+      }
+      // Return a simple placeholder that works on both platforms
+      return { uri: 'https://via.placeholder.com/150x150/cccccc/666666?text=No+Image' };
+    };
+
+    // Ensure we have valid data
+    if (!item || !item.id) {
+      console.log('Orders - Invalid item data:', item);
+      return null;
+    }
+
+    console.log('Orders - About to render order card for item:', item.id);
+    
     return (
       <TouchableOpacity
         onPress={() => navigation.navigate('OrderDetails', {orderId: Number(item.id), fromConfirm: false})}
@@ -231,10 +267,15 @@ const Orders = () => {
         <View style={styles.orderContent}>
           <View style={styles.imageContainer}>
             <Image
-              source={{
-                uri: firstItem?.product_image || 'https://via.placeholder.com/150',
-              }}
+              source={getImageSource()}
               style={styles.productImage}
+              onError={(error) => {
+                console.log('Orders - Image load error for item:', item.id, error.nativeEvent.error);
+              }}
+              onLoad={() => {
+                console.log('Orders - Image loaded successfully for item:', item.id);
+              }}
+              resizeMode="contain"
             />
           </View>
 
@@ -296,24 +337,20 @@ const Orders = () => {
   // Show loading screen while fetching orders
   if (isLoading) {
     return (
-      <LinearGradient
-        colors={COLORS.gradient || COLORS.gradient}
-        style={styles.container}>
+      <View style={[styles.container, {backgroundColor: COLORS.white}]}>
         <Header />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.button} />
           <Text style={styles.loadingText}>Loading your orders...</Text>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   // Show error screen if there's an error
   if (error) {
     return (
-      <LinearGradient
-        colors={COLORS.gradient || COLORS.gradient}
-        style={styles.container}>
+      <View style={[styles.container, {backgroundColor: COLORS.white}]}>
         <Header />
         <View style={styles.errorContainer}>
           <View style={styles.errorIconContainer}>
@@ -334,34 +371,51 @@ const Orders = () => {
             <Text style={styles.retryCount}>Retry attempt: {retryCount}</Text>
           )}
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
+  console.log('Orders - Render - ordersData length:', ordersData.length);
+  console.log('Orders - Render - isLoading:', isLoading);
+  console.log('Orders - Render - error:', error);
+  console.log('Orders - Render - filter:', filter);
+  console.log('Orders - Render - title:', title);
+
+  // Fallback: If no data and not loading, use local data
+  const displayData = ordersData.length > 0 ? ordersData : (isLoading ? [] : myorderData.orders || []);
+  console.log('Orders - Render - displayData length:', displayData.length);
+
   return (
-    <LinearGradient
-      colors={COLORS.gradient || COLORS.gradient}
-      style={styles.container}>
+    <View style={[styles.container, {backgroundColor: COLORS.white}]}>
       {/* <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       /> */}
       <Header />
+      
 
       <FlatList
-        data={ordersData}
-        renderItem={renderOrderItem}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        data={displayData}
+        renderItem={({item, index}) => {
+          console.log('Orders - renderItem called for item:', item.id, 'index:', index);
+          return renderOrderItem({item, index});
+        }}
+        keyExtractor={(item, index) => {
+          console.log('Orders - keyExtractor called for item:', item.id, 'index:', index);
+          return `${item.id}-${index}`;
+        }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
+        style={{backgroundColor: 'transparent'}} // Ensure FlatList background is transparent
+        removeClippedSubviews={false} // Disable clipping for iOS debugging
         ListHeaderComponent={() => (
           <View style={styles.headerSection}>
             <Text style={styles.headerTitle}>{title || 'My Orders'}</Text>
             <Text style={styles.headerSubtitle}>
-              {ordersData.length} order{ordersData.length !== 1 ? 's' : ''} •
+              {displayData.length} order{displayData.length !== 1 ? 's' : ''} •
               Total: $
-              {ordersData
+              {displayData
                 .reduce((sum, order) => {
                   const orderTotal = (order.order_items ?? []).reduce(
                     (itemSum, item) => {
@@ -449,7 +503,7 @@ const Orders = () => {
           );
         }}
       />
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -469,51 +523,59 @@ const styles = StyleSheet.create({
     // paddingTop: moderateScale(10),
   },
   headerSection: {
-    paddingHorizontal: PADDING.header.horizontal,
-    paddingVertical: PADDING.content.vertical,
-    marginTop: PADDING.margin.medium,
-    borderRadius: moderateScale(15),
+    paddingHorizontal: moderateScale(20),
+    paddingVertical: moderateScale(20),
+    marginTop: moderateScale(16),
+    marginBottom: moderateScale(8),
+    borderRadius: moderateScale(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   headerTitle: {
     color: COLORS.black,
     fontFamily: FONTS.Bold,
-    fontSize: moderateScale(19),
+    fontSize: moderateScale(20),
     fontWeight: '700',
+    marginBottom: moderateScale(4),
   },
   headerSubtitle: {
     color: COLORS.button,
     fontFamily: FONTS.Medium,
-    fontSize: moderateScale(13),
+    fontSize: moderateScale(14),
     fontWeight: '500',
-    marginTop: moderateScale(5),
+    marginTop: moderateScale(2),
   },
   listContainer: {
-    paddingHorizontal: PADDING.header.horizontal,
-    paddingBottom: PADDING.flatList.bottom,
+    paddingHorizontal: moderateScale(16),
+    paddingBottom: moderateScale(30),
+    paddingTop: moderateScale(8),
   },
   orderCard: {
-    backgroundColor: COLORS.card,
-    marginVertical: PADDING.margin.small,
+    backgroundColor: COLORS.card || '#FFFFFF',
+    marginVertical: moderateScale(8),
     marginHorizontal: 0,
-    borderRadius: moderateScale(15),
+    borderRadius: moderateScale(16),
     shadowColor: COLORS.black,
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 2,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 4.65,
-    elevation: 8,
-    overflow: 'hidden',
-    marginBottom: PADDING.margin.small,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'visible', // Changed from 'hidden' to 'visible' for iOS
+    marginBottom: moderateScale(12),
+    minHeight: moderateScale(120), // Ensure minimum height
+    // iOS-specific fixes
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: PADDING.content.horizontal,
-    paddingTop: PADDING.margin.medium,
-    paddingBottom: PADDING.margin.small,
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(16),
+    paddingBottom: moderateScale(12),
   },
   orderIdSection: {
     flex: 1,
@@ -534,36 +596,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    paddingHorizontal: moderateScale(15),
-    paddingVertical: moderateScale(8),
-    borderRadius: moderateScale(20),
+    paddingHorizontal: moderateScale(12),
+    paddingVertical: moderateScale(6),
+    borderRadius: moderateScale(16),
   },
   statusText: {
     fontFamily: FONTS.Medium,
-    fontSize: moderateScale(11),
+    fontSize: moderateScale(12),
     fontWeight: '650',
-    marginLeft: moderateScale(6),
+    marginLeft: moderateScale(4),
   },
   orderContent: {
     flexDirection: 'row',
-    paddingHorizontal: PADDING.content.horizontal,
-    paddingVertical: PADDING.margin.small,
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: moderateScale(12),
     alignItems: 'center',
   },
   imageContainer: {
-    // backgroundColor:  '#F5F5F5',
+    backgroundColor: '#F5F5F5',
     borderRadius: moderateScale(12),
-    padding: moderateScale(6),
-    marginRight: moderateScale(10),
+    padding: moderateScale(8),
+    marginRight: moderateScale(12),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   productImage: {
-    height: moderateScale(60),
-    width: moderateScale(60),
+    height: moderateScale(70),
+    width: moderateScale(70),
     resizeMode: 'contain',
   },
   productDetails: {
     flex: 1,
     justifyContent: 'center',
+    paddingVertical: moderateScale(4),
   },
   productName: {
     color: COLORS.black,
@@ -571,6 +636,7 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14),
     fontWeight: '600',
     lineHeight: moderateScale(18),
+    marginBottom: moderateScale(4),
   },
   brandText: {
     color: COLORS.button,
@@ -584,7 +650,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: moderateScale(4),
+    marginTop: moderateScale(6),
   },
   quantityText: {
     color: COLORS.gray || '#1b1b1bff',
@@ -608,16 +674,16 @@ const styles = StyleSheet.create({
     paddingLeft: moderateScale(10),
   },
   orderFooter: {
-    paddingHorizontal: PADDING.content.horizontal,
-    paddingBottom: PADDING.margin.medium,
-    paddingTop: PADDING.margin.small,
+    paddingHorizontal: moderateScale(16),
+    paddingBottom: moderateScale(16),
+    paddingTop: moderateScale(12),
     borderTopWidth: 1,
     borderTopColor: 'rgba(3, 2, 2, 0.05)',
   },
   paymentInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: moderateScale(2),
+    marginBottom: moderateScale(4),
   },
   paymentText: {
     color: COLORS.gray || '#111111ff',

@@ -203,7 +203,7 @@ const ProductDetailsScreen = () => {
           title: productData.name || 'Untitled Product',
           image: productData.img || '',  // backend gives "img"
           price: productData.price || 0,
-          offer_price: productData.offer_price || productData.price || 0,
+          offerPrice: productData.offer_price || productData.price || 0,
           description: productData.description || 'No description available',
           slug: productData.slug || '',
           sku: productData.SKU || '',
@@ -252,7 +252,7 @@ const ProductDetailsScreen = () => {
           title: 'Product Not Available',
           image: '',
           price: 0,
-          offer_price: 0,
+          offerPrice: 0,
           description: 'Unable to load product details. Please check your internet connection and try again.',
           benefits: 'N/A',
           howToUse: 'N/A',
@@ -297,7 +297,7 @@ const ProductDetailsScreen = () => {
         name: productDetails.title,  // backend: name
         image: productDetails.image, // backend: img
         price: productDetails.price,
-        offer_price: productDetails.offer_price,
+        offerPrice: productDetails.offerPrice,
         color: selectedColor,
         size: selectedSize,
         selectedColorName: getColorName(selectedColor),

@@ -82,11 +82,13 @@ const OrderDetails = ({route}) => {
             email: apiData.email,
             phone: apiData.phone || 'N/A',
             shipping_address: {
-              street: apiData.street || 'N/A',
-              city: apiData.city || 'N/A',
-              state: apiData.state || 'N/A',
-              zip_code: apiData.zip_code || 'N/A',
-              country: apiData.country || 'N/A',
+              street: apiData.user_address?.address_line_1 || 'N/A',
+              city: apiData.user_address?.city_name || 'N/A',
+              state: apiData.user_address?.state_name || 'N/A',
+              zip_code: apiData.user_address?.zipcode || 'N/A',
+              country: apiData.user_address?.country_name || 'N/A',
+              contact_name: apiData.user_address?.contact_name || 'N/A',
+              phone: apiData.user_address?.phone || 'N/A',
             },
           },
           reviews: [],
@@ -268,10 +270,10 @@ const OrderDetails = ({route}) => {
                 color={COLORS.button}
               />
               <Text style={styles.addressName}>
-                {orderDetails.customer.name}
+                {orderDetails.customer.shipping_address.contact_name || orderDetails.customer.name}
               </Text>
               <Text style={styles.addressPhone}>
-                {orderDetails.customer.phone}
+                {orderDetails.customer.shipping_address.phone || orderDetails.customer.phone}
               </Text>
             </View>
             <Text style={styles.addressText}>
@@ -354,7 +356,7 @@ const styles = StyleSheet.create({
   
   container: {
     flex: 1, 
-    paddingHorizontal: PADDING.container.horizontal,
+    paddingHorizontal: moderateScale(5),
     paddingTop: PADDING.container.vertical,
     paddingBottom: PADDING.container.bottom,
     width: '100%', 
@@ -364,19 +366,27 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingBottom: PADDING.flatList.bottom,
-    paddingTop: PADDING.flatList.top,
+    paddingBottom: moderateScale(30),
+    paddingTop: moderateScale(4),
   },
   statusHeader: {
     backgroundColor: COLORS.card,
-    marginHorizontal: PADDING.margin.medium,
-    marginTop: PADDING.margin.medium,
-    borderRadius: moderateScale(15),
-    padding: PADDING.content.vertical,
+    marginHorizontal: moderateScale(16),
+    marginTop: moderateScale(10),
+    marginBottom: moderateScale(5),
+    borderRadius: moderateScale(16),
+    padding: moderateScale(16),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   statusIconContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -416,122 +426,185 @@ const styles = StyleSheet.create({
   },
   section: {
     marginHorizontal: PADDING.margin.medium,
-    marginTop: PADDING.margin.medium
+    marginTop: moderateScale(16),
+    marginBottom: moderateScale(12),
   },
   sectionTitle: {
     color: COLORS.black,
     fontFamily: FONTS.Bold,
-    fontSize: moderateScale(15),
+    fontSize: moderateScale(16),
     fontWeight: '700',
-    marginBottom: PADDING.margin.small,
+    marginBottom: moderateScale(12),
     paddingHorizontal: PADDING.section.horizontal,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    paddingVertical: moderateScale(6),
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.button,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: moderateScale(8),
   },
   orderItemCard: {
     flexDirection: 'row',
-    borderRadius: moderateScale(12),
-    padding: PADDING.card.vertical,
-    marginBottom: PADDING.margin.small,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: moderateScale(16),
+    padding: moderateScale(12),
+    marginBottom: moderateScale(8),
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     marginHorizontal: PADDING.section.horizontal,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   orderItemImage: {
-    width: moderateScale(70),
-    height: moderateScale(70),
-    borderRadius: moderateScale(10),
-    marginRight: moderateScale(20),
+    width: moderateScale(80),
+    height: moderateScale(80),
+    borderRadius: moderateScale(12),
+    marginRight: moderateScale(16),
   },
   orderItemDetails: {
     flex: 1,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    paddingVertical: moderateScale(2),
   },
   orderItemName: {
     color: COLORS.black,
     fontFamily: FONTS.Bold,
     fontSize: moderateScale(14),
+    marginBottom: moderateScale(2),
+    lineHeight: moderateScale(18),
   },
   orderItemBrand: {
     color: COLORS.button,
     fontFamily: FONTS.Medium,
     fontSize: moderateScale(12),
+    marginBottom: moderateScale(1),
   },
   orderItemSpec: {
     color: COLORS.gray,
     fontSize: moderateScale(11),
+    marginBottom: moderateScale(2),
   },
   orderItemPrice: {
     color: COLORS.black,
     fontFamily: FONTS.Bold,
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
+    marginTop: moderateScale(4),
   },
   addressCard: {
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: moderateScale(16),
+    padding: moderateScale(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     marginHorizontal: PADDING.section.horizontal,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   addressHeader: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: moderateScale(8),
   },
   addressName: {
     color: COLORS.black,
     fontFamily: FONTS.Bold,
-    fontSize: moderateScale(14),
-    marginLeft: moderateScale(8),
+    fontSize: moderateScale(15),
+    marginLeft: moderateScale(12),
     flex: 1,
+    marginBottom: moderateScale(4),
   },
   addressPhone: {
     color: COLORS.button,
-    fontSize: moderateScale(12)
+    fontSize: moderateScale(13),
+    fontFamily: FONTS.Medium,
   },
   addressText: {
     color: COLORS.gray,
-    fontSize: moderateScale(12)
+    fontSize: moderateScale(13),
+    lineHeight: moderateScale(18),
+    marginTop: moderateScale(8),
   },
   summaryCard: {
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: moderateScale(16),
+    padding: moderateScale(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     marginHorizontal: PADDING.section.horizontal,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: moderateScale(8),
+    marginBottom: moderateScale(6),
   },
   summaryLabel: {
     color: COLORS.gray,
-    fontSize: moderateScale(14)
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.Medium,
   },
   summaryValue: {
     color: COLORS.black,
-    fontSize: moderateScale(14)
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.Bold,
   },
   summaryValueTotal: {
-    color: COLORS.black,
+    color: COLORS.button,
     fontFamily: FONTS.Bold,
-    fontSize: moderateScale(15),
+    fontSize: moderateScale(18),
   },
   contactCard: {
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: moderateScale(16),
+    padding: moderateScale(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     marginHorizontal: PADDING.section.horizontal,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   contactRow: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: moderateScale(8),
   },
   contactText: {
     color: COLORS.black,
-    marginLeft: moderateScale(10)
+    marginLeft: moderateScale(12),
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.Medium,
   },
   ratingCard: {
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
+    borderRadius: moderateScale(16),
+    padding: moderateScale(20),
     flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    marginHorizontal: PADDING.section.horizontal,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     marginHorizontal: PADDING.section.horizontal,

@@ -220,7 +220,7 @@ const HomeScreen = () => {
         showsVerticalScrollIndicator={false}
       />
     </LinearGradient>
-  );
+  ); 
 };
 const styles = StyleSheet.create({
   container: {

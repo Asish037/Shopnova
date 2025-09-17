@@ -435,6 +435,7 @@ const AddressScreen = () => {
             navigation.navigate('PaymentMethod', {
               selectedAddress,
               grandTotal: route.params?.grandTotal,
+              cartItems: route.params?.cartItems || [],
             });
           }}>
           <Text style={styles.continueButtonText}>

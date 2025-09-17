@@ -7,7 +7,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import React from 'react';
+import React, { useContext } from 'react';
 import Header from '../Components/Header';
 import LinearGradient from 'react-native-linear-gradient';
 import { moderateScale, verticalScale } from '../PixelRatio';
@@ -20,11 +20,13 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../Constant/Colors';
 import { FONTS } from '../Constant/Font';
 import { PADDING } from '../Constant/Padding';
+import { CartContext } from '../Context/CartContext';
 
 const Settings = () => {
   const navigation = useNavigation();
+  const { logout } = useContext(CartContext);
+  
   const handleLogout = () => {
-    
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -35,7 +37,15 @@ const Settings = () => {
         },
         {
           text: 'Logout',
-          onPress: () => navigation.navigate('Landing'),
+          onPress: async () => {
+            // Clear authentication data
+            await logout();
+            // Navigate to landing screen
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Landing' }],
+            });
+          },
         },
       ],
       { cancelable: true },

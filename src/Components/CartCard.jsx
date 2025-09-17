@@ -6,7 +6,8 @@ import {COLORS} from '../Constant/Colors';
 // import {useTheme} from '../Context/ThemeContext';
 
 const CartCard = ({item, handleDelete}) => {
-  console.log(JSON.stringify(item));
+  console.log('CartCard item:', JSON.stringify(item));
+  console.log('Price fields - offer_price:', item.offer_price, 'offerPrice:', item.offerPrice, 'price:', item.price);
   const {updateCartItemQuantity} = useContext(CartContext);
   // const {getThemeColors} = useTheme();
   // const themeColors = getThemeColors();
@@ -146,7 +147,7 @@ const CartCard = ({item, handleDelete}) => {
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.title} numberOfLines={2}>
-            {item.title}
+            {item.title || item.name}
           </Text>
           <TouchableOpacity
             style={styles.deleteButton}
@@ -163,10 +164,10 @@ const CartCard = ({item, handleDelete}) => {
         </View>
 
         <Text style={styles.offerPrice}>
-          {'\u20B9'}{(item.offer_price * currentQuantity).toFixed(2)}
+          {'\u20B9'}{((item.offer_price || item.offerPrice || 0) * currentQuantity).toFixed(2)}
         </Text>
         <Text style={styles.price}>
-          {'\u20B9'}{(item.price * currentQuantity).toFixed(2)}
+          {'\u20B9'}{((item.price || 0) * currentQuantity).toFixed(2)}
         </Text>
 
         <View style={styles.bottomRow}>

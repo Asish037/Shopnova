@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
+import Toast from 'react-native-simple-toast';
 
 const PaymentScreen = () => {
   const navigation = useNavigation();
@@ -23,6 +24,10 @@ const PaymentScreen = () => {
   const total = route.params?.grandTotal || '0.00';
   const selectedAddress = route.params?.selectedAddress;
   const cartItems = route.params?.cartItems || [];
+
+  console.log('PaymentScreen - Route params:', route.params);
+  console.log('PaymentScreen - Selected address:', selectedAddress);
+  console.log('PaymentScreen - Cart items:', cartItems.length);
 
   const paymentMethods = [
     {id: 'cash', name: 'Cash', icon: '💵'},
@@ -103,6 +108,7 @@ const PaymentScreen = () => {
                   fromPayment: true,
                   grandTotal: total,
                   selectedAddress,
+                  cartItems,
                 })
               }>
               <Text style={styles.changeAddressText}>Change</Text>
@@ -139,16 +145,23 @@ const PaymentScreen = () => {
             </View>
           ) : (
             <TouchableOpacity
-              style={styles.addressButton}
+              style={[styles.addressButton, styles.addressButtonRequired]}
               onPress={() =>
                 navigation.navigate('AddressScreen', {
                   fromPayment: true,
                   grandTotal: total,
+                  cartItems,
                 })
               }>
-              <Text style={styles.addressButtonText}>
-                📍 Select Delivery Address
-              </Text>
+              <View style={styles.addressButtonContent}>
+                <Text style={styles.addressButtonIcon}>📍</Text>
+                <Text style={styles.addressButtonText}>
+                  Select Delivery Address
+                </Text>
+                <Text style={styles.addressButtonRequiredText}>
+                  Required
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -157,18 +170,39 @@ const PaymentScreen = () => {
       {/* Bottom Action Button */}
       <View style={styles.bottomSection}>
         <TouchableOpacity
-          style={styles.payButton}
+          style={[
+            styles.payButton,
+            !selectedAddress && styles.payButtonDisabled
+          ]}
           onPress={() => {
+            // Validate that address is selected
+            if (!selectedAddress) {
+              console.log('No address selected, cannot proceed to payment');
+              Toast.show('📍 Please select a delivery address first', Toast.LONG);
+              return;
+            }
+            
             // Handle payment processing
+            console.log('Navigating to ConfirmOrder with params:', {
+              selectedPaymentMethod,
+              total,
+              cartItems: cartItems.length,
+              selectedAddress: selectedAddress ? 'selected' : 'none'
+            });
             navigation.navigate('ConfirmOrder', {
               selectedPaymentMethod,
               total,
               cartItems,
+              selectedAddress,
             });
             console.log('Processing payment with:', selectedPaymentMethod);
+            console.log('Selected address:', selectedAddress);
             // You can add payment processing logic here
           }}>
-          <Text style={styles.payButtonText}>
+          <Text style={[
+            styles.payButtonText,
+            !selectedAddress && styles.payButtonTextDisabled
+          ]}>
             Pay {'\u20B9'}{parseFloat(total).toFixed(2)}
           </Text>
         </TouchableOpacity>
@@ -426,11 +460,36 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  addressButtonRequired: {
+    borderColor: '#FF6B6B',
+    borderWidth: 2,
+    backgroundColor: '#FFF5F5',
+  },
+  addressButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addressButtonIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
   addressButtonText: {
     fontSize: 16,
-    // color: COLORS.theme,
+    color: COLORS.black,
     fontFamily: FONTS.Medium,
+    flex: 1,
     textAlign: 'center',
+  },
+  addressButtonRequiredText: {
+    fontSize: 12,
+    color: '#FF6B6B',
+    fontFamily: FONTS.Bold,
+    backgroundColor: '#FFE0E0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 8,
   },
 
   // Bottom Section
@@ -455,6 +514,11 @@ const styles = StyleSheet.create({
     elevation: 6,
     overflow: 'hidden',
   },
+  payButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+    shadowOpacity: 0.1,
+    elevation: 2,
+  },
   payButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -463,5 +527,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     includeFontPadding: false,
     textAlignVertical: 'center',
+  },
+  payButtonTextDisabled: {
+    color: '#888888',
   },
 });

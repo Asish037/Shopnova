@@ -128,10 +128,11 @@ const Header = ({isCart, onSearchChange}) => {
   // Cart Icon Component with Badge
   const CartIconWithBadge = ({style, onPress}) => {
     const totalQuantity = getTotalQuantity();
+    console.log('Header - Cart total quantity:', totalQuantity);
     
     return (
       <TouchableOpacity 
-        onPress={() => handleIconPress('cart')} 
+      onPress={() => handleIconPress('cart')}
         style={[style, {padding: 4}]}
         activeOpacity={0.7}
       >

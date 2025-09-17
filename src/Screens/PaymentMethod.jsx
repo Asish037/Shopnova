@@ -9,16 +9,19 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Header from '../Components/Header';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
+import {CartContext} from '../Context/CartContext';
+import GradientButton from '../Components/Button/GradientButton';
+import { moderateScale, verticalScale } from '../PixelRatio';
 
 const PaymentMethod = ({route}) => {
   const navigation = useNavigation();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const {cartItems: contextCartItems} = useContext(CartContext);
 
   // Payment form states
   const [cardNumber, setCardNumber] = useState('');
@@ -28,42 +31,53 @@ const PaymentMethod = ({route}) => {
   const [upiId, setUpiId] = useState('');
   const [bankAccount, setBankAccount] = useState('');
   const [ifscCode, setIfscCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle the  parameters from CartScreen
   // const grandTotal = route.params?.grandTotal || '0.00';
   // const cartItems = route.params?.cartItems || [];
   // const selectedPaymentMethod = route.params?.selectedPaymentMethod || 'Card';
-  const { orderId, grandTotal, cartItems, selectedPaymentMethod } = route.params || {};
-
+  const { orderId, grandTotal, selectedPaymentMethod } = route.params || {};
+  const cartItems = route.params?.cartItems || contextCartItems || [];
+  
+  // Calculate total from cart items if grandTotal is not provided
+  const calculatedTotal = cartItems.reduce((total, item) => {
+    const price = parseFloat(item.offer_price || item.offerPrice || item.price || 0);
+    const quantity = item.quantity || 1;
+    return total + (price * quantity);
+  }, 0).toFixed(2);
+  
+  const finalGrandTotal = grandTotal || calculatedTotal;
 
   console.log('PaymentMethod - Received params:', route.params);
   console.log('PaymentMethod - Grand Total:', grandTotal);
-  console.log('PaymentMethod - Cart Items:', cartItems.length);
+  console.log('PaymentMethod - Grand Total type:', typeof grandTotal);
+  console.log('PaymentMethod - Grand Total undefined?', grandTotal === undefined);
+  console.log('PaymentMethod - Calculated Total:', calculatedTotal);
+  console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
+  console.log('PaymentMethod - Cart Items from params:', route.params?.cartItems?.length || 0);
+  console.log('PaymentMethod - Cart Items from context:', contextCartItems?.length || 0);
+  console.log('PaymentMethod - Final Cart Items:', cartItems.length);
+  console.log('PaymentMethod - Final Cart Items details:', cartItems);
   console.log('PaymentMethod - Payment Method:', selectedPaymentMethod);
 
   const handlePayment = () => {
-    setIsProcessing(true);
-
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      Alert.alert(
-        'Payment Successful!',
-        `Your payment of $${grandTotal} has been processed successfully.`,
-        [
-          {
-            text: 'OK',
-            onPress: () =>
-              navigation.navigate('OrderConfirm', {
-                orderId,
-                selectedPaymentMethod,
-                total: grandTotal,
-                cartItems,
-              }),
-          },
-        ],
-      );
-    }, 2000);
+   
+    console.log('PaymentMethod - Handle Payment clicked');
+    console.log('PaymentMethod - Cart Items:', cartItems.length);
+    console.log('PaymentMethod - Cart Items details:', cartItems);
+    console.log('PaymentMethod - Grand Total:', grandTotal);
+    console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
+    console.log('PaymentMethod - Selected Payment Method:', selectedPaymentMethod);
+    console.log('PaymentMethod - Selected Address:', route.params?.selectedAddress);
+    
+    // Navigate to ConfirmOrder to place the actual order
+    navigation.navigate('ConfirmOrder', {
+      selectedPaymentMethod,
+      total: finalGrandTotal,
+      cartItems,
+      selectedAddress: route.params?.selectedAddress,
+    });
   };
 
   const formatCardNumber = text => {
@@ -217,7 +231,7 @@ const PaymentMethod = ({route}) => {
             <View style={styles.codInfoContainer}>
               <Text style={styles.codInfoText}>💵</Text>
               <Text style={styles.codDescription}>
-                You will pay ${grandTotal} in cash when your order is delivered
+                You will pay ${finalGrandTotal} in cash when your order is delivered
                 to your doorstep.
               </Text>
             </View>
@@ -245,7 +259,7 @@ const PaymentMethod = ({route}) => {
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}>
+        contentContainerStyle={[styles.contentContainer, { paddingBottom: 120 }]}>
 
           {/* Page Title */}
           <View style={styles.titleContainer}>
@@ -262,12 +276,12 @@ const PaymentMethod = ({route}) => {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>${grandTotal}</Text>
+            <Text style={styles.summaryValue}>${finalGrandTotal}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>${grandTotal}</Text>
+            <Text style={styles.totalValue}>${finalGrandTotal}</Text>
           </View>
         </View>
 
@@ -283,43 +297,14 @@ const PaymentMethod = ({route}) => {
       
       {/* Bottom Payment Button - Fixed Position */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity
-          style={[styles.payButton, isProcessing && styles.payButtonDisabled]}
-          onPress={handlePayment}
-          disabled={isProcessing}>
-          <LinearGradient
-            colors={
-              isProcessing ? [COLORS.grey, COLORS.grey] : COLORS.gradientButton
-            }
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.payButtonGradient}>
-            <Text style={
-              Platform.OS === 'ios' 
-                ? {
-                    color: '#FFFFFF',
-                    fontSize: 18,
-                    fontFamily: 'System',
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    includeFontPadding: false,
-                    textAlignVertical: 'center',
-                    letterSpacing: 0.5,
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: [{translateX: -45}, {translateY: -10}],
-                    zIndex: 1002,
-                  }
-                : styles.payButtonText
-            }>
-              {isProcessing ? 'Processing...' : `Pay $${grandTotal}`}
-            </Text>
-            {isProcessing && (
-              <Text style={styles.payButtonSubtext}>Please wait</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+                  <GradientButton
+                    title={isLoading ? 'Saving...' : `Pay ${finalGrandTotal || '0.00'}`}
+                    onPress={handlePayment}
+                    disabled={isLoading}
+                    style={styles.saveButton}
+                  />
+                </View>
       </View>
 
     </LinearGradient>
@@ -331,7 +316,7 @@ export default PaymentMethod;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    //padding: 10,
     width: '100%',
     height: '100%',
   },
@@ -554,49 +539,35 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     left: 0,
     right: 0,
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 30,
+    paddingBottom: 20,
     backgroundColor: 'transparent',
     zIndex: 1000,
   },
-  payButton: {
+  buttonContainer: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 50 : 30,
+    left: 0,
+    right: 0,
+    paddingHorizontal: moderateScale(16),
+    backgroundColor: 'transparent',
+    zIndex: 1000,
+  },
+  saveButton: {
     width: '100%',
-    backgroundColor: COLORS.button,
-    borderRadius: 16,
-    overflow: 'hidden',
-    minHeight: 60,
-    zIndex: 1001,
-  },
-  payButtonDisabled: {
-    opacity: 0.7,
-  },
-  payButtonGradient: {
-    width: '100%',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    minHeight: 60,
-  },
-  payButtonText: {
-    fontSize: 18,
-    color: COLORS.white,
-    fontFamily: FONTS.Bold,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-    letterSpacing: 0.5,
-  },
-  payButtonSubtext: {
-    fontSize: 14,
-    color: COLORS.white,
-    fontFamily: FONTS.Regular,
-    opacity: 0.9,
+    height: verticalScale(65),
+    borderRadius: moderateScale(20),
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });

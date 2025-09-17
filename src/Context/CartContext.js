@@ -176,6 +176,7 @@ export const CartProvider = ({children}) => {
   const loadCartItems = async () => {
     let cartItems = await AsyncStorage.getItem('cart');
     cartItems = cartItems ? JSON.parse(cartItems) : [];
+    console.log('loadCartItems - Loaded from AsyncStorage:', cartItems.length, 'items');
 
     // Ensure all items have a quantity property
     cartItems = cartItems.map(item => ({
@@ -188,6 +189,7 @@ export const CartProvider = ({children}) => {
 
     // Save back to AsyncStorage with quantity property
     await AsyncStorage.setItem('cart', JSON.stringify(cartItems));
+    console.log('loadCartItems - Set cart items:', cartItems.length);
   };
 
   const addToCartItem = async item => {
@@ -240,10 +242,29 @@ export const CartProvider = ({children}) => {
     await AsyncStorage.setItem('cart', JSON.stringify(updatedCartItems));
   };
 
+  const clearCart = async () => {
+    console.log('Clearing cart...');
+    console.log('Cart items before clearing:', cartItems.length);
+    
+    try {
+      // Clear AsyncStorage first
+      await AsyncStorage.removeItem('cart');
+      console.log('Cart cleared successfully from AsyncStorage');
+      
+      // Then update React state
+      setCartItems([]);
+      setTotalPrice('0.00');
+      
+      console.log('Cart state updated - items should now be 0');
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+    }
+  };
+
   const calculateTotalPrice = cartItems => {
     let totalSum = cartItems.reduce((total, item) => {
-     // Convert offer_price to a floating-point number
-    const offerPrice = parseFloat(item.offer_price);
+     // Convert offer_price to a floating-point number, check both field names
+    const offerPrice = parseFloat(item.offer_price || item.offerPrice);
     const quantity = item.quantity || 1;
         // Check if offerPrice is a valid number before multiplying
         if (!isNaN(offerPrice)) {
@@ -268,7 +289,9 @@ export const CartProvider = ({children}) => {
   }
 
   const getTotalQuantity = () => {
-    return cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+    const total = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+    console.log('getTotalQuantity - Cart items:', cartItems.length, 'Total quantity:', total);
+    return total;
   };
 
   const value = {
@@ -276,6 +299,7 @@ export const CartProvider = ({children}) => {
     addToCartItem,
     deleteCartItem,
     updateCartItemQuantity,
+    clearCart,
     totalPrice,
     getTotalQuantity,
     user,

@@ -17,31 +17,32 @@ import {FONTS} from '../Constant/Font';
 import axios from '../Components/axios';
 import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+ 
 const ConfirmOrder = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const {cartItems: contextCartItems, totalPrice, user, token} = useContext(CartContext);
-
+    // const {cartItems: contextCartItems, totalPrice, user, token} = useContext(CartContext);
+    const {clearCart} = useContext(CartContext);
   // Use cartItems from route params first, fallback to context
-    const cartItems = route.params?.cartItems || contextCartItems || [];
+    // const cartItems = route.params?.cartItems || contextCartItems || [];
     const selectedPaymentMethod =
     route.params?.selectedPaymentMethod || 'Not Selected';
-    const total = route.params?.total || totalPrice || 0;
-
+    // const total = route.params?.total || totalPrice || 0;
+    const {cartItems, totalPrice, user, token} = useContext(CartContext);
+ 
     console.log('ConfirmOrder - Cart Items:', cartItems);
     console.log('ConfirmOrder - Items count:', cartItems.length);
-    console.log('ConfirmOrder - Total:', total);
-
+    console.log('ConfirmOrder - Total:', totalPrice);
+ 
     const handlePlaceOrder = async () => {
         try {
-            const token = await AsyncStorage.getItem('userToken'); 
+            // const token = await AsyncStorage.getItem('userToken');
             if(!token){
                 Alert.alert('Not Logged In', 'Please log in to place an order.');
-                return; 
+                return;
             }
             const userId = user?.id || await AsyncStorage.getItem('userId');
-
+ 
             if (!userId) {
                 Alert.alert('User ID Missing', 'User ID not found. Please log in again.');
                 return;
@@ -50,42 +51,44 @@ const ConfirmOrder = () => {
                 Alert.alert('Empty Cart', 'Your cart is empty. Please add items before placing an order.');
                 return;
             }
-
+ 
             const payload = {
                 userId: user?.id || userId,
-                total: total,
+                total: totalPrice,
                 order_items: cartItems.map(item => ({
                     productId: item.id,
                     product_name: item.name,
                     quantity: item.quantity,
                     product_image: item.image,  
                     product_price: item.price,
-                    product_offer_price: item.offer_price || item.price, // fallback if no offer
+                    product_offer_price: item.offerPrice || item.offer_price || item.price, // fallback if no offer
                 })),
                 payment_method: selectedPaymentMethod || 'cash',
             };
-
+ 
             console.log('Place Order Payload:', payload);
-
+ 
             const response = await axios.post('/place-order', payload, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
-
+ 
             if (response.data.status === 1) {
+               
+                await clearCart();
                 // Alert.alert('Order Placed', 'Your order has been placed successfully!');
                 console.log('Order Placed Successfully:', response.data);
                 const orderId = response.data?.data?.order_id || response.data?.data?.id;
                 if (orderId) {
                 //     navigation.navigate('OrderDetails', { orderId });
-                // } 
-                    navigation.navigate('PaymentMethod', {
+                // }
+                    navigation.navigate('OrderConfirm', {
                         orderId,
-                        grandTotal: total,
-                        cartItems,
                         selectedPaymentMethod: 'Cash', // default Cash
+                        total: totalPrice,
+                        cartItems,
                     });
             } else {
                 console.warn("No orderId in response:", response.data);
@@ -99,29 +102,29 @@ const ConfirmOrder = () => {
             Alert.alert('Order Error', 'There was an error placing your order. Please try again.');
         }
     };
-
-
-
+ 
+ 
+ 
     const renderItem = ({item}) => (
         <View style={styles.itemCard}>
         <View style={styles.itemHeader}>
             <Text style={styles.itemName}>{item.name}</Text>
-            <Text style={styles.itemSubtotal}>₹{item.price * item.quantity}</Text>
+            <Text style={styles.itemSubtotal}>₹{item.offerPrice || item.offer_price * item.quantity}</Text>
         </View>
         <View style={styles.itemDetailsContainer}>
             <View style={styles.itemDetailRow}>
             <Text style={styles.itemDetails}>Qty: {item.quantity}</Text>
-            <Text style={styles.itemDetails}>Price: ₹{item.price}</Text>
+            <Text style={styles.itemDetails}>Price: ₹{item.offerPrice || item.offer_price }</Text>
             </View>
         </View>
         </View>
     );
-
+ 
     return (
         <LinearGradient colors={COLORS.gradient} style={{flex: 1}}>
         <View style={styles.container}>
             <Header title="Confirm Order" />
-
+ 
             {cartItems.length > 0 ? (
             <ScrollView
                 style={styles.scrollContainer}
@@ -129,7 +132,7 @@ const ConfirmOrder = () => {
                 contentContainerStyle={styles.scrollContent}>
                 <View style={styles.card}>
                 <Text style={styles.title}>Order Summary</Text>
-
+ 
                 <View style={styles.itemsContainer}>
                     <FlatList
                     data={cartItems}
@@ -141,7 +144,7 @@ const ConfirmOrder = () => {
                     )}
                     />
                 </View>
-
+ 
                 <View style={styles.summarySection}>
                     <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Payment Method:</Text>
@@ -149,13 +152,13 @@ const ConfirmOrder = () => {
                         {selectedPaymentMethod}
                     </Text>
                     </View>
-
+ 
                     <View style={styles.totalRow}>
                     <Text style={styles.totalLabel}>Total Amount:</Text>
-                    <Text style={styles.totalAmount}>₹{total}</Text>
+                    <Text style={styles.totalAmount}>₹{totalPrice}</Text>
                     </View>
                 </View>
-
+ 
                 <LinearGradient
                     colors={COLORS.gradientButton}
                     style={styles.button}>
@@ -180,21 +183,21 @@ const ConfirmOrder = () => {
         </LinearGradient>
     );
 };
-
+ 
 export default ConfirmOrder;
-
+ 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        
+       
     },
     scrollContainer: {
         flex: 1,
         marginTop: 10,
         marginBottom: 20,
         // alignItems: 'center',
-
+ 
     },
     scrollContent: {
         paddingBottom: 20,
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         padding: 20,
         marginBottom: 20,
-    
+   
     },
     title: {
         fontSize: 24,
@@ -265,7 +268,7 @@ const styles = StyleSheet.create({
         // backgroundColor: "#000",
         borderWidth: 1,
         borderColor: "#000",
-
+ 
     },
     summarySection: {
         borderTopWidth: 1,
