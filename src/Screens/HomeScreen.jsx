@@ -225,7 +225,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: PADDING.container.horizontal,
+   // paddingHorizontal: PADDING.container.horizontal,
     paddingTop: PADDING.container.vertical,
     paddingBottom: PADDING.container.bottom,
     width: '100%',
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: PADDING.margin.large,
+    paddingBottom: PADDING.margin.small,
     marginHorizontal: PADDING.margin.small,
   },
   headingText: {
@@ -287,8 +287,8 @@ const styles = StyleSheet.create({
     paddingTop: PADDING.flatList.top,
   },
   tagsContainer: {
-    marginTop: PADDING.margin.medium,
-    marginBottom: PADDING.margin.medium,
+    marginTop: PADDING.margin.small,
+    marginBottom: PADDING.margin.small,
     paddingHorizontal: PADDING.margin.small,
   },
 });

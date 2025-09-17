@@ -55,7 +55,7 @@ const CartScreen = () => {
           items: cartItems.map(item => ({
             productId: item.id || item.productId, 
             quantity: item.quantity,
-            price: item.price,
+            offer_price: item.offer_price,
           })),
         };
 

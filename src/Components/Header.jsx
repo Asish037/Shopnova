@@ -17,6 +17,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import { COLORS } from '../Constant/Colors';
 import { PADDING } from '../Constant/Padding';
 import Icon from "react-native-vector-icons/Ionicons";
+import LinearGradient from 'react-native-linear-gradient';
 // import {useTheme} from '../Context/ThemeContext';
 // import ThemeSelectionModal from './Modal/ThemeSelectionModal';
 
@@ -129,28 +130,35 @@ const Header = ({isCart, onSearchChange}) => {
     const totalQuantity = getTotalQuantity();
     
     return (
-      <TouchableOpacity onPress={onPress} style={style}>
-        <View style={{position: 'relative'}}>
-          <Icon
-            name="cart-outline"
-            size={24}
-            color={COLORS.button}
+      <TouchableOpacity 
+        onPress={() => handleIconPress('cart')} 
+        style={[style, {padding: 4}]}
+        activeOpacity={0.7}
+      >
+        <View style={{position: 'relative', alignItems: 'center', justifyContent: 'center'}}>
+          <Image
+            source={require('../assets/shopping_cart.png')}
+            style={styles.appCartIcon}
+            resizeMode="contain"
           />
           {totalQuantity > 0 && (
             <View
               style={{
                 position: 'absolute',
-                right: -3,
-                bottom: 15,
-                height: 14,
-                width: 14,
+                right: -8,
+                top: -8,
+                height: 18,
+                width: 18,
                 backgroundColor: COLORS.button,
-                borderRadius: 7,
+                borderRadius: 9,
                 alignItems: 'center',
                 justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: '#FFFFFF',
+                minWidth: 18,
               }}>
               <Text style={{color: 'white', fontSize: 10, fontWeight: 'bold'}}>
-                {totalQuantity}
+                {totalQuantity > 99 ? '99+' : totalQuantity}
               </Text>
             </View>
           )}
@@ -173,12 +181,12 @@ const Header = ({isCart, onSearchChange}) => {
                   source={require('../assets/apps.png')}
                   style={styles.appDrawerIcon}
                 />
-              ) : (
-                <Image
-                  source={require('../assets/arrowback.png')}
-                  style={styles.appDrawerIcon}
-                />
-              )}
+                ) : (
+                  <Image
+                    source={require('../assets/arrowback.png')}
+                    style={styles.appDrawerIcon}
+                  />
+                )}
             </TouchableOpacity>
           </View>
 
@@ -241,24 +249,23 @@ const Header = ({isCart, onSearchChange}) => {
             </Animated.View>
           ) : (
             // Show normal icons when search is not active
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => handleIconPress('search')}>
-                <Image
-                  source={require('../assets/focusedSearch.png')}
-                  style={styles.appSearchIcon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleIconPress('favorites')}>
-                <Image
-                  source={require('../assets/favoriteFilled.png')}
-                  style={styles.appFavoriteIcon}
-                />
-              </TouchableOpacity>
-              <CartIconWithBadge 
-                onPress={() => handleIconPress('cart')}
-                style={styles.appCartIcon}
-              />
-            </View>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity onPress={() => handleIconPress('search')}>
+                  <Image
+                    source={require('../assets/focusedSearch.png')}
+                    style={styles.appSearchIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleIconPress('favorites')}>
+                  <Image
+                    source={require('../assets/favoriteFilled.png')}
+                    style={styles.appFavoriteIcon}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleIconPress('cart')}>
+                  <CartIconWithBadge />
+                </TouchableOpacity>
+              </View>
           )}
         </View>
 
@@ -277,14 +284,22 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    paddingHorizontal: PADDING.header.horizontal,
-    paddingVertical: PADDING.header.vertical,
+    paddingHorizontal: 20,
+    paddingTop: PADDING.header.top,
+    paddingBottom: PADDING.margin.small,
+    elevation: 4,
+    shadowColor: '#f54a00',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: PADDING.header.top,
   },
   appDrawerContainer: {
     backgroundColor: 'transparent',
@@ -296,34 +311,73 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
   },
+  appsIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    width: 36,
+    height: 36,
+  },
+  whiteOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 24,
+    height: 24,
+  },
   appDrawerIcon: {
     height: 24,
     width: 24,
-    // marginLeft: 10,
+    tintColor: COLORS.button,
+  },
+  backIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    width: 36,
+    height: 36,
+  },
+  backWhiteOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 24,
+    height: 24,
   },
   appSearchIcon: {
     height: 24,
     width: 24,
-    marginLeft: 10,
-    tintColor: COLORS.button
+    tintColor: COLORS.button,
   },
   appFavoriteIcon: {
     height: 24,
     width: 24,
-    marginLeft: 10,
-    tintColor: COLORS.button
+    tintColor: COLORS.button,
   },
   appCartIcon: {
     height: 24,
     width: 24,
-    marginLeft: 10,
-    tintColor: COLORS.button
+    tintColor: COLORS.button,
   },
   iconContainer: {
     flexDirection: 'row',
-    width: 150,
-    justifyContent: 'space-between',
+    flex: 1,
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    gap: 16,
+    paddingRight: 5,
   },
   // New inline search styles
   inlineSearchContainer: {

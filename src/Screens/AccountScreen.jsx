@@ -29,6 +29,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const AccountScreen = () => {
   const navigation = useNavigation();
   const {user, loadAuthData, token} = useContext(CartContext);
+  console.log("user AccountScreen", user);
   const { isAuthenticated, logout, getUserName, getUserPhone } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   // const {getThemeColors} = useTheme();
@@ -86,9 +87,12 @@ const AccountScreen = () => {
   // }, [loadUserData]);
 
 
-  useEffect(() => {
-  fetchUserData();
-}, []); 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
+
 
 
     const fetchUserData = async () => {
@@ -108,16 +112,19 @@ const AccountScreen = () => {
         });
 
         console.log("Full Axios response:", response);
-        console.log("Raw API data:", response.data);
+        console.log("Raw API data:", response.data.data);
 
         const mappedData = {
-          id: response.data.id,
-          fullname: `${response.data.fname} ${response.data.lname}`,
-          email: response.data.email,
-          phone: response.data.phone,
+          id: response.data?.data?.id,
+          fname: response.data?.data?.fname,
+          lname: response.data?.data?.lname,
+          fullname: `${response.data?.data?.fname} ${response.data?.data?.lname}`.trim(),
+          email: response.data?.data?.email,
+          phone: response.data?.data?.phone,
         };
 
-        loadAuthData();
+
+        loadAuthData(mappedData);
 
       } catch (error) {
         if (error.response) {
@@ -158,7 +165,7 @@ const AccountScreen = () => {
             />
           </View>
           <View style={styles.profileInfoContainer}>
-            <Text style={styles.userName}>{user?.fullname}</Text>
+            <Text style={styles.userName}>{user?.name}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
           </View>
         </View>
@@ -384,9 +391,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: moderateScale(15),
-    paddingVertical: moderateScale(10),
-    marginTop:  moderateScale(20),
+    paddingHorizontal: Platform.OS === 'ios' ? moderateScale(15) : moderateScale(10),
+    paddingVertical: Platform.OS === 'ios' ? moderateScale(10) : moderateScale(5),
+    marginTop:  Platform.OS === 'ios' ? moderateScale(20) : moderateScale(10),
     marginBottom: moderateScale(10),
   },
   headerTitle: {

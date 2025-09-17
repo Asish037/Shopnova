@@ -11,6 +11,8 @@ import {
   StatusBar,
   Animated,
   Platform,
+  PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
@@ -30,6 +32,7 @@ import {CartContext} from '../Context/CartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../Components/axios';
 import qs from 'qs';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const EditProfile = () => {
   const navigation = useNavigation();
@@ -39,94 +42,160 @@ const EditProfile = () => {
     user?.email || 'zerodegreecoder@gmail.com',
   );
   const [mobileNumber, setMobileNumber] = useState(
-    user?.mobileNumber || '9876543209',
+    user?.phone || '9876543209',
   );
-  const [fullname, SetFullname] = useState(user?.fullname || 'John Henry');
+  const [fname, setFname] = useState(user?.fname || '');
+  const [lname, setLname] = useState(user?.lname || '');
+  const [fullname, setFullname] = useState(user?.name || 'John Henry');
   const [disabled, setdisabled] = useState(false);
   const [profileImageUri, setProfileImageUri] = useState(
     user?.profileImage ||
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTE_5aeaS13y24e1D7KBOIPNUwGflPnLR8AuQQUQ6tHDnycRg_2woHNm3fX1K_UYtxizZw&usqp=CAU',
   );
 
-  const saveDetails = async () => {
-    if (!email || !mobileNumber || !fullname) {
-      Toast.show('Please fill all required fields!');
-      return;
-    }
-
-    setdisabled(true);
-
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      console.log('User token:', token); // Debug log
-      if (!token) {
-        Toast.show('No auth token found. Please log in again.');
-        setdisabled(false);
+    const saveDetails = async () => {
+      if (!email || !mobileNumber || !fullname) {
+        Toast.show('Please fill all required fields!');
         return;
       }
 
-      // Make API call to update profile
-      const config = {
-        method: 'put',
-        url: '/update-profile',
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        data: {
-          email: email,
-          mobileNumber: mobileNumber,
-          fullname: fullname,
-          profileImage: profileImageUri,
-        },
-      };
+      setdisabled(true);
 
-      const response = await axios(config);
-      console.log(response.data);
-      
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      Toast.show('Failed to update profile. Please try again.');
-      setdisabled(false);
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) {
+          Toast.show('No auth token found. Please log in again.');
+          setdisabled(false);
+          return;
+        }
+
+        // Split fullname into fname + lname
+        const [firstName, ...lastNameParts] = fullname.trim().split(" ");
+        const fnameValue = firstName || "";
+        const lnameValue = lastNameParts.join(" ") || "NA";
+
+        const config = {
+          method: 'put',
+          url: '/update-profile',
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          data: {
+            fname: fnameValue,
+            lname: lnameValue,
+            email: email,
+            phone: mobileNumber, 
+          },
+        };
+
+        const response = await axios(config);
+        console.log(response.data);
+
+        if (response.data.status === 1) {
+          const backendUser = response.data.data;
+
+          // Build frontend-friendly object
+          const updatedUserData = {
+            ...backendUser,
+            fullname: `${backendUser.fname || ""} ${backendUser.lname || ""}`.trim(),
+            phone: backendUser.phone, // keep backend key
+            mobileNumber: backendUser.phone, // keep your frontend key too
+            profileImage: backendUser.profileImage || profileImageUri || "", // keep local image handling
+          };
+
+          await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
+          await login(updatedUserData);
+
+          setdisabled(false);
+          Toast.show('Profile Updated Successfully!', Toast.LONG);
+
+          setTimeout(() => {
+            navigation.goBack();
+          }, 1000);
+        } else {
+          Toast.show(response.data.message || 'Failed to update profile');
+          setdisabled(false);
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        Toast.show('Failed to update profile. Please try again.');
+        setdisabled(false);
+      }
+  };
+
+
+  const requestGalleryPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        let permission;
+
+        if (Platform.Version >= 33) {
+          permission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+        } else {
+          permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        }
+
+        const granted = await PermissionsAndroid.request(permission, {
+          title: 'Gallery Permission',
+          message: 'We need access to your gallery to let you choose a profile photo',
+          buttonPositive: 'OK',
+        });
+
+        console.log('Gallery permission result:', granted);
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          return true;
+        } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+          Toast.show(
+            'Permission permanently denied. Please enable it in app settings.',
+            Toast.LONG,
+          );
+          Linking.openSettings(); // opens system settings for your app
+          return false;
+        } else {
+          Toast.show('Gallery permission denied.');
+          return false;
+        }
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true; // iOS doesn't need runtime permission
+  };
+
+
+  // Here you can add image picker logic
+  const handleImagePicker = async () => {
+    const hasPermission = await requestGalleryPermission();
+    if (!hasPermission) {
+      Toast.show('Gallery permission is required to select a profile image.');
       return;
     }
 
-    // let updatedUserData = reponse.data
-
-    let updatedUserData = {
-      ...user,
-      email: email,
-      mobileNumber: mobileNumber,
-      fullname: fullname,
-      profileImage: profileImageUri,
-    };
-
-    try {
-      // Save to AsyncStorage
-      await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
-
-      // Update context
-      await login(updatedUserData);
-
-      setdisabled(false);
-      Toast.show('Profile Updated Successfully!', Toast.LONG);
-
-      // Navigate back or to main screen
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1000);
-    } catch (error) {
-      setdisabled(false);
-      Toast.show('Failed to save profile. Please try again.');
-      console.error('Error saving profile:', error);
-    }
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.7,
+      },
+      (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.log('ImagePicker Error: ', response.errorMessage);
+          Toast.show('Error picking image. Please try again.');
+        } else if (response.assets && response.assets.length > 0) {
+          const uri = response.assets[0].uri;
+          setProfileImageUri(uri);
+          Toast.show('Profile image updated locally. Save changes to upload.');
+          console.log('response', response);
+        }
+      },
+    );
   };
 
-  const handleImagePicker = () => {
-    // Here you can add image picker logic
-    Toast.show('Image picker functionality to be implemented');
-  };
 
   return (
     <>
@@ -191,7 +260,7 @@ const EditProfile = () => {
                     placeholder="Enter your full name"
                     placeholderTextColor="#a0a0a0"
                     value={fullname}
-                    onChangeText={SetFullname}
+                    onChangeText={setFullname}
                   />
                 </View>
               </View>
@@ -230,6 +299,7 @@ const EditProfile = () => {
                     placeholder="Enter your mobile number"
                     placeholderTextColor="#a0a0a0"
                     value={mobileNumber}
+                    editable={false}
                     onChangeText={setMobileNumber}
                     keyboardType="phone-pad"
                   />
@@ -269,6 +339,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: PADDING.container.vertical,
     paddingBottom: PADDING.container.bottom,
+    marginTop: Platform.OS === 'android' ? 10 : 20,
     width: '100%',
     height: '100%',
   },
@@ -276,20 +347,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: PADDING.header.horizontal,
-    paddingVertical: PADDING.content.vertical,
-    marginHorizontal: PADDING.margin.medium,
-    marginTop: PADDING.margin.medium,
-    borderRadius: moderateScale(15),
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    shadowColor: '#000',
+    paddingHorizontal: moderateScale(20),
+    paddingVertical: verticalScale(18),
+    marginHorizontal: moderateScale(6),
+    marginTop: verticalScale(12),
+    borderRadius: moderateScale(16),
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.button,
   },
   profileInfo: {
     flex: 1,
@@ -299,30 +372,33 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start', // Align text to the left
   },
   greetingText: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(15),
     fontFamily: FONTS.Regular,
-    marginBottom: PADDING.margin.small,
-    color: '#666666',
+    marginBottom: verticalScale(4),
+    color: COLORS.grey,
+    letterSpacing: 0.3,
   },
   userName: {
-    fontSize: moderateScale(22),
+    fontSize: moderateScale(24),
     color: COLORS.black,
     fontFamily: FONTS.Bold,
     fontWeight: '700',
-    marginBottom: PADDING.margin.small,
+    marginBottom: verticalScale(4),
+    letterSpacing: 0.5,
   },
   subText: {
-    fontSize: moderateScale(14),
-    color: '#666666',
+    fontSize: moderateScale(13),
+    color: COLORS.grey,
     fontFamily: FONTS.Regular,
+    letterSpacing: 0.2,
   },
   profileImageContainer: {
     position: 'relative',
   },
   profileImageWrapper: {
-    width: moderateScale(60),
-    height: moderateScale(60),
-    borderRadius: moderateScale(30),
+    width: moderateScale(70),
+    height: moderateScale(70),
+    borderRadius: moderateScale(35),
     overflow: 'hidden',
     borderWidth: 3,
     borderColor: COLORS.white,
@@ -331,8 +407,8 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
     elevation: 8,
   },
   profileImage: {
@@ -352,20 +428,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    width: moderateScale(24),
-    height: moderateScale(24),
-    borderRadius: moderateScale(12),
+    width: moderateScale(28),
+    height: moderateScale(28),
+    borderRadius: moderateScale(14),
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: COLORS.white,
-    shadowColor: '#000',
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
   editImageGradient: {
     width: '100%',
@@ -375,77 +451,81 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    marginTop: verticalScale(10),
+    marginTop: verticalScale(15),
   },
   scrollContent: {
-    paddingBottom: verticalScale(120), // Add padding for bottom button
+    paddingBottom: verticalScale(130), // Add padding for bottom button
     flexGrow: 1,
   },
   formContainer: {
-    marginHorizontal: PADDING.header.horizontal,
-    borderRadius: moderateScale(15),
-    padding: PADDING.content.vertical,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    shadowColor: '#000',
+    marginHorizontal: moderateScale(6),
+    borderRadius: moderateScale(16),
+    padding: moderateScale(20),
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.08)',
   },
   sectionTitle: {
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(22),
     color: COLORS.button,
     fontFamily: FONTS.Bold,
     fontWeight: '700',
-    marginBottom: PADDING.margin.medium,
+    marginBottom: verticalScale(20),
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   inputContainer: {
     marginBottom: verticalScale(15),
     backgroundColor: 'transparent',
   },
   inputWrapper: {
-    marginBottom: PADDING.margin.medium,
+    marginBottom: verticalScale(18),
   },
   inputLabel: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
     color: COLORS.black,
     fontFamily: FONTS.Bold,
     fontWeight: '600',
-    marginBottom: PADDING.margin.small,
+    marginBottom: verticalScale(8),
+    letterSpacing: 0.3,
   },
   inputFieldContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: moderateScale(12),
-    paddingHorizontal: PADDING.margin.medium,
-    paddingVertical: PADDING.margin.small,
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
+    backgroundColor: '#FAFAFA',
+    borderRadius: moderateScale(14),
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: verticalScale(12),
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
   },
   inputIcon: {
-    marginRight: PADDING.margin.medium,
-    fontSize: moderateScale(22),
+    marginRight: moderateScale(12),
+    fontSize: moderateScale(18),
     color: COLORS.button,
   },
   textInput: {
-    height: 50,
+    height: 55,
     flex: 1,
     borderWidth: 0,
     backgroundColor: 'transparent',
-    paddingHorizontal: PADDING.margin.small,
+    paddingHorizontal: moderateScale(8),
     fontSize: moderateScale(16),
     color: COLORS.black,
     fontFamily: FONTS.Regular,
@@ -459,32 +539,33 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     backgroundColor: '#F8F9FA',
-    borderRadius: moderateScale(14),
-    paddingVertical: PADDING.content.vertical,
+    borderRadius: moderateScale(18),
+    paddingVertical: verticalScale(16),
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E9ECEF',
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
   cancelButtonText: {
-    color: '#666666',
-    fontSize: moderateScale(16),
+    color: COLORS.grey,
+    fontSize: moderateScale(17),
     fontFamily: FONTS.Bold,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
   saveButton: {
     flex: 1,
     backgroundColor: COLORS.button,
-    borderRadius: moderateScale(14),
-    paddingVertical: PADDING.content.vertical,
+    borderRadius: moderateScale(18),
+    paddingVertical: verticalScale(16),
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: COLORS.button,
@@ -492,8 +573,8 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
     elevation: 6,
   },
   disabledButton: {
@@ -508,28 +589,31 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: COLORS.white,
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(17),
     fontFamily: FONTS.Bold,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   bottomButtonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: PADDING.header.horizontal,
-    paddingVertical: PADDING.content.vertical,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderTopLeftRadius: moderateScale(20),
-    borderTopRightRadius: moderateScale(20),
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: -4},
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: verticalScale(20),
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: moderateScale(24),
+    borderTopRightRadius: moderateScale(24),
+    shadowColor: COLORS.button,
+    shadowOffset: {width: 0, height: -6},
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: PADDING.margin.medium,
+    gap: moderateScale(12),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(245, 74, 0, 0.1)',
   },
 
   // Legacy styles (can be removed if not used elsewhere)

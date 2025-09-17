@@ -8,6 +8,7 @@ import {
   Alert,
   FlatList,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
@@ -25,15 +26,20 @@ import Toast from 'react-native-simple-toast';
 import {fonts} from '../utils/fonts';
 import CustomAlert from '../Components/Modal/CustomAlert';
 import Header from '../Components/Header';
+import { CartContext } from '../Context/CartContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from '../Components/axios';
 
 const AddressScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const [isLoading, setIsLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState(null);
 
+  const {user,loadAuthData, token} = React.useContext(CartContext);
   // Check if this screen was opened from payment screen
   const fromPayment = route.params?.fromPayment || false;
   const currentSelectedAddress = route.params?.selectedAddress || null;
@@ -41,63 +47,112 @@ const AddressScreen = () => {
   // Load addresses on component mount
   useFocusEffect(
     React.useCallback(() => {
-      // Sample addresses data -
-      const sampleAddresses = [
-        {
-          id: '1',
-          type: 'Home',
-          contactName: 'John Henry',
-          addressLine1: '132 My Street, Kingston',
-          addressLine2: 'New York 12401',
-          phoneNumber: '9876543210',
-          isDefault: true,
-        },
-        {
-          id: '2',
-          type: 'Office',
-          contactName: 'John Henry',
-          addressLine1: '45 Business Plaza, Manhattan',
-          addressLine2: 'New York 10001',
-          phoneNumber: '9876543210',
-          isDefault: false,
-        },
-      ];
+      fetchAddresses();
 
-      const loadAddresses = () => {
-        // Simulate API call
-        setAddresses(sampleAddresses);
-        setSelectedAddressId(
-          currentSelectedAddress?.id || sampleAddresses[0]?.id,
-        );
-      };
-
-      loadAddresses();
       // If coming from EditAddress with new address data
       if (route.params?.newAddress) {
         const newAddress = route.params.newAddress;
         setAddresses(prev => [...prev, newAddress]);
-        // Clear the params to prevent re-adding
-        navigation.setParams({newAddress: null});
+        navigation.setParams({ newAddress: null });
       }
-      // If coming from EditAddress with updated address
+
       if (route.params?.updatedAddress) {
         const updatedAddress = route.params.updatedAddress;
         setAddresses(prev =>
-          prev.map(addr =>
-            addr.id === updatedAddress.id ? updatedAddress : addr,
-          ),
+          prev.some(addr => addr.id === updatedAddress.id)
+            ? prev.map(addr => addr.id === updatedAddress.id ? updatedAddress : addr)
+            : [...prev, updatedAddress] // if API gave null, still keep it locally
         );
-        navigation.setParams({updatedAddress: null});
+        navigation.setParams({ updatedAddress: null });
       }
-    }, [
-      route.params?.newAddress,
-      route.params?.updatedAddress,
-      navigation,
-      currentSelectedAddress,
-    ]),
+
+    }, [route.params?.newAddress, route.params?.updatedAddress, navigation, currentSelectedAddress])
   );
 
+
+  const fetchAddresses = async () => {
+    console.log('Fetching addresses from API...');
+    try{
+      setIsLoading(true);
+      const token = await AsyncStorage.getItem('userToken');
+      if(!token) console.log('No user token found');
+
+      const config = {
+        method: 'GET',
+        url: 'get-address',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+
+      };
+      const response = await axios(config);
+      console.log('Fetched addresses:', response.data);
+      const rawData = response.data.data;
+      if (!rawData) {
+        console.log('No address data found in response');
+        setAddresses([]);
+        return;
+      }
+      
+      const mappedData = rawData.map((addr, index) => {
+        // Ensure unique ID - use original ID if valid, otherwise generate unique one
+        const uniqueId = addr.id && addr.id.toString().trim() !== '' 
+          ? addr.id.toString() 
+          : `address_${index}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        return {
+          id: uniqueId,
+          userId: addr.userId,
+          buildingNo: addr.building_name,
+          contactName: addr.contact_name,
+          type: addr.type,
+          isDefault: addr.is_default === 1,
+          addressLine1: addr.address_line_1,
+          addressLine2: addr.address_line_2,
+          cityId: addr.cityId,
+          stateId: addr.stateId,
+          countryId: addr.countryId,
+          zipCode: addr.zipcode,
+          phone: addr.phone,
+        };
+      });
+
+      // Ensure no duplicate IDs exist
+      const uniqueAddresses = mappedData.map((addr, index) => {
+        const existingIds = mappedData.slice(0, index).map(a => a.id);
+        if (existingIds.includes(addr.id)) {
+          return {
+            ...addr,
+            id: `${addr.id}_duplicate_${index}_${Date.now()}`
+          };
+        }
+        return addr;
+      });
+
+      loadAuthData(uniqueAddresses);
+      setAddresses(uniqueAddresses);
+
+      const defaultAddress = uniqueAddresses.find(addr => addr.isDefault);
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress.id);
+        }
+
+
+    }catch (error) {
+        if (error.response) {
+          console.log("API error:", error.response.data);
+        } else {
+          console.log("Network/Setup error:", error.message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+  }
+
+
   const handleEditAddress = address => {
+    console.log('Editing address:', address);
     navigation.navigate('EditAddress', {
       pageTitle: 'Edit Address',
       addressData: address,
@@ -133,6 +188,12 @@ const AddressScreen = () => {
   };
 
   const handleSelectAddress = address => {
+    if (!address || !address.id) {
+      console.log('Invalid address object:', address);
+      Toast.show('Invalid address selected', Toast.SHORT);
+      return;
+    }
+    
     setSelectedAddressId(address.id);
     if (fromPayment) {
       // Navigate back to payment screen with selected address
@@ -142,7 +203,9 @@ const AddressScreen = () => {
       });
     } else {
       // Show confirmation when selecting in manage mode
-      Toast.show(`${address.type} address selected`, Toast.SHORT);
+      const addressType = address.type || address.addressType || 'Home';
+      const contactName = address.contactName || 'Unknown';
+      Toast.show(`${addressType} address selected for ${contactName}`, Toast.SHORT);
     }
   };
 
@@ -210,19 +273,22 @@ const AddressScreen = () => {
               styles.phoneNumber,
               isSelected && styles.selectedAddressText,
             ]}>
-            {item.phoneNumber}
+            {item.phone}
           </Text>
         </View>
 
         {!fromPayment && (
           <View style={styles.addressActions}>
             <TouchableOpacity
-              style={styles.actionButtonWithText}
+              style={[
+                styles.actionButtonWithText,
+                isSelected && styles.selectedActionButton
+              ]}
               onPress={() => handleEditAddress(item)}>
               <MaterialCommunityIcons
                 name="pencil"
-                size={18}
-                color={isSelected ? COLORS.white : COLORS.button}
+                size={16}
+                color={isSelected ? COLORS.button : COLORS.button}
               />
               <Text
                 style={[
@@ -233,12 +299,15 @@ const AddressScreen = () => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.actionButtonWithText}
+              style={[
+                styles.actionButtonWithText,
+                isSelected && styles.selectedActionButton
+              ]}
               onPress={() => handleDeleteConfirmation(item)}>
               <MaterialIcons
                 name="delete-outline"
-                size={18}
-                color={isSelected ? COLORS.white : COLORS.red || '#FF6B6B'}
+                size={16}
+                color={isSelected ? COLORS.red : COLORS.red}
               />
               <Text
                 style={[
@@ -253,6 +322,19 @@ const AddressScreen = () => {
       </TouchableOpacity>
     );
   };
+
+  // Loading component while fetching addresses
+  if (isLoading) {
+    return (
+      <LinearGradient colors={COLORS.gradient} style={styles.container}>
+        <Header />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.button} />
+          <Text style={styles.loadingText}>Loading addresses...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={COLORS.gradient} style={styles.container}>
@@ -298,7 +380,7 @@ const AddressScreen = () => {
       <FlatList
         data={addresses}
         renderItem={renderAddressCard}
-        keyExtractor={item => item.id}
+        keyExtractor={item => String(item.id)}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.addressList}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -344,6 +426,12 @@ const AddressScreen = () => {
             const selectedAddress = addresses.find(
               addr => addr.id === selectedAddressId,
             );
+            
+            if (!selectedAddress) {
+              Toast.show('Please select an address first', Toast.SHORT);
+              return;
+            }
+            
             navigation.navigate('PaymentMethod', {
               selectedAddress,
               grandTotal: route.params?.grandTotal,
@@ -427,40 +515,68 @@ export default AddressScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: Platform.OS === 'ios' ? 20 : 10,
+    // padding: Platform.OS === 'ios' ? 20 : 10,
     width: '100%',
     height: '100%',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: moderateScale(20),
+  },
+  loadingText: {
+    fontSize: moderateScale(16),
+    fontWeight: '600',
+    color: COLORS.white,
+    marginTop: verticalScale(15),
+    fontFamily: FONTS.Medium,
+    textAlign: 'center',
+  },
   headerSection: {
-    marginTop: verticalScale(10),
-    paddingHorizontal: moderateScale(15),
-    paddingBottom: verticalScale(20),
+    marginTop: verticalScale(15),
+    paddingHorizontal: moderateScale(20),
+    paddingBottom: verticalScale(15),
+    backgroundColor: COLORS.white,
+    marginHorizontal: moderateScale(15),
+    borderRadius: moderateScale(20),
+    elevation: 4,
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.1)',
   },
   titleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: verticalScale(10),
+    marginBottom: verticalScale(4),
   },
   screenTitle: {
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(24),
     fontWeight: '700',
-    color: COLORS.black,
+    color: COLORS.button,
     fontFamily: FONTS.Bold,
     flex: 1,
+    textAlign: 'center',
   },
   subtitleContainer: {
-    alignItems: 'flex-start',
-    marginTop: verticalScale(10),
-    marginBottom: verticalScale(15),
-    paddingHorizontal: moderateScale(10),
+    alignItems: 'center',
+    marginTop: verticalScale(5),
+    marginBottom: verticalScale(4),
+    paddingHorizontal: moderateScale(5),
   },
   screenSubtitle: {
-    fontSize: moderateScale(14),
-    color: '#212020ff',
+    fontSize: moderateScale(15),
+    color: COLORS.grey,
     fontFamily: FONTS.Regular,
-    lineHeight: moderateScale(18),
-    textAlign: 'left',
+    lineHeight: moderateScale(20),
+    textAlign: 'center',
     fontWeight: '400',
   },
   headerEditButton: {
@@ -487,32 +603,37 @@ const styles = StyleSheet.create({
     marginLeft: moderateScale(4),
   },
   addressList: {
-    paddingHorizontal: moderateScale(10),
-    paddingBottom: verticalScale(100),
+    paddingHorizontal: moderateScale(12),
+    paddingTop: verticalScale(10),
+    paddingBottom: verticalScale(120),
   },
   separator: {
     height: verticalScale(10),
   },
   addressCard: {
     backgroundColor: COLORS.white,
-    borderRadius: moderateScale(12),
-    padding: moderateScale(10),
-    elevation: 2,
-    shadowColor: '#000',
+    borderRadius: moderateScale(16),
+    padding: moderateScale(14),
+    elevation: 4,
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowRadius: 6,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: 'rgba(245, 74, 0, 0.08)',
+    marginHorizontal: moderateScale(4),
   },
   selectedAddressCard: {
-    backgroundColor: COLORS.button,
-    borderColor: COLORS.lightbutton,
-    elevation: 4,
+    backgroundColor: COLORS.cream,
+    borderColor: COLORS.button,
+    borderWidth: 2,
+    elevation: 8,
+    shadowColor: COLORS.button,
     shadowOpacity: 0.2,
+    transform: [{ scale: 1.02 }],
   },
   selectableCard: {
     borderWidth: 2,
@@ -522,54 +643,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: verticalScale(8),
+    marginBottom: verticalScale(6),
   },
   addressTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   addressType: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14),
     fontWeight: '600',
-    color: COLORS.blue,
-    marginLeft: moderateScale(8),
+    color: COLORS.button,
+    marginLeft: moderateScale(6),
     fontFamily: FONTS.Medium,
   },
   defaultBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.green,
     borderRadius: moderateScale(12),
     paddingHorizontal: moderateScale(8),
-    paddingVertical: verticalScale(2),
-    marginLeft: moderateScale(8),
+    paddingVertical: verticalScale(3),
+    marginLeft: moderateScale(6),
+    elevation: 2,
+    shadowColor: COLORS.green,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   defaultBadgeText: {
     color: COLORS.white,
-    fontSize: moderateScale(10),
-    fontWeight: '500',
-    fontFamily: FONTS.Medium,
+    fontSize: moderateScale(9),
+    fontWeight: '600',
+    fontFamily: FONTS.Bold,
   },
   addressDetails: {
     marginBottom: verticalScale(10),
   },
   contactName: {
     fontSize: moderateScale(16),
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.black,
-    fontFamily: FONTS.Medium,
-    marginBottom: verticalScale(3),
+    fontFamily: FONTS.Bold,
+    marginBottom: verticalScale(4),
   },
   addressLine: {
-    fontSize: moderateScale(14),
-    color: COLORS.gray || '#3f3d3dff',
+    fontSize: moderateScale(13),
+    color: COLORS.grey,
     fontFamily: FONTS.Regular,
-    lineHeight: moderateScale(20),
+    lineHeight: moderateScale(18),
     marginBottom: verticalScale(2),
   },
   phoneNumber: {
-    fontSize: moderateScale(14),
-    color: COLORS.gray || '#3f3d3dff',
-    fontFamily: FONTS.Regular,
+    fontSize: moderateScale(13),
+    color: COLORS.grey,
+    fontFamily: FONTS.Medium,
     marginTop: verticalScale(4),
+    fontWeight: '500',
   },
   selectedAddressText: {
     color: COLORS.black,
@@ -591,50 +721,64 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(12),
     paddingVertical: verticalScale(6),
     marginLeft: moderateScale(8),
-    borderRadius: moderateScale(15),
-    backgroundColor: 'rgba(0,0,0,0.08)',
-    elevation: 1,
-    shadowColor: '#000',
+    borderRadius: moderateScale(16),
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
+    elevation: 2,
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
   },
   actionButtonText: {
-    fontSize: moderateScale(12),
-    fontWeight: '500',
+    fontSize: moderateScale(11),
+    fontWeight: '600',
     color: COLORS.button,
     marginLeft: moderateScale(4),
     fontFamily: FONTS.Medium,
   },
   actionButtonTextDelete: {
-    fontSize: moderateScale(12),
-    fontWeight: '500',
-    color: COLORS.red || '#FF6B6B',
+    fontSize: moderateScale(11),
+    fontWeight: '600',
+    color: COLORS.red,
     marginLeft: moderateScale(4),
     fontFamily: FONTS.Medium,
   },
   selectedActionText: {
-    color: COLORS.white,
+    color: COLORS.button,
+    fontWeight: '700',
   },
-  addNewAddressButton: {
-    position: 'absolute',
-    bottom: verticalScale(20),
-    left: moderateScale(30),
-    right: moderateScale(30),
+  selectedActionButton: {
     backgroundColor: COLORS.white,
-    borderRadius: moderateScale(12),
-    padding: moderateScale(16),
+    borderWidth: 1,
+    borderColor: COLORS.button,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
       height: 2,
     },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  addNewAddressButton: {
+    position: 'absolute',
+    bottom: verticalScale(20),
+    left: moderateScale(20),
+    right: moderateScale(20),
+    backgroundColor: COLORS.white,
+    borderRadius: moderateScale(24),
+    padding: moderateScale(22),
+    elevation: 8,
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 12,
     borderWidth: 2,
     borderColor: COLORS.button,
     borderStyle: 'dashed',
@@ -645,35 +789,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addNewAddressText: {
-    fontSize: moderateScale(16),
-    fontWeight: '600',
+    fontSize: moderateScale(18),
+    fontWeight: '700',
     color: COLORS.button,
-    marginLeft: moderateScale(8),
-    fontFamily: FONTS.Medium,
+    marginLeft: moderateScale(10),
+    fontFamily: FONTS.Bold,
   },
   continueButton: {
     position: 'absolute',
-    bottom: verticalScale(20),
+    bottom: verticalScale(25),
     left: moderateScale(20),
     right: moderateScale(20),
-    backgroundColor: COLORS.DarkPink,
-    borderRadius: moderateScale(12),
-    padding: moderateScale(16),
-    elevation: 3,
-    shadowColor: '#000',
+    backgroundColor: COLORS.button,
+    borderRadius: moderateScale(24),
+    padding: moderateScale(20),
+    elevation: 8,
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 6,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   continueButtonText: {
-    fontSize: moderateScale(16),
-    fontWeight: '600',
+    fontSize: moderateScale(18),
+    fontWeight: '700',
     color: COLORS.white,
     textAlign: 'center',
-    fontFamily: FONTS.Medium,
+    fontFamily: FONTS.Bold,
   },
   floatingEditButton: {
     position: 'absolute',

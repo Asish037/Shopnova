@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import React from 'react';
 import Header from '../Components/Header';
@@ -335,7 +336,9 @@ export default Settings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: PADDING.container.vertical,
+    paddingHorizontal: Platform.OS === 'ios' ? moderateScale(15) : moderateScale(7),
+    // /paddingVertical: Platform.OS === 'ios' ? moderateScale(10) : moderateScale(5),
+    marginTop: Platform.OS === 'android' ? 10 : 20,
     paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
@@ -349,7 +352,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.black,
     fontFamily: FONTS.Bold,
-    marginTop: moderateScale(4),
+    marginTop: moderateScale(10),
     marginBottom: moderateScale(4),
   },
   subtitle: {

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
   Modal,
   Pressable,
@@ -36,6 +36,7 @@ import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestNotificationPermission } from '../../utils/requestNotificationPermission';
 import download from '../../assets/namahShivay.jpeg';
+import { CartContext } from '../../Context/CartContext';
 
 const datet = new Date();
 
@@ -54,6 +55,8 @@ export default function Register() {
   const [select_code, setSelectCode] = useState('91');
   // const [email, setEmail] = React.useState('');
   // const [password, setPassword] = React.useState('');
+
+  const {login} = useContext(CartContext);
 
   React.useEffect(() => {
     // First request permission and generate FCM token, then get it from storage
@@ -101,7 +104,7 @@ export default function Register() {
       name: name,
       phone: phone
     };
-    // ✅ Only include FCM token if it's available
+    //  Only include FCM token if it's available
     if (fcmToken) {
       data.fcm_token = fcmToken;
     } else {
@@ -115,31 +118,30 @@ export default function Register() {
       url: 'register-login',
     };
 
-    try {
-      const res = await axios(options);
-      console.log('Full response:', res);
-      console.log('Response data:', res.data);
-      console.log('User ID from response:', res.data.data?.user_id);
-      
-      // Show success toast message
-      if (res.data && res.data.message) {
+  try {
+    const res = await axios(options);
+    console.log('Full response:', res);
+    console.log('Response data:', res.data);
+
+    if (res.data && res.data.status === 1) {
+      const { already_verified, user, token } = res.data.data || {};
+
+      if (already_verified) {
+        await login(user, token); // Log in the user if already verified
+
         ToastMessage.show({
           type: 'success',
-          text1: res.data.message,
-          text2: 'Please check your phone for OTP',
+          text1: res.data.message || 'Login Successful',
           position: 'top',
           visibilityTime: 3000,
         });
-        
-        // Navigate to OTP screen after a short delay
-        setTimeout(() => {
-          const userId = res.data.data?.user_id;
-          console.log('Navigating with user_id:', userId);
-          setIsLoading(false);
-          navigation.navigate('Otp', {user_id: userId, phone: phone});
-        }, 1500);
+
+        setIsLoading(false);
+        navigation.replace('MainHome'); // Go straight to home
       } else {
-        // Fallback if no message in response
+        //  New user, needs OTP verification
+        const userId = res.data.data?.user_id;
+
         ToastMessage.show({
           type: 'success',
           text1: res.data.message,
@@ -147,28 +149,29 @@ export default function Register() {
           position: 'top',
           visibilityTime: 3000,
         });
-        
+
         setTimeout(() => {
-          const userId = res.data.data?.user_id;
-          console.log('Navigating with user_id (fallback):', userId);
           setIsLoading(false);
-          navigation.navigate('Otp', {user_id: userId, phone: phone});
+          navigation.navigate('Otp', { user_id: userId, phone: phone });
         }, 1500);
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      
-      // Show error toast message
-      const errorMessage = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
-      ToastMessage.show({
-        type: 'error',
-        text1: 'Registration Failed',
-        text2: errorMessage,
-        position: 'top',
-        visibilityTime: 4000,
-      });
-      setIsLoading(false);
+    } else {
+      throw new Error(res.data?.message || 'Unexpected response');
     }
+  } catch (error) {
+    console.error('Registration error:', error);
+    const errorMessage =
+      error.response?.data?.message || error.message || 'Registration failed. Please try again.';
+    ToastMessage.show({
+      type: 'error',
+      text1: 'Registration Failed',
+      text2: errorMessage,
+      position: 'top',
+      visibilityTime: 4000,
+    });
+    setIsLoading(false);
+}
+
   };
 
   return (

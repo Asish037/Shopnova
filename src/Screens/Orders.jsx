@@ -505,13 +505,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 8,
     overflow: 'hidden',
+    marginBottom: PADDING.margin.small,
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: PADDING.content.horizontal,
-    paddingTop: PADDING.content.vertical,
+    paddingTop: PADDING.margin.medium,
     paddingBottom: PADDING.margin.small,
   },
   orderIdSection: {
@@ -575,13 +576,15 @@ const styles = StyleSheet.create({
     color: COLORS.button,
     fontFamily: FONTS.Medium,
     fontSize: moderateScale(12),
-    marginTop: moderateScale(2),
+    marginTop: 0,
+    height: 0,
+    opacity: 0,
   },
   quantityPriceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: moderateScale(6),
+    marginTop: moderateScale(4),
   },
   quantityText: {
     color: COLORS.gray || '#1b1b1bff',
@@ -606,15 +609,15 @@ const styles = StyleSheet.create({
   },
   orderFooter: {
     paddingHorizontal: PADDING.content.horizontal,
-    paddingBottom: PADDING.margin.small,
+    paddingBottom: PADDING.margin.medium,
     paddingTop: PADDING.margin.small,
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     borderTopColor: 'rgba(3, 2, 2, 0.05)',
   },
   paymentInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: moderateScale(4),
+    marginBottom: moderateScale(2),
   },
   paymentText: {
     color: COLORS.gray || '#111111ff',
@@ -627,6 +630,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.Medium,
     fontSize: moderateScale(11),
     fontWeight: '600',
+    lineHeight: moderateScale(14),
   },
   emptyContainer: {
     flex: 1,

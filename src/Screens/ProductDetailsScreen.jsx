@@ -203,7 +203,7 @@ const ProductDetailsScreen = () => {
           title: productData.name || 'Untitled Product',
           image: productData.img || '',  // backend gives "img"
           price: productData.price || 0,
-          offerPrice: productData.offer_price || productData.price || 0,
+          offer_price: productData.offer_price || productData.price || 0,
           description: productData.description || 'No description available',
           slug: productData.slug || '',
           sku: productData.SKU || '',
@@ -252,7 +252,7 @@ const ProductDetailsScreen = () => {
           title: 'Product Not Available',
           image: '',
           price: 0,
-          offerPrice: 0,
+          offer_price: 0,
           description: 'Unable to load product details. Please check your internet connection and try again.',
           benefits: 'N/A',
           howToUse: 'N/A',
@@ -297,7 +297,7 @@ const ProductDetailsScreen = () => {
         name: productDetails.title,  // backend: name
         image: productDetails.image, // backend: img
         price: productDetails.price,
-        offerPrice: productDetails.offerPrice,
+        offer_price: productDetails.offer_price,
         color: selectedColor,
         size: selectedSize,
         selectedColorName: getColorName(selectedColor),
@@ -536,8 +536,8 @@ const ProductDetailsScreen = () => {
 
           {/* Prices */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 10 }}>
-            <Text style={styles.productOriginalPrice}>{formatPrice(productDetails.price)}</Text>
             <Text style={styles.productPrice}>{formatPrice(productDetails.offerPrice)}</Text>
+            <Text style={styles.productOriginalPrice}>{formatPrice(productDetails.price)}</Text>
           </View>
 
           {/* Size Selection */}
@@ -746,10 +746,10 @@ const styles = StyleSheet.create({
   },
   productOriginalPrice: {
     textDecorationLine: 'line-through',
-    color: '#E94560',
+    color: '#635f63ff',
     fontWeight: '700',
     fontFamily: fonts.medium,
-    fontSize: 22,
+    fontSize: 20,
   },
   productPrice: {
     fontSize: 22,

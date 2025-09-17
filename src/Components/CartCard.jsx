@@ -64,12 +64,20 @@ const CartCard = ({item, handleDelete}) => {
       fontFamily: fonts.regular,
       color: COLORS.grey,
     },
-    price: {
+    offerPrice:{
       fontSize: 16,
+      fontFamily: fonts.medium,
+      color: COLORS.button,
+      fontWeight: '700',
+      marginBottom: 4,  
+    },
+    price: {
+      fontSize: 14,
       fontFamily: fonts.medium,
       color: COLORS.black,
       fontWeight: '600',
       marginBottom: 12,
+      textDecorationLine: 'line-through',
     },
     deleteButton: {
       backgroundColor: 'transparent',
@@ -154,6 +162,9 @@ const CartCard = ({item, handleDelete}) => {
           <Text style={styles.sizeLabel}>Size {item.size || 'M'}</Text>
         </View>
 
+        <Text style={styles.offerPrice}>
+          {'\u20B9'}{(item.offer_price * currentQuantity).toFixed(2)}
+        </Text>
         <Text style={styles.price}>
           {'\u20B9'}{(item.price * currentQuantity).toFixed(2)}
         </Text>

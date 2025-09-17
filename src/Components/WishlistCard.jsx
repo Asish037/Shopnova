@@ -1,5 +1,5 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useContext} from 'react';
+import {Image, StyleSheet, Text, TouchableOpacity, View, Animated} from 'react-native';
+import React, {useContext, useRef, useEffect} from 'react';
 import {fonts} from '../utils/fonts';
 import {CartContext} from '../Context/CartContext';
 import { COLORS } from '../Constant/Colors';
@@ -11,6 +11,8 @@ const WishlistCard = ({
   removeFromWishlist,
 }) => {
   const {cartItems, addToCartItem} = useContext(CartContext);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   // Check if item is already in cart
   const isInCart = cartItems.some(cartItem => cartItem.id === item.id);
@@ -38,14 +40,52 @@ const WishlistCard = ({
   const handleAddToCart = () => {
     if (!isInCart) {
       addToCartItem(item);
+      // Add success animation
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   };
+
+  const handleRemoveFromWishlist = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      removeFromWishlist && removeFromWishlist(item);
+    });
+  };
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => {
-        handleProductClick(item);
-      }}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          transform: [{ scale: scaleAnim }],
+          opacity: fadeAnim,
+        },
+      ]}>
+      <TouchableOpacity
+        style={styles.cardContent}
+        onPress={() => {
+          handleProductClick(item);
+        }}>
       <Image source={{uri: item.image}} style={styles.coverImage} />
 
       <View style={styles.contentContainer}>
@@ -133,16 +173,15 @@ const WishlistCard = ({
       {/* Delete Button */}
       <View style={styles.deleteContainer}>
         <TouchableOpacity
-          onPress={() => {
-            removeFromWishlist && removeFromWishlist(item);
-          }}>
+          onPress={handleRemoveFromWishlist}>
           <Image
             source={require('../assets/deleteIcon.png')}
             style={styles.deleteIcon}
           />
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -150,20 +189,22 @@ export default WishlistCard;
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     width: '47%',
     marginHorizontal: 8,
     marginVertical: 10,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    elevation: 3,
-    shadowColor: '#000',
+    elevation: 8,
+    shadowColor: '#f54a00',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  cardContent: {
+    flex: 1,
   },
   coverImage: {
     height: 200,
@@ -233,19 +274,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    marginTop: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 15,
+    marginTop: 6,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   cartButtonDefault: {
     backgroundColor: COLORS.white,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: COLORS.button,
   },
   cartButtonAdded: {
     backgroundColor: COLORS.button,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: COLORS.button,
   },
   cartIcon: {
@@ -272,35 +321,35 @@ const styles = StyleSheet.create({
   },
   likeContainer: {
     position: 'absolute',
-    padding: 8,
+    padding: 10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 25,
     right: 12,
     top: 12,
-    elevation: 2,
-    shadowColor: '#000',
+    elevation: 4,
+    shadowColor: '#f54a00',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
     shadowOpacity: 0.2,
-    shadowRadius: 1.41,
+    shadowRadius: 4,
   },
   deleteContainer: {
     position: 'absolute',
-    padding: 8,
+    padding: 10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 25,
     right: 12,
-    top: 60, // Position below the favorite icon
-    elevation: 2,
-    shadowColor: '#000',
+    top: 65,
+    elevation: 4,
+    shadowColor: '#E94560',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
     shadowOpacity: 0.2,
-    shadowRadius: 1.41,
+    shadowRadius: 4,
   },
   faviorate: {
     height: 20,

@@ -10,10 +10,12 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import { CartContext } from '../Context/CartContext';
 import WishlistCard from '../Components/WishlistCard';
+import WishlistSkeleton from '../Components/WishlistSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../Components/axios';
 import { verticalScale } from '../PixelRatio';
@@ -154,14 +156,94 @@ const MyWishList = () => {
   };
 
   if (isLoading) {
-    return <AppLoader message="Loading your wishlist..." />;
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+          colors={['#f54a00', '#F99266']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
+          style={styles.header}
+        >
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Image 
+              source={require('../assets/favoriteFilled.png')} 
+              style={styles.headerIcon}
+            />
+            <Text style={styles.title}>My Wishlist</Text>
+          </View>
+          <View style={styles.placeholder} />
+        </LinearGradient>
+        
+        <View style={styles.skeletonContainer}>
+          <FlatList
+            data={[1, 2, 3, 4, 5, 6]} // Show 6 skeleton cards
+            numColumns={2}
+            keyExtractor={(item) => item.toString()}
+            renderItem={() => <WishlistSkeleton />}
+            showsVerticalScrollIndicator={false}
+            style={styles.flatList}
+          />
+        </View>
+      </SafeAreaView>
+    );
   }
 
   if (filteredProducts.length === 0) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+          colors={['#f54a00', '#F99266']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
+          style={styles.header}
+        >
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Image 
+              source={require('../assets/favoriteFilled.png')} 
+              style={styles.headerIcon}
+            />
+            <Text style={styles.title}>My Wishlist</Text>
+          </View>
+          <View style={styles.placeholder} />
+        </LinearGradient>
+        
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No items in your wishlist</Text>
+          <View style={styles.emptyIconContainer}>
+            <Text style={styles.emptyIcon}>💝</Text>
+          </View>
+          <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
+          <Text style={styles.emptySubtitle}>
+            Start adding items you love to your wishlist and they'll appear here
+          </Text>
+          <TouchableOpacity 
+            style={styles.exploreButton}
+            onPress={() => {
+              console.log('Button clicked!');
+              // Try different navigation approaches
+              try {
+                // First try: direct navigation to Categories screen
+                navigation.navigate('Categories');
+              } catch (error) {
+                console.log('Direct navigation failed:', error);
+                try {
+                  // Second try: parent navigation
+                  navigation.getParent()?.navigate('Categories');
+                } catch (error2) {
+                  console.log('Parent navigation failed:', error2);
+                  // Third try: go back and then navigate
+                  navigation.goBack();
+                }
+              }
+            }}
+          >
+            <Text style={styles.exploreButtonText}>Explore Products</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -170,17 +252,30 @@ const MyWishList = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <LinearGradient
+          colors={['#f54a00', '#F99266']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
+          style={styles.header}
+        >
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>My Wishlist</Text>
+          <View style={styles.titleContainer}>
+            <Image 
+              source={require('../assets/favoriteFilled.png')} 
+              style={styles.headerIcon}
+            />
+            <Text style={styles.title}>My Wishlist</Text>
+          </View>
           <View style={styles.placeholder} />
-        </View>
+        </LinearGradient>
         
-        <Text style={styles.itemCount}>
-          Found {filteredProducts.length} wishlist items
-        </Text>
+        <View style={styles.itemCountContainer}>
+          <Text style={styles.itemCount}>
+            💖 {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'} in your wishlist
+          </Text>
+        </View>
         
         <FlatList
           data={filteredProducts}
@@ -199,6 +294,8 @@ const MyWishList = () => {
           }}
           showsVerticalScrollIndicator={false}
           style={styles.flatList}
+          contentContainerStyle={styles.flatListContent}
+          columnWrapperStyle={styles.row}
         />
       </View>
     </SafeAreaView>
@@ -212,7 +309,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F9FA',
   },
   loaderContainer: {
     flex: 1,
@@ -230,10 +327,61 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
   },
-  emptyText: {
-    fontSize: 18,
+  emptyIconContainer: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#FFF5F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+    elevation: 8,
+    shadowColor: '#f54a00',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  emptyIcon: {
+    fontSize: 56,
+  },
+  emptyTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#2C2C2C',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 17,
     color: '#666666',
+    textAlign: 'center',
+    lineHeight: 26,
+    marginBottom: 40,
+  },
+  exploreButton: {
+    backgroundColor: '#f54a00',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 25,
+    elevation: 4,
+    shadowColor: '#f54a00',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  exploreButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -241,33 +389,86 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: PADDING.content.horizontal,
     paddingVertical: PADDING.content.vertical,
-    paddingTop: PADDING.margin.medium,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingTop: PADDING.margin.large,
+    paddingBottom: PADDING.margin.xlarge,
+    minHeight: 80,
+    elevation: 4,
+    shadowColor: '#f54a00',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   backButton: {
     fontSize: 16,
-    color: '#E94560',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+    tintColor: '#FFFFFF',
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
   },
   placeholder: {
     width: 50,
   },
-  itemCount: {
-    paddingHorizontal: PADDING.content.horizontal,
+  itemCountContainer: {
+    backgroundColor: '#FFF5F0',
+    marginHorizontal: PADDING.content.horizontal,
+    marginVertical: PADDING.margin.medium,
+    borderRadius: 12,
     paddingVertical: PADDING.margin.medium,
+    paddingHorizontal: PADDING.content.horizontal,
+    elevation: 2,
+    shadowColor: '#f54a00',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  itemCount: {
     fontSize: 16,
-    color: '#666666',
-    backgroundColor: '#F8F8F8',
+    color: '#f54a00',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   flatList: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  flatListContent: {
     paddingHorizontal: PADDING.flatList.horizontal,
+    paddingTop: PADDING.margin.medium,
+    paddingBottom: PADDING.margin.xlarge,
+  },
+  row: {
+    justifyContent: 'space-between',
+  },
+  skeletonContainer: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
   },
 });
 

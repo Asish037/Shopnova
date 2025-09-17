@@ -13,6 +13,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
@@ -38,20 +39,44 @@ const EditAddress = ({route}) => {
   const pageTitle = route.params?.pageTitle || 'Edit Address';
 
   const [formData, setFormData] = useState({
-    pincode: addressData?.pincode || '',
-    houseNumber: addressData?.houseNumber || '',
-    roadName: addressData?.roadName || '',
+    pincode: addressData?.zipCode || addressData?.zipcode || addressData?.pincode || '',
+    houseNumber: addressData?.houseNumber || addressData?.addressLine1 || '',
+    roadName: addressData?.roadName || addressData?.addressLine2 || '',
     contactName: addressData?.contactName || '',
-    phoneNumber: addressData?.phoneNumber || '',
-    addressType: addressData?.type || 'Home',
+    phoneNumber: addressData?.phoneNumber || addressData?.phone || '',
+    addressType: addressData?.type || addressData?.addressType || 'Home',
     isDefault: addressData?.isDefault || false,
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
+    // Check if we need to fetch address details
+    const initializeData = async () => {
+      // If we have addressData, we're editing - no need to fetch
+      if (addressData) {
+        console.log('Editing existing address:', addressData);
+        setIsFetchingDetails(false);
+        return;
+      }
+
+      // If no addressData, we're creating new - show loading briefly
+      setIsFetchingDetails(true);
+      try {
+        // Simulate API call delay for new address
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsFetchingDetails(false);
+      } catch (error) {
+        console.error('Error initializing new address:', error);
+        setIsFetchingDetails(false);
+      }
+    };
+
+    initializeData();
+
     // Animate screen entrance
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -78,6 +103,22 @@ const EditAddress = ({route}) => {
       keyboardDidShowListener?.remove();
     };
   }, [fadeAnim]);
+
+  // Update form data when addressData changes
+  useEffect(() => {
+    if (addressData) {
+      console.log('Address data received:', addressData); // Debug log
+      setFormData({
+        pincode: addressData?.zipCode || addressData?.zipcode || addressData?.pincode || '',
+        houseNumber: addressData?.houseNumber || addressData?.addressLine1 || '',
+        roadName: addressData?.roadName || addressData?.addressLine2 || '',
+        contactName: addressData?.contactName || '',
+        phoneNumber: addressData?.phoneNumber || addressData?.phone || '',
+        addressType: addressData?.type || addressData?.addressType || 'Home',
+        isDefault: addressData?.isDefault || false,
+      });
+    }
+  }, [addressData]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -146,14 +187,18 @@ const EditAddress = ({route}) => {
       const payload = {
         id: addressData?.id || Date.now().toString(),
         userId: addressData?.userId,
-        address_line_1: `${formData.houseNumber}, ${formData.roadName}`,
-        address_line_2: formData.pincode,
+        address_line_1: formData.houseNumber,
+        address_line_2: formData.roadName,
         cityId: null,
         countryId: null,
         stateId: null,
         zipcode: formData.pincode,
         phone: formData.phoneNumber,
+        contact_name: formData.contactName, 
+        type: formData.addressType,
+        is_default: formData.isDefault ? 1 : 0,
       };
+
 
       const response = await axios.put('/update-address', payload, {
         headers: {
@@ -166,11 +211,30 @@ const EditAddress = ({route}) => {
 
       Toast.show('Address updated successfully!', Toast.SHORT);
 
-      if (fromAddressScreen) {
-        navigation.navigate('AddressScreen', { updatedAddress: response.data });
+      if (response.data && response.data.data) {
+        const res = response.data.data;
+
+        const updated = {
+          id: res.id,
+          userId: res.userId,
+          addressLine1: res.address_line_1 || "",
+          addressLine2: res.address_line_2 || "",
+          contactName: res.contact_name || "",
+          phoneNumber: res.phone || "",
+          type: res.type || "Home",
+          isDefault: res.is_default === 1,
+          zipcode: res.zipcode || "",
+        };
+
+        if (fromAddressScreen) {
+          navigation.navigate('AddressScreen', { updatedAddress: updated });
+        } else {
+          navigation.goBack();
+        }
       } else {
-        navigation.goBack();
+        Alert.alert("Error", "Invalid response from server");
       }
+
     } catch (error) {
       console.error('Error saving address:', error);
       Alert.alert('Error', 'Failed to save address. Please try again.');
@@ -235,6 +299,23 @@ const EditAddress = ({route}) => {
     </View>
   );
 
+  // Loading component for fetching details
+  if (isFetchingDetails) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <LinearGradient colors={COLORS.gradient} style={styles.container}>
+          <Header />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.button} />
+            <Text style={styles.loadingText}>
+              {addressData ? 'Loading address details...' : 'Preparing form...'}
+            </Text>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* <StatusBar
@@ -244,7 +325,7 @@ const EditAddress = ({route}) => {
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={{flex: 1}}>
-        <Animated.View style={[styles.animatedContainer, {opacity: fadeAnim}]}>
+        <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim}]}>
           <LinearGradient colors={COLORS.gradient} style={styles.container}>
             <Header />
 
@@ -264,26 +345,37 @@ const EditAddress = ({route}) => {
                   <Text style={styles.sectionTitle}>Address Details</Text>
                 </View>
 
-                <View style={{marginBottom: 20}}>
+                <View style={{marginBottom: 25}}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      marginBottom: 5,
+                      fontSize: moderateScale(16),
+                      fontWeight: '600',
+                      marginBottom: verticalScale(8),
                       color: COLORS.black,
+                      fontFamily: fonts.bold,
+                      letterSpacing: 0.3,
                     }}>
                     Pincode:
                   </Text>
                   <TextInput
                     style={{
-                      height: 50,
-                      borderWidth: 1,
-                      borderColor: COLORS.grey,
-                      backgroundColor: COLORS.white,
-                      paddingHorizontal: 15,
-                      borderRadius: 8,
-                      fontSize: 16,
+                      height: 60,
+                      borderWidth: 2,
+                      borderColor: '#E8E8E8',
+                      backgroundColor: '#FAFAFA',
+                      paddingHorizontal: moderateScale(16),
+                      borderRadius: moderateScale(14),
+                      fontSize: moderateScale(16),
                       color: COLORS.black,
+                      fontFamily: fonts.regular,
+                      shadowColor: '#000',
+                      shadowOffset: {
+                        width: 0,
+                        height: 2,
+                      },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 4,
+                      elevation: 2,
                     }}
                     placeholder="Enter 6-digit pincode"
                     keyboardType="numeric"
@@ -297,26 +389,37 @@ const EditAddress = ({route}) => {
                   ) : null}
                 </View>
 
-                <View style={{marginBottom: 20}}>
+                <View style={{marginBottom: 25}}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      marginBottom: 5,
+                      fontSize: moderateScale(16),
+                      fontWeight: '600',
+                      marginBottom: verticalScale(8),
                       color: COLORS.black,
+                      fontFamily: fonts.bold,
+                      letterSpacing: 0.3,
                     }}>
                     House/Flat/Building No.:
                   </Text>
                   <TextInput
                     style={{
-                      height: 50,
-                      borderWidth: 1,
-                      borderColor: COLORS.grey,
-                      backgroundColor: COLORS.white,
-                      paddingHorizontal: 15,
-                      borderRadius: 8,
-                      fontSize: 16,
+                      height: 60,
+                      borderWidth: 2,
+                      borderColor: '#E8E8E8',
+                      backgroundColor: '#FAFAFA',
+                      paddingHorizontal: moderateScale(16),
+                      borderRadius: moderateScale(14),
+                      fontSize: moderateScale(16),
                       color: COLORS.black,
+                      fontFamily: fonts.regular,
+                      shadowColor: '#000',
+                      shadowOffset: {
+                        width: 0,
+                        height: 2,
+                      },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 4,
+                      elevation: 2,
                     }}
                     placeholder="Enter house/flat number"
                     keyboardType="default"
@@ -332,26 +435,37 @@ const EditAddress = ({route}) => {
                   ) : null}
                 </View>
 
-                <View style={{marginBottom: 20}}>
+                <View style={{marginBottom: 25}}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      marginBottom: 5,
+                      fontSize: moderateScale(16),
+                      fontWeight: '600',
+                      marginBottom: verticalScale(8),
                       color: COLORS.black,
+                      fontFamily: fonts.bold,
+                      letterSpacing: 0.3,
                     }}>
                     Road Name/Area/Colony:
                   </Text>
                   <TextInput
                     style={{
-                      height: 50,
-                      borderWidth: 1,
-                      borderColor: COLORS.grey,
-                      backgroundColor: COLORS.white,
-                      paddingHorizontal: 15,
-                      borderRadius: 8,
-                      fontSize: 16,
+                      height: 60,
+                      borderWidth: 2,
+                      borderColor: '#E8E8E8',
+                      backgroundColor: '#FAFAFA',
+                      paddingHorizontal: moderateScale(16),
+                      borderRadius: moderateScale(14),
+                      fontSize: moderateScale(16),
                       color: COLORS.black,
+                      fontFamily: fonts.regular,
+                      shadowColor: '#000',
+                      shadowOffset: {
+                        width: 0,
+                        height: 2,
+                      },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 4,
+                      elevation: 2,
                     }}
                     placeholder="Enter road name or area"
                     keyboardType="default"
@@ -416,10 +530,14 @@ const EditAddress = ({route}) => {
                     <MaterialIcons
                       name="star"
                       size={20}
-                      color={COLORS.white}
+                      color={formData.isDefault ? COLORS.orange : COLORS.grey}
                     />
-                    <Text style={styles.defaultToggleText}>
-                      Set as default address
+                    <Text
+                      style={[
+                        styles.defaultToggleText,
+                        { color: formData.isDefault ? COLORS.orange : COLORS.black },
+                      ]}>
+                      {formData.isDefault ? "Default address" : "Set as default address"}
                     </Text>
                   </View>
                   <View
@@ -436,6 +554,7 @@ const EditAddress = ({route}) => {
                   </View>
                 </TouchableOpacity>
 
+
                 <View style={styles.sectionHeader}>
                   <MaterialIcons
                     name="contact-phone"
@@ -445,26 +564,37 @@ const EditAddress = ({route}) => {
                   <Text style={styles.sectionTitle}>Contact Information</Text>
                 </View>
 
-                <View style={{marginBottom: 20}}>
+                <View style={{marginBottom: 25}}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      marginBottom: 5,
+                      fontSize: moderateScale(16),
+                      fontWeight: '600',
+                      marginBottom: verticalScale(8),
                       color: COLORS.black,
+                      fontFamily: fonts.bold,
+                      letterSpacing: 0.3,
                     }}>
                     Contact Name:
                   </Text>
                   <TextInput
                     style={{
-                      height: 50,
-                      borderWidth: 1,
-                      borderColor: COLORS.grey,
-                      backgroundColor: COLORS.white,
-                      paddingHorizontal: 15,
-                      borderRadius: 8,
-                      fontSize: 16,
+                      height: 60,
+                      borderWidth: 2,
+                      borderColor: '#E8E8E8',
+                      backgroundColor: '#FAFAFA',
+                      paddingHorizontal: moderateScale(16),
+                      borderRadius: moderateScale(14),
+                      fontSize: moderateScale(16),
                       color: COLORS.black,
+                      fontFamily: fonts.regular,
+                      shadowColor: '#000',
+                      shadowOffset: {
+                        width: 0,
+                        height: 2,
+                      },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 4,
+                      elevation: 2,
                     }}
                     placeholder="Enter contact person name"
                     keyboardType="default"
@@ -480,26 +610,37 @@ const EditAddress = ({route}) => {
                   ) : null}
                 </View>
 
-                <View style={{marginBottom: 20}}>
+                <View style={{marginBottom: 25}}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: 'bold',
-                      marginBottom: 5,
+                      fontSize: moderateScale(16),
+                      fontWeight: '600',
+                      marginBottom: verticalScale(8),
                       color: COLORS.black,
+                      fontFamily: fonts.bold,
+                      letterSpacing: 0.3,
                     }}>
                     Phone Number:
                   </Text>
                   <TextInput
                     style={{
-                      height: 50,
-                      borderWidth: 1,
-                      borderColor: COLORS.grey,
-                      backgroundColor: COLORS.white,
-                      paddingHorizontal: 15,
-                      borderRadius: 8,
-                      fontSize: 16,
+                      height: 60,
+                      borderWidth: 2,
+                      borderColor: '#E8E8E8',
+                      backgroundColor: '#FAFAFA',
+                      paddingHorizontal: moderateScale(16),
+                      borderRadius: moderateScale(14),
+                      fontSize: moderateScale(16),
                       color: COLORS.black,
+                      fontFamily: fonts.regular,
+                      shadowColor: '#000',
+                      shadowOffset: {
+                        width: 0,
+                        height: 2,
+                      },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 4,
+                      elevation: 2,
                     }}
                     placeholder="Enter 10-digit phone number"
                     keyboardType="phone-pad"
@@ -521,11 +662,7 @@ const EditAddress = ({route}) => {
                     title={isLoading ? 'Saving...' : 'Save Address'}
                     onPress={saveNewAddress}
                     disabled={isLoading}
-                    style={{
-                      width: '100%',
-                      borderRadius: moderateScale(15),
-                      alignSelf: 'center',
-                    }}
+                    style={styles.saveButton}
                   />
                 </View>
               </View>
@@ -542,11 +679,13 @@ export default EditAddress;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    marginTop: Platform.OS === 'android' ? 10 : 20,
     paddingTop: PADDING.container.vertical,
     paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
-    backgroundColor: COLORS.gradient[0], // Set background color to match gradient start
+    // backgroundColor: 'white',
+    // backgroundColor: COLORS.gradient[0], // Set background color to match gradient start
   },
   animatedContainer: {
     flex: 1,
@@ -556,86 +695,108 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: 'transparent',
+    alignSelf: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: PADDING.header.horizontal,
+  },
+  loadingText: {
+    fontSize: moderateScale(16),
+    fontWeight: '600',
+    color: COLORS.white,
+    marginTop: PADDING.margin.medium,
+    fontFamily: fonts.medium,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
     width: '100%',
   },
   scrollContentContainer: {
-    paddingBottom: verticalScale(100),
+    paddingBottom: verticalScale(120),
     flexGrow: 1,
   },
   formContainer: {
-    paddingHorizontal: PADDING.header.horizontal,
-    paddingTop: PADDING.margin.medium,
+    paddingHorizontal: moderateScale(16),
+    paddingTop: verticalScale(20),
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: PADDING.margin.medium,
-    marginBottom: PADDING.margin.xlarge,
-    paddingBottom: PADDING.margin.medium,
-    borderBottomWidth: 2,
-    borderBottomColor: 'rgba(245, 74, 0, 0.2)',
-    paddingHorizontal: PADDING.margin.small,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
-    shadowColor: '#000',
+    justifyContent: 'center',
+    marginTop: verticalScale(20),
+    marginBottom: verticalScale(25),
+    paddingVertical: verticalScale(18),
+    paddingHorizontal: moderateScale(20),
+    backgroundColor: COLORS.white,
+    borderRadius: moderateScale(16),
+    marginHorizontal: moderateScale(4),
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.button,
   },
   sectionTitle: {
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(20),
     fontWeight: '700',
     color: COLORS.button,
-    marginLeft: PADDING.margin.medium,
+    marginLeft: moderateScale(8),
     fontFamily: fonts.bold,
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: PADDING.margin.medium,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
-    shadowColor: '#000',
+    marginBottom: verticalScale(20),
+    backgroundColor: COLORS.white,
+    borderRadius: moderateScale(16),
+    padding: moderateScale(20),
+    marginHorizontal: moderateScale(4),
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.08)',
   },
   inputLabel: {
-    fontSize: moderateScale(15),
+    fontSize: moderateScale(16),
     fontWeight: '600',
     color: COLORS.black,
-    marginBottom: PADDING.margin.small,
+    marginBottom: verticalScale(8),
     fontFamily: fonts.bold,
+    letterSpacing: 0.3,
   },
   textInput: {
-    height: 55,
-    borderWidth: 1.5,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F8F9FA',
-    paddingHorizontal: PADDING.content.horizontal,
-    borderRadius: moderateScale(12),
+    height: 60,
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+    backgroundColor: '#FAFAFA',
+    paddingHorizontal: moderateScale(16),
+    borderRadius: moderateScale(14),
     fontSize: moderateScale(16),
     color: COLORS.black,
     fontFamily: fonts.regular,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputIcon: {
     marginRight: moderateScale(10),
@@ -650,48 +811,130 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: PADDING.margin.xlarge,
-    marginBottom: PADDING.margin.xlarge,
-    paddingHorizontal: PADDING.header.horizontal,
+    marginTop: verticalScale(30),
+    marginBottom: verticalScale(30),
+    paddingHorizontal: moderateScale(16),
   },
   saveButton: {
-    width: '80%',
-    borderRadius: moderateScale(15),
-    // paddingVertical: verticalScale(12),
+    width: '95%',
+    height: verticalScale(65),
+    borderRadius: moderateScale(20),
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    alignSelf: 'center',
   },
   buttonContainerKeyboard: {
     paddingBottom: verticalScale(5),
   },
   addressTypeContainer: {
-    marginBottom: PADDING.margin.xlarge,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: moderateScale(12),
-    padding: PADDING.content.vertical,
-    shadowColor: '#000',
+    marginBottom: verticalScale(25),
+    backgroundColor: COLORS.white,
+    borderRadius: moderateScale(16),
+    padding: moderateScale(20),
+    marginHorizontal: moderateScale(4),
+    shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.08)',
   },
   addressTypeButtons: {
     flexDirection: 'row',
-    marginTop: PADDING.margin.medium,
+    marginTop: verticalScale(15),
+    justifyContent: 'space-between',
   },
   addressTypeButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: PADDING.content.vertical,
-    paddingHorizontal: PADDING.margin.small,
-    marginRight: PADDING.margin.small,
+    paddingVertical: verticalScale(14),
+    paddingHorizontal: moderateScale(12),
+    marginHorizontal: moderateScale(4),
     backgroundColor: COLORS.white,
-    borderRadius: moderateScale(12),
+    borderRadius: moderateScale(14),
     borderWidth: 2,
+    borderColor: '#E8E8E8',
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  selectedAddressType: {
+    backgroundColor: COLORS.button,
     borderColor: COLORS.button,
+    shadowColor: COLORS.button,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+    transform: [{ scale: 1.02 }],
+  },
+  addressTypeText: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    color: COLORS.grey,
+    marginLeft: moderateScale(6),
+    fontFamily: fonts.bold,
+  },
+  selectedAddressTypeText: {
+    color: COLORS.white,
+    fontWeight: '700',
+  },
+  defaultToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: verticalScale(18),
+    paddingHorizontal: moderateScale(20),
+    backgroundColor: COLORS.white,
+    borderRadius: moderateScale(16),
+    marginBottom: verticalScale(25),
+    marginHorizontal: moderateScale(4),
+    shadowColor: COLORS.button,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 74, 0, 0.08)',
+  },
+  defaultToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  defaultToggleText: {
+    fontSize: moderateScale(17),
+    fontWeight: '600',
+    color: COLORS.black,
+    marginLeft: moderateScale(8),
+    fontFamily: fonts.bold,
+    letterSpacing: 0.3,
+  },
+  toggleSwitch: {
+    width: moderateScale(56),
+    height: verticalScale(32),
+    backgroundColor: '#E8E8E8',
+    borderRadius: moderateScale(16),
+    justifyContent: 'center',
+    paddingHorizontal: moderateScale(3),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -701,74 +944,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  selectedAddressType: {
-    backgroundColor: COLORS.button,
-  },
-  addressTypeText: {
-    fontSize: moderateScale(15),
-    fontWeight: '600',
-    color: COLORS.black,
-    marginLeft: PADDING.margin.small,
-    fontFamily: fonts.bold,
-  },
-  selectedAddressTypeText: {
-    color: COLORS.white,
-  },
-  defaultToggleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: PADDING.content.vertical,
-    paddingHorizontal: PADDING.content.horizontal,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: moderateScale(12),
-    marginBottom: PADDING.margin.xlarge,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  defaultToggleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  defaultToggleText: {
-    fontSize: moderateScale(16),
-    fontWeight: '600',
-    color: COLORS.black,
-    marginLeft: PADDING.margin.small,
-    fontFamily: fonts.bold,
-  },
-  toggleSwitch: {
-    width: moderateScale(50),
-    height: verticalScale(28),
-    backgroundColor: '#E0E0E0',
-    borderRadius: moderateScale(14),
-    justifyContent: 'center',
-    paddingHorizontal: moderateScale(2),
-  },
   toggleSwitchActive: {
     backgroundColor: COLORS.button,
+    shadowColor: COLORS.button,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   toggleIndicator: {
-    width: moderateScale(24),
-    height: moderateScale(24),
+    width: moderateScale(26),
+    height: moderateScale(26),
     backgroundColor: COLORS.white,
-    borderRadius: moderateScale(12),
-    elevation: 4,
+    borderRadius: moderateScale(13),
+    elevation: 6,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   toggleIndicatorActive: {
-    transform: [{translateX: moderateScale(24)}],
+    transform: [{translateX: moderateScale(26)}],
   },
 });

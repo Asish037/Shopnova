@@ -3,6 +3,7 @@ import React, {useContext} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from "react-native-vector-icons/Ionicons";
+import LinearGradient from 'react-native-linear-gradient';
 // import Entypo from "react-native-vector-icons/dist/Entypo";
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {CartContext, CartProvider} from './../Context/CartContext';
@@ -64,7 +65,14 @@ const MyHomeStack = () => {
         headerShown: false,
       }}>
       <Stack.Screen name="HOME" component={HomeScreen} />
-      <Stack.Screen name="Categories" component={CategoriesScreen} />
+      <Stack.Screen 
+        name="Categories" 
+        component={CategoriesScreen}
+        options={{
+          headerShown: false,
+          header: () => null,
+        }}
+      />
       <Stack.Screen name="CART" component={CartScreen} />
       <Stack.Screen name="ACCOUNT" component={AccountScreen} />
 
@@ -108,7 +116,8 @@ const BottomTab = () => {
   return (
     // <NavigationContainer>
     <CartProvider>
-      <Tab.Navigator
+      <View style={{flex: 1}}>
+        <Tab.Navigator
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
@@ -176,7 +185,8 @@ const BottomTab = () => {
             ),
           }}
         />
-      </Tab.Navigator>
+        </Tab.Navigator>
+      </View>
     </CartProvider>
     // </NavigationContainer>
   );

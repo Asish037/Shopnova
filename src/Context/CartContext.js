@@ -25,25 +25,29 @@ export const CartProvider = ({children}) => {
 
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  
   const loadAuthData = async () => {
     try {
       console.log('Loading auth data from AsyncStorage...');
-      const [userData, storedToken] = await AsyncStorage.multiGet(['userData', 'userToken']);
-      
+      const [userData, storedToken] = await AsyncStorage.multiGet([
+        'userData',
+        'userToken',
+      ]);
+
       console.log('Loaded userData:', userData[1]);
       console.log('Loaded token:', storedToken[1]);
-      
+
       if (userData[1]) {
         const parsedUser = JSON.parse(userData[1]);
         setUser(parsedUser);
         console.log('User data set in state:', parsedUser);
       }
-      
+
       if (storedToken[1]) {
         setToken(storedToken[1]);
         console.log('Token set in state:', storedToken[1]);
       }
-      
+
       console.log('Auth data loading completed');
     } catch (error) {
       console.error('Error loading auth data:', error);
@@ -64,42 +68,42 @@ export const CartProvider = ({children}) => {
   const login = async (userData, authToken = null) => {
     console.log('login called with userData:', userData);
     console.log('login called with authToken:', authToken);
-    
+
     try {
       // First save to AsyncStorage
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
       console.log('User data saved to AsyncStorage');
-      
+
       if (authToken) {
         console.log('Saving token to AsyncStorage:', authToken);
         await AsyncStorage.setItem('userToken', authToken);
         console.log('Token saved to AsyncStorage');
       }
-      
+
       // Then update React state
       setUser(userData);
       if (authToken) {
         setToken(authToken);
         console.log('Token set in React state');
       }
-      
+
       console.log('Login completed successfully');
     } catch (error) {
       console.error('Error in login function:', error);
     }
   };
 
-  const setAuthToken = async (authToken) => {
+  const setAuthToken = async authToken => {
     console.log('setAuthToken called with:', authToken);
     try {
       // First save to AsyncStorage
       await AsyncStorage.setItem('userToken', authToken);
       console.log('Token saved to AsyncStorage successfully');
-      
+
       // Then update React state
       setToken(authToken);
       console.log('Token set in React state');
-      
+
       // Verify it was saved
       const savedToken = await AsyncStorage.getItem('userToken');
       console.log('Verification - saved token:', savedToken);
@@ -118,18 +122,18 @@ export const CartProvider = ({children}) => {
       console.error('Error removing user data:', error);
     }
   };
-  const addToWishlist = (item) => {
+  const addToWishlist = item => {
     console.log('Adding to wishlist:', item);
-    setWishlist((prev) => {
+    setWishlist(prev => {
       const newWishlist = [...(prev || []), item];
       console.log('Updated wishlist:', newWishlist);
       return newWishlist;
     });
-  }
-  const removeFromWishlist = (productId) => {
+  };
+  const removeFromWishlist = productId => {
     console.log('Removing from wishlist, productId:', productId);
-    setWishlist((prev) => {
-      const newWishlist = (prev || []).filter((prod) => {
+    setWishlist(prev => {
+      const newWishlist = (prev || []).filter(prod => {
         // Check both id and productId fields
         const prodId = prod.id || prod.productId;
         return prodId !== productId;
@@ -137,16 +141,24 @@ export const CartProvider = ({children}) => {
       console.log('Updated wishlist after removal:', newWishlist);
       return newWishlist;
     });
-  }
-  const isFavorite = (productId) => {
-    const result = wishlist?.some((prod) => {
-      // Check both id and productId fields
-      const prodId = prod.id || prod.productId;
-      return prodId === productId;
-    }) || false;
-    console.log('Checking if favorite, productId:', productId, 'result:', result, 'wishlist:', wishlist);
+  };
+  const isFavorite = productId => {
+    const result =
+      wishlist?.some(prod => {
+        // Check both id and productId fields
+        const prodId = prod.id || prod.productId;
+        return prodId === productId;
+      }) || false;
+    console.log(
+      'Checking if favorite, productId:',
+      productId,
+      'result:',
+      result,
+      'wishlist:',
+      wishlist,
+    );
     return result;
-  }
+  };
 
   const saveMessage = async (roomName, messageData) => {
     const updatedMessages = {
@@ -182,20 +194,20 @@ export const CartProvider = ({children}) => {
     console.log('Adding item to cart:', item);
     let cartItems = await AsyncStorage.getItem('cart');
     cartItems = cartItems ? JSON.parse(cartItems) : [];
-    
+
     // Handle different possible id fields
     const itemId = item.id || item.productId || item.product_id;
     let isExist = cartItems.findIndex(cart => {
       const cartId = cart.id || cart.productId || cart.product_id;
       return cartId === itemId;
     });
-    
+
     if (isExist === -1) {
       // Ensure the item has an id field
       const itemToAdd = {
         ...item,
         id: itemId || Date.now().toString(), // fallback id if none exists
-        quantity: 1
+        quantity: 1,
       };
       cartItems.push(itemToAdd);
       calculateTotalPrice(cartItems);
@@ -203,7 +215,7 @@ export const CartProvider = ({children}) => {
       await AsyncStorage.setItem('cart', JSON.stringify(cartItems));
     }
   };
- 
+
   const deleteCartItem = async id => {
     let cartItems = await AsyncStorage.getItem('cart');
     cartItems = cartItems ? JSON.parse(cartItems) : [];
@@ -230,11 +242,25 @@ export const CartProvider = ({children}) => {
 
   const calculateTotalPrice = cartItems => {
     let totalSum = cartItems.reduce((total, item) => {
-      const quantity = item.quantity || 1;
-      return total + item.price * quantity;
+     // Convert offer_price to a floating-point number
+    const offerPrice = parseFloat(item.offer_price);
+    const quantity = item.quantity || 1;
+        // Check if offerPrice is a valid number before multiplying
+        if (!isNaN(offerPrice)) {
+            return total + offerPrice * quantity;
+        }
+
+        // Return the current total if the offerPrice is invalid
+        return total;
     }, 0);
-    totalSum = totalSum.toFixed(2);
-    setTotalPrice(totalSum);
+
+      // After the loop, check if the final total is a valid number
+      if (!isNaN(totalSum)) {
+          totalSum = totalSum.toFixed(2);
+          setTotalPrice(totalSum);
+      } else {
+          setTotalPrice('0.00'); // Set to a default value if the total is NaN
+      }
   };
 
   if (isLoading) {

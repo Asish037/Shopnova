@@ -4,56 +4,56 @@ import { Platform } from 'react-native';
 export const PADDING = {
   // Container padding
   container: {
-    horizontal: Platform.OS === 'ios' ? 10 : 8,
+    horizontal: Platform.OS === 'ios' ? 2 : 1,
     vertical: Platform.OS === 'ios' ? 0 : 0,
-    bottom: Platform.OS === 'ios' ? 10 : 8,
+    bottom: Platform.OS === 'ios' ? 2 : 1,
   },
   
   // Header padding
   header: {
-    horizontal: Platform.OS === 'ios' ? 8 : 6,
-    vertical: Platform.OS === 'ios' ? 8 : 5,
-    top: Platform.OS === 'ios' ? 2 : 0,
+    horizontal: Platform.OS === 'ios' ? 2 : 1,
+    vertical: Platform.OS === 'ios' ? 2 : 1,
+    top: Platform.OS === 'ios' ? 0 : 0,
   },
   
   // Content padding
   content: {
-    horizontal: Platform.OS === 'ios' ? 15 : 12,
-    vertical: Platform.OS === 'ios' ? 12 : 10,
-    bottom: Platform.OS === 'ios' ? 12 : 10,
+    horizontal: Platform.OS === 'ios' ? 4 : 3,
+    vertical: Platform.OS === 'ios' ? 3 : 2,
+    bottom: Platform.OS === 'ios' ? 3 : 2,
   },
   
   // FlatList padding
   flatList: {
-    horizontal: Platform.OS === 'ios' ? 5 : 3,
-    bottom: Platform.OS === 'ios' ? 25 : 20,
-    top: Platform.OS === 'ios' ? 5 : 3,
+    horizontal: Platform.OS === 'ios' ? 1 : 0,
+    bottom: Platform.OS === 'ios' ? 5 : 4,
+    top: Platform.OS === 'ios' ? 1 : 0,
   },
   
   // Card padding
   card: {
-    horizontal: Platform.OS === 'ios' ? 10 : 8,
-    vertical: Platform.OS === 'ios' ? 8 : 6,
+    horizontal: Platform.OS === 'ios' ? 2 : 1,
+    vertical: Platform.OS === 'ios' ? 2 : 1,
   },
   
   // Button padding
   button: {
-    horizontal: Platform.OS === 'ios' ? 25 : 20,
-    vertical: Platform.OS === 'ios' ? 8 : 6,
+    horizontal: Platform.OS === 'ios' ? 10 : 8,
+    vertical: Platform.OS === 'ios' ? 4 : 3,
   },
   
   // Section padding
   section: {
-    horizontal: Platform.OS === 'ios' ? 12 : 10,
-    vertical: Platform.OS === 'ios' ? 8 : 6,
+    horizontal: Platform.OS === 'ios' ? 3 : 2,
+    vertical: Platform.OS === 'ios' ? 2 : 1,
   },
   
   // Margin constants
   margin: {
-    small: Platform.OS === 'ios' ? 5 : 3,
-    medium: Platform.OS === 'ios' ? 8 : 6,
-    large: Platform.OS === 'ios' ? 12 : 10,
-    xlarge: Platform.OS === 'ios' ? 15 : 12,
+    small: Platform.OS === 'ios' ? 1 : 0,
+    medium: Platform.OS === 'ios' ? 2 : 1,
+    large: Platform.OS === 'ios' ? 3 : 2,
+    xlarge: Platform.OS === 'ios' ? 4 : 3,
   },
 };
 
