@@ -56,7 +56,7 @@ const AddressScreen = () => {
         console.log('AddressScreen - No addresses, fetching from API');
         fetchAddresses();
       }
-
+      
       // Only fetch addresses if we don't have route params (coming from edit/add)
       if (!route.params?.newAddress && !route.params?.updatedAddress && addresses.length > 0) {
         console.log('AddressScreen - Refreshing addresses from API');
@@ -94,7 +94,6 @@ const AddressScreen = () => {
     }, [route.params?.newAddress, route.params?.updatedAddress, navigation, currentSelectedAddress])
   );
 
-    
   // Component mount effect
   useEffect(() => {
     console.log('AddressScreen - Component mounting...');
@@ -130,7 +129,14 @@ const AddressScreen = () => {
     return () => clearTimeout(timeout);
   }, [isMounted]);
 
+
   const fetchAddresses = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoading) {
+      console.log('AddressScreen - Already loading, skipping fetch');
+      return;
+    }
+    
     console.log('Fetching addresses from API...');
     try{
       setIsLoading(true);
@@ -144,7 +150,7 @@ const AddressScreen = () => {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
-
+        timeout: 15000, // 15 second timeout
       };
       const response = await axios(config);
       console.log('Fetched addresses:', response.data);
@@ -240,13 +246,13 @@ const AddressScreen = () => {
     setModalVisible(true);
   };
 
-  const handleDeleteAddress = async () => {
+  const handleDeleteAddress = async() => {
     console.log('Deleting address:', addressToDelete);
-    if(!addressToDelete || !addressToDelete.id) {
+    if (!addressToDelete) {
       setModalVisible(false);
-      Toast.show('Invalid address selected for deletion', Toast.SHORT);
       return;
     }
+
     setIsDeleting(true);
     try {
       const token = await AsyncStorage.getItem('userToken');
@@ -256,7 +262,7 @@ const AddressScreen = () => {
         setAddressToDelete(null);
         return;
       }
-    
+
       const config = {
         method: 'delete',
         url: `/delete-address?addressId=${addressToDelete.id}`,
@@ -265,15 +271,16 @@ const AddressScreen = () => {
           'Authorization': `Bearer ${token}`
         },
       };
+      
       const response = await axios(config);
       console.log('Delete address response:', response.data);
-
+ 
       if (response.data.status !== 1) {
-        Toast.show(response.data.message || 'Address Deleted Successfully', Toast.SHORT);
-        // await fetchAddresses();
+        Toast.show(response.data.message || 'Failed to delete address. Please try again.', Toast.SHORT);
         return;
-      } 
-       // Update local state - use functional update to avoid stale closure
+      }
+
+      // Update local state - use functional update to avoid stale closure
       setAddresses(prev => {
         const updatedAddresses = prev.filter(addr => addr.id !== addressToDelete.id);
         
@@ -299,6 +306,10 @@ const AddressScreen = () => {
       console.error('Error deleting address:', error);
       console.log('Error details:', error.response ? error.response.data : error.message);
       Toast.show('Failed to delete address. Please try again.', Toast.SHORT);
+      setModalVisible(false);
+      setAddressToDelete(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -396,40 +407,61 @@ const AddressScreen = () => {
           <View style={styles.addressActions}>
             <TouchableOpacity
               style={[
-                styles.actionButtonWithText,
-                isSelected && styles.selectedActionButton
+                styles.editButton,
+                isSelected && styles.selectedEditButton,
+                (isLoading || isDeleting) && styles.disabledButton
               ]}
-              onPress={() => handleEditAddress(item)}>
-              <MaterialCommunityIcons
-                name="pencil"
-                size={16}
-                color={isSelected ? COLORS.button : COLORS.button}
-              />
-              <Text
-                style={[
-                  styles.actionButtonText,
-                  isSelected && styles.selectedActionText,
-                ]}>
+              onPress={() => handleEditAddress(item)}
+              activeOpacity={0.7}
+              disabled={isLoading || isDeleting}>
+              <View style={[
+                styles.buttonIconContainer,
+                isSelected && styles.selectedButtonIconContainer
+              ]}>
+                <MaterialCommunityIcons
+                  name="pencil"
+                  size={18}
+                  color={isSelected ? COLORS.button : COLORS.white}
+                />
+              </View>
+              <Text style={[
+                styles.editButtonText,
+                isSelected && styles.selectedEditButtonText
+              ]}>
                 Edit
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
-                styles.actionButtonWithText,
-                isSelected && styles.selectedActionButton
+                styles.deleteButton,
+                isSelected && styles.selectedDeleteButton,
+                (isLoading || isDeleting) && styles.disabledButton
               ]}
-              onPress={() => handleDeleteConfirmation(item)}>
-              <MaterialIcons
-                name="delete-outline"
-                size={16}
-                color={isSelected ? COLORS.red : COLORS.red}
-              />
-              <Text
-                style={[
-                  styles.actionButtonTextDelete,
-                  isSelected && styles.selectedActionText,
-                ]}>
-                Delete
+              onPress={() => handleDeleteConfirmation(item)}
+              activeOpacity={0.7}
+              disabled={isLoading || isDeleting}>
+              <View style={[
+                styles.buttonIconContainer,
+                isSelected && styles.selectedButtonIconContainer
+              ]}>
+                {isDeleting ? (
+                  <ActivityIndicator 
+                    size="small" 
+                    color={isSelected ? '#FF4444' : COLORS.white} 
+                  />
+                ) : (
+                  <MaterialIcons
+                    name="delete-outline"
+                    size={18}
+                    color={isSelected ? '#FF4444' : COLORS.white}
+                  />
+                )}
+              </View>
+              <Text style={[
+                styles.deleteButtonText,
+                isSelected && styles.selectedDeleteButtonText
+              ]}>
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -438,18 +470,22 @@ const AddressScreen = () => {
     );
   };
 
-  // Loading component while fetching addresses
-  if (isLoading) {
+
+  // Loading component while fetching addresses or deleting
+  if (isLoading || isDeleting) {
     return (
       <LinearGradient colors={COLORS.gradient} style={styles.container}>
         <Header />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.button} />
-          <Text style={styles.loadingText}>Loading addresses...</Text>
+          <Text style={styles.loadingText}>
+            {isDeleting ? 'Deleting address...' : 'Loading addresses...'}
+          </Text>
         </View>
       </LinearGradient>
     );
   }
+
 
   return (
     <LinearGradient colors={COLORS.gradient} style={styles.container}>
@@ -493,12 +529,19 @@ const AddressScreen = () => {
 
       {/* Address List */}
       <FlatList
-        data={addresses}
+        data={addresses || []}
         renderItem={renderAddressCard}
         keyExtractor={item => String(item.id)}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.addressList}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyAddressContainer}>
+            <MaterialIcons name="location-off" size={48} color={COLORS.gray} />
+            <Text style={styles.emptyAddressText}>No addresses found</Text>
+            <Text style={styles.emptyAddressSubtext}>Add your first address to get started</Text>
+          </View>
+        )}
       />
 
       {/* Add New Address Button */}
@@ -610,14 +653,14 @@ const AddressScreen = () => {
             },
           },
           {
-            text: 'Delete',
+            text: isLoading ? 'Deleting...' : 'Delete',
             func: handleDeleteAddress,
             styles: {
               color: COLORS.white,
               fontSize: 16,
               fontWeight: '600',
               fontFamily: fonts.medium,
-              backgroundColor: '#FF6B6B',
+              backgroundColor: isLoading ? '#CCCCCC' : '#FF6B6B',
             },
           },
         ]}
@@ -824,60 +867,110 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    gap: moderateScale(8),
   },
-  actionButton: {
-    padding: moderateScale(7),
-    marginLeft: moderateScale(8),
-    borderRadius: moderateScale(20),
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
-  actionButtonWithText: {
+  editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: moderateScale(12),
-    paddingVertical: verticalScale(6),
-    marginLeft: moderateScale(8),
-    borderRadius: moderateScale(16),
-    backgroundColor: 'rgba(245, 74, 0, 0.1)',
-    elevation: 2,
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: verticalScale(10),
+    borderRadius: moderateScale(20),
+    backgroundColor: COLORS.button,
+    elevation: 4,
     shadowColor: COLORS.button,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  actionButtonText: {
-    fontSize: moderateScale(11),
-    fontWeight: '600',
-    color: COLORS.button,
-    marginLeft: moderateScale(4),
-    fontFamily: FONTS.Medium,
-  },
-  actionButtonTextDelete: {
-    fontSize: moderateScale(11),
-    fontWeight: '600',
-    color: COLORS.red,
-    marginLeft: moderateScale(4),
-    fontFamily: FONTS.Medium,
-  },
-  selectedActionText: {
-    color: COLORS.button,
-    fontWeight: '700',
-  },
-  selectedActionButton: {
-    backgroundColor: COLORS.white,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
     borderWidth: 1,
     borderColor: COLORS.button,
-    elevation: 3,
-    shadowColor: COLORS.button,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: moderateScale(16),
+    paddingVertical: verticalScale(10),
+    borderRadius: moderateScale(20),
+    backgroundColor: '#FF4444',
+    elevation: 4,
+    shadowColor: '#FF4444',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FF4444',
+  },
+  buttonIconContainer: {
+    width: moderateScale(20),
+    height: moderateScale(20),
+    borderRadius: moderateScale(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: moderateScale(6),
+  },
+  editButtonText: {
+    fontSize: moderateScale(13),
+    fontWeight: '700',
+    color: COLORS.white,
+    fontFamily: FONTS.Bold,
+    letterSpacing: 0.5,
+  },
+  deleteButtonText: {
+    fontSize: moderateScale(13),
+    fontWeight: '700',
+    color: COLORS.white,
+    fontFamily: FONTS.Bold,
+    letterSpacing: 0.5,
+  },
+  selectedEditButton: {
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.button,
+    transform: [{ scale: 1.05 }],
+  },
+  selectedDeleteButton: {
+    backgroundColor: COLORS.white,
+    borderColor: '#FF4444',
+    transform: [{ scale: 1.05 }],
+  },
+  selectedEditButtonText: {
+    color: COLORS.button,
+  },
+  selectedDeleteButtonText: {
+    color: '#FF4444',
+  },
+  selectedButtonIconContainer: {
+    backgroundColor: 'rgba(245, 74, 0, 0.1)',
+  },
+  disabledButton: {
+    opacity: 0.5,
+    backgroundColor: '#CCCCCC',
+  },
+  emptyAddressContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: verticalScale(60),
+    paddingHorizontal: moderateScale(20),
+  },
+  emptyAddressText: {
+    fontSize: moderateScale(18),
+    fontWeight: '600',
+    color: COLORS.black,
+    marginTop: verticalScale(16),
+    fontFamily: FONTS.Bold,
+  },
+  emptyAddressSubtext: {
+    fontSize: moderateScale(14),
+    color: COLORS.gray,
+    marginTop: verticalScale(8),
+    textAlign: 'center',
+    fontFamily: FONTS.Regular,
   },
   addNewAddressButton: {
     position: 'absolute',

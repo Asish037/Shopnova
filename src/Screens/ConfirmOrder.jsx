@@ -17,8 +17,7 @@ import {FONTS} from '../Constant/Font';
 import axios from '../Components/axios';
 import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+ 
 const ConfirmOrder = () => {
     const navigation = useNavigation();
     const route = useRoute();
@@ -79,14 +78,22 @@ const ConfirmOrder = () => {
             });
  
             if (response.data.status === 1) {
-            
-                // await clearCart();
                 // Alert.alert('Order Placed', 'Your order has been placed successfully!');
                 console.log('Order Placed Successfully:', response.data);
                 const orderId = response.data?.data?.order_id || response.data?.data?.id;
+
+                // const orderDetailsForDisplay = {
+                //     orderId: orderId,
+                //     selectedPaymentMethod: selectedPaymentMethod,
+                //     total: totalPrice,
+                //     cartItems: cartItems,
+                // };
+                // console.log('Navigating to PaymentMethod with params:', orderDetailsForDisplay);
+                // await clearCart();
                 if (orderId) {
                 //     navigation.navigate('OrderDetails', { orderId });
                 // }
+                    // navigation.navigate('PaymentMethod', orderDetailsForDisplay);
                     navigation.navigate('PaymentMethod', {
                         orderId,
                         selectedPaymentMethod: 'Cash', // default Cash
@@ -97,6 +104,7 @@ const ConfirmOrder = () => {
             } else {
                 console.warn("No orderId in response:", response.data);
             }
+            //  await clearCart();
         } else {
             Alert.alert('Order Failed', response.data.message || 'Please try again.');
             console.error('Order Placement Failed:', response.data);

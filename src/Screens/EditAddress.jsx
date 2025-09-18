@@ -186,16 +186,16 @@ const EditAddress = ({route}) => {
       const payload = {
         address_line_1: formData.houseNumber,
         address_line_2: formData.roadName,
-        cityId: null,
-        countryId: null,
-        stateId: null,
+        // cityId: null,
+        // countryId: null,
+        // stateId: null,
         zipcode: formData.pincode,
         phone: formData.phoneNumber,
         contact_name: formData.contactName, 
         type: formData.addressType,
         is_default: formData.isDefault ? 1 : 0,
       };
-
+      console.log('Payload:', payload);
       let response;
       if (addressData?.id) {
         // Editing existing address
@@ -235,17 +235,20 @@ const EditAddress = ({route}) => {
           zipcode: res.zipcode || "",
         };
 
-        if (fromAddressScreen) {
-          if (addressData?.id) {
-            // Editing existing address
-            navigation.navigate('AddressScreen', { updatedAddress: updated });
+        // Add a small delay to ensure toast is shown and state is updated
+        setTimeout(() => {
+          if (fromAddressScreen) {
+            if (addressData?.id) {
+              // Editing existing address - use replace to avoid navigation stack issues
+              navigation.replace('AddressScreen', { updatedAddress: updated });
+            } else {
+              // Creating new address - use replace to avoid navigation stack issues
+              navigation.replace('AddressScreen', { newAddress: updated });
+            }
           } else {
-            // Creating new address
-            navigation.navigate('AddressScreen', { newAddress: updated });
+            navigation.goBack();
           }
-        } else {
-          navigation.goBack();
-        }
+        }, 1000); // 1 second delay
       } else {
         Alert.alert("Error", "Invalid response from server");
       }
@@ -394,11 +397,12 @@ const EditAddress = ({route}) => {
                     }}
                     placeholder="Enter 6-digit pincode"
                     keyboardType="numeric"
-                    maxLength={6}
                     value={formData.pincode}
                     onChangeText={value => handleInputChange('pincode', value)}
                     editable={true}
                     pointerEvents="auto"
+                    maxLength={6}
+ 
                   />
                   {errors.pincode ? (
                     <Text style={styles.errorText}>{errors.pincode}</Text>
@@ -615,7 +619,6 @@ const EditAddress = ({route}) => {
                     placeholder="Enter contact person name"
                     keyboardType="default"
                     value={formData.contactName}
-                  
                     onChangeText={value =>
                       handleInputChange('contactName', value)
                     }
@@ -662,12 +665,12 @@ const EditAddress = ({route}) => {
                     placeholder="Enter 10-digit phone number"
                     keyboardType="phone-pad"
                     value={formData.phoneNumber}
-                    maxLength={10}
                     onChangeText={value =>
                       handleInputChange('phoneNumber', value)
                     }
                     editable={true}
                     pointerEvents="auto"
+                    maxLength={10}
                   />
                   {errors.phoneNumber ? (
                     <Text style={styles.errorText}>{errors.phoneNumber}</Text>

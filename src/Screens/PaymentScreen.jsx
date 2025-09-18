@@ -23,6 +23,7 @@ const PaymentScreen = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cash');
 
   const { cartItems, totalPrice, getTotalQuantity } = useContext(CartContext);
+  
 
   // const total = route.params?.totalPrice || '0.00';
   const selectedAddress = route.params?.selectedAddress;
@@ -194,7 +195,7 @@ const PaymentScreen = () => {
             });
             navigation.navigate('ConfirmOrder', {
               selectedPaymentMethod,
-              // totalPrice,
+              // totalPrce,
               // cartItems,
               selectedAddress,
             });

@@ -20,7 +20,7 @@ const {width, height} = Dimensions.get('window');
 
 const OrderConfirm = ({route}) => {
   const navigation = useNavigation();
-  const { clearCart } = React.useContext(CartContext);
+   const { clearCart } = React.useContext(CartContext);
 
   // Get dynamic data from route parameters
   // const selectedPaymentMethod =
@@ -34,9 +34,7 @@ const OrderConfirm = ({route}) => {
     if (orderId) {
       clearCart();
     }
-  }, []); 
-
-
+  }, []);
   console.log('OrderConfirm - Received params:', route.params);
   console.log('OrderConfirm - Payment Method:', selectedPaymentMethod);
   console.log('OrderConfirm - Total Amount:', total);

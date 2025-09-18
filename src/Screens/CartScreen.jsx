@@ -71,8 +71,9 @@ const CartScreen = () => {
         console.log('Add to cart response:', response.data);
 
         if (response.data.status === 1) {
-          
-          navigation.navigate('Payment');
+          navigation.navigate('Payment', 
+            // { grandTotal, cartItems }
+          );
         } else {
           Toast.show(response.data.message || 'Something went wrong on the server.');
         }

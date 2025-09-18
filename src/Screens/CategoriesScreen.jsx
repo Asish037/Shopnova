@@ -564,7 +564,7 @@ const CategoriesScreen = () => {
 
   return (
     <LinearGradient colors={COLORS.gradient} style={styles.container}>
-      {/* <Header /> */}
+      <Header />
       
       {/* Main Subcontainer with 95% width */}
       <View style={styles.subContainer}>
@@ -738,8 +738,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    marginTop: Platform.OS === 'android' ? 15 : 20,
-
   },
   subContainer: {
     width: '95%',
@@ -757,7 +755,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    height: verticalScale(35),
+    height: verticalScale(45),
     borderRadius: moderateScale(20),
     alignItems: 'center',
     flexDirection: 'row',
@@ -814,17 +812,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   searchIcon: {
-    height: moderateScale(17),
-    width: moderateScale(17),
+    height: moderateScale(24),
+    width: moderateScale(24),
     marginHorizontal: PADDING.margin.medium,
     tintColor: COLORS.button,
   },
   textInput: {
     flex: 1,
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(16),
     fontFamily: 'Poppins-Medium',
     color: COLORS.black,
-    paddingVertical: 2,
+    paddingVertical: 0,
   },
   clearButton: {
     paddingHorizontal: 12,
@@ -854,7 +852,7 @@ const styles = StyleSheet.create({
     marginTop: PADDING.margin.small,
     paddingHorizontal: PADDING.margin.small,
     paddingBottom: PADDING.margin.small,
-    gap: PADDING.margin.large,
+    gap: PADDING.margin.small,
   },
   // caregory part
   leftPanel: {
@@ -885,12 +883,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245, 74, 0, 0.15)',
   },
   panelTitle: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(18),
     fontFamily: 'Poppins-Bold',
     color: COLORS.button,
-    paddingHorizontal: PADDING.margin.large,
+    paddingHorizontal: PADDING.margin.medium,
     paddingVertical: PADDING.content.vertical,
-    marginTop: PADDING.margin.medium,
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(245, 74, 0, 0.3)',
     textAlign: 'center',

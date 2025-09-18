@@ -55,15 +55,16 @@ const Settings = () => {
   return (
     <LinearGradient style={styles.container} colors={COLORS.gradient}>
       <Header />
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>Manage your account and preferences</Text>
-      </View>
+      <View style={styles.subContainer}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.subtitle}>Manage your account and preferences</Text>
+        </View>
 
-      <ScrollView
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}>
         {/* Account Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -337,6 +338,7 @@ const Settings = () => {
           </View>
         </View>
       </ScrollView>
+      </View>
     </LinearGradient>
   );
 };
@@ -346,12 +348,16 @@ export default Settings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: Platform.OS === 'ios' ? moderateScale(15) : moderateScale(7),
+    //paddingHorizontal: Platform.OS === 'ios' ? moderateScale(10) : moderateScale(5),
     // /paddingVertical: Platform.OS === 'ios' ? moderateScale(10) : moderateScale(5),
     marginTop: Platform.OS === 'android' ? 10 : 20,
     paddingBottom: PADDING.container.bottom,
     width: '100%',
     height: '100%',
+  },
+  subContainer: {
+    flex: 1,
+    paddingHorizontal: Platform.OS === 'ios' ? moderateScale(10) : moderateScale(5),
   },
   headerContainer: {
     marginBottom: PADDING.margin.xlarge,

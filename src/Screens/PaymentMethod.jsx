@@ -22,7 +22,16 @@ import { moderateScale, verticalScale } from '../PixelRatio';
 const PaymentMethod = ({route}) => {
   const navigation = useNavigation();
   const { cartItems, totalPrice, token, clearCart } = useContext(CartContext);
-
+  // const {  clearCart } = useContext(CartContext);
+  // const { orderId, selectedAddress, selectedPaymentMethod, total, cartItems } = route.params || {};
+  // if (!orderId || !total || !cartItems || cartItems.length === 0) {
+  //   return (
+  //     <View style={styles.emptyContainer}>
+  //       <Text style={styles.empty}>Error Loading Order Details</Text>
+  //       <Text style={styles.emptySubtext}>Please try placing your order again.</Text>
+  //     </View>
+  //   );
+  // }
   // Payment form states
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -47,7 +56,7 @@ const PaymentMethod = ({route}) => {
     return total + (price * quantity);
   }, 0).toFixed(2);
   
-  // const finalGrandTotal = totalPrice || calculatedTotal;
+  // const finalGrandTotal = grandTotal || calculatedTotal;
 
   console.log('PaymentMethod - Received params:', route.params);
   console.log('PaymentMethod - Grand Total:', totalPrice);
@@ -61,6 +70,7 @@ const PaymentMethod = ({route}) => {
   console.log('PaymentMethod - Final Cart Items details:', cartItems);
   console.log('PaymentMethod - Payment Method:', selectedPaymentMethod);
 
+ 
   const handlePayment = () => {
 
     console.log('PaymentMethod - Handle Payment clicked');

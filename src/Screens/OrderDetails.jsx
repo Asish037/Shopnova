@@ -66,7 +66,7 @@ const OrderDetails = ({route}) => {
           payment: {
             payment_status: apiData.payment_status || 'Pending',
             payment_method: apiData.payment_method || 'N/A',
-            total_amount: apiData.total,
+            total_amount: apiData.offer_price_total, // apiData.total,
           },
           items: apiData.order_items?.map(item => ({
             item_id: item.id,
