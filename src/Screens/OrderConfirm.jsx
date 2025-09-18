@@ -14,11 +14,13 @@ import LinearGradient from 'react-native-linear-gradient';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import { CartContext } from '../Context/CartContext';
 
 const {width, height} = Dimensions.get('window');
 
 const OrderConfirm = ({route}) => {
   const navigation = useNavigation();
+  const { clearCart } = React.useContext(CartContext);
 
   // Get dynamic data from route parameters
   // const selectedPaymentMethod =
@@ -26,6 +28,13 @@ const OrderConfirm = ({route}) => {
   // const total = route.params?.total || '0.00';
   // const cartItems = route.params?.cartItems || [];
   const { orderId, selectedPaymentMethod, total, cartItems } = route.params || {};
+
+  React.useEffect(() => {
+    // You can also add a condition to only clear if an orderId is present.
+    if (orderId) {
+      clearCart();
+    }
+  }, []); 
 
 
   console.log('OrderConfirm - Received params:', route.params);
@@ -64,7 +73,7 @@ const OrderConfirm = ({route}) => {
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Total Amount:</Text>
-                <Text style={styles.detailValuePrice}>${total}</Text>
+                <Text style={styles.detailValuePrice}>{'\u20B9'}{total}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Items Ordered:</Text>

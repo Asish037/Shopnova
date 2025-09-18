@@ -34,10 +34,12 @@ const AddressScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   const {user,loadAuthData, token} = React.useContext(CartContext);
   // Check if this screen was opened from payment screen
@@ -47,28 +49,86 @@ const AddressScreen = () => {
   // Load addresses on component mount
   useFocusEffect(
     React.useCallback(() => {
-      fetchAddresses();
+      console.log('AddressScreen - useFocusEffect triggered, addresses:', addresses.length);
+      
+      // Always fetch addresses on focus if we don't have any
+      if (addresses.length === 0 && !isLoading) {
+        console.log('AddressScreen - No addresses, fetching from API');
+        fetchAddresses();
+      }
+
+      // Only fetch addresses if we don't have route params (coming from edit/add)
+      if (!route.params?.newAddress && !route.params?.updatedAddress && addresses.length > 0) {
+        console.log('AddressScreen - Refreshing addresses from API');
+        fetchAddresses();
+      }
 
       // If coming from EditAddress with new address data
       if (route.params?.newAddress) {
         const newAddress = route.params.newAddress;
+        console.log('AddressScreen - Received new address:', newAddress);
         setAddresses(prev => [...prev, newAddress]);
         navigation.setParams({ newAddress: null });
       }
 
       if (route.params?.updatedAddress) {
         const updatedAddress = route.params.updatedAddress;
-        setAddresses(prev =>
-          prev.some(addr => addr.id === updatedAddress.id)
-            ? prev.map(addr => addr.id === updatedAddress.id ? updatedAddress : addr)
-            : [...prev, updatedAddress] // if API gave null, still keep it locally
-        );
+        console.log('AddressScreen - Received updated address:', updatedAddress);
+        setAddresses(prev => {
+          const existingIndex = prev.findIndex(addr => addr.id === updatedAddress.id);
+          if (existingIndex !== -1) {
+            // Update existing address
+            const newAddresses = [...prev];
+            newAddresses[existingIndex] = updatedAddress;
+            console.log('AddressScreen - Updated address at index:', existingIndex);
+            return newAddresses;
+          } else {
+            // Add new address if not found
+            console.log('AddressScreen - Adding new address to list');
+            return [...prev, updatedAddress];
+          }
+        });
         navigation.setParams({ updatedAddress: null });
       }
 
     }, [route.params?.newAddress, route.params?.updatedAddress, navigation, currentSelectedAddress])
   );
 
+    
+  // Component mount effect
+  useEffect(() => {
+    console.log('AddressScreen - Component mounting...');
+    setIsMounted(true);
+    return () => {
+      console.log('AddressScreen - Component unmounting...');
+      setIsMounted(false);
+    };
+  }, []);
+
+  // Add a useEffect to handle initial load
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    console.log('AddressScreen - Component mounted, addresses:', addresses.length, 'isLoading:', isLoading);
+    if (addresses.length === 0 && !isLoading) {
+      console.log('AddressScreen - No addresses on initial load, fetching...');
+      fetchAddresses();
+    }
+  }, [isMounted, addresses.length, isLoading]);
+
+  // Add a timeout fallback for initial load
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    const timeout = setTimeout(() => {
+      if (addresses.length === 0 && !isLoading) {
+        console.log('AddressScreen - Timeout fallback, forcing address fetch...');
+        fetchAddresses();
+      }
+    }, 2000); // 2 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [isMounted]);
 
   const fetchAddresses = async () => {
     console.log('Fetching addresses from API...');
@@ -140,11 +200,18 @@ const AddressScreen = () => {
 
 
     }catch (error) {
+        console.error("Error fetching addresses:", error);
         if (error.response) {
           console.log("API error:", error.response.data);
         } else {
           console.log("Network/Setup error:", error.message);
         }
+        
+        // Show error message to user
+        Toast.show('Failed to load addresses. Please try again.', Toast.SHORT);
+        
+        // Keep existing addresses if any, don't clear them
+        console.log('AddressScreen - Keeping existing addresses due to API error');
       } finally {
         setIsLoading(false);
       }
@@ -161,6 +228,7 @@ const AddressScreen = () => {
   };
 
   const handleAddNewAddress = () => {
+    console.log('AddressScreen - Navigating to EditAddress for new address');
     navigation.navigate('EditAddress', {
       pageTitle: 'Add New Address',
       fromAddressScreen: true,
@@ -172,18 +240,65 @@ const AddressScreen = () => {
     setModalVisible(true);
   };
 
-  const handleDeleteAddress = () => {
-    if (addressToDelete) {
-      setAddresses(prev => prev.filter(addr => addr.id !== addressToDelete.id));
-      if (selectedAddressId === addressToDelete.id) {
-        const remainingAddresses = addresses.filter(
-          addr => addr.id !== addressToDelete.id,
-        );
-        setSelectedAddressId(remainingAddresses[0]?.id || null);
+  const handleDeleteAddress = async () => {
+    console.log('Deleting address:', addressToDelete);
+    if(!addressToDelete || !addressToDelete.id) {
+      setModalVisible(false);
+      Toast.show('Invalid address selected for deletion', Toast.SHORT);
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        Toast.show('No auth token found. Please log in again.');
+        setModalVisible(false);
+        setAddressToDelete(null);
+        return;
       }
+    
+      const config = {
+        method: 'delete',
+        url: `/delete-address?addressId=${addressToDelete.id}`,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      };
+      const response = await axios(config);
+      console.log('Delete address response:', response.data);
+
+      if (response.data.status !== 1) {
+        Toast.show(response.data.message || 'Address Deleted Successfully', Toast.SHORT);
+        // await fetchAddresses();
+        return;
+      } 
+       // Update local state - use functional update to avoid stale closure
+      setAddresses(prev => {
+        const updatedAddresses = prev.filter(addr => addr.id !== addressToDelete.id);
+        
+        // Update selected address if needed
+        if (selectedAddressId === addressToDelete.id) {
+          const remainingAddresses = updatedAddresses;
+          setSelectedAddressId(remainingAddresses[0]?.id || null);
+        }
+        
+        return updatedAddresses;
+      });
+      
       Toast.show('Address deleted successfully!', Toast.SHORT);
       setModalVisible(false);
       setAddressToDelete(null);
+      
+      // Add a small delay to show the loader and then refresh
+      setTimeout(() => {
+        fetchAddresses();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      console.log('Error details:', error.response ? error.response.data : error.message);
+      Toast.show('Failed to delete address. Please try again.', Toast.SHORT);
     }
   };
 
@@ -199,7 +314,7 @@ const AddressScreen = () => {
       // Navigate back to payment screen with selected address
       navigation.navigate('Payment', {
         selectedAddress: address,
-        grandTotal: route.params?.grandTotal,
+        // grandTotal: route.params?.grandTotal,
       });
     } else {
       // Show confirmation when selecting in manage mode

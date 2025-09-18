@@ -7,7 +7,7 @@ import {COLORS} from '../Constant/Colors';
 
 const CartCard = ({item, handleDelete}) => {
   console.log('CartCard item:', JSON.stringify(item));
-  console.log('Price fields - offer_price:', item.offer_price, 'offerPrice:', item.offerPrice, 'price:', item.price);
+  console.log('Price fields - offer_price:', item.offer_price, 'offerPrice:', item.offer_price, 'price:', item.price);
   const {updateCartItemQuantity} = useContext(CartContext);
   // const {getThemeColors} = useTheme();
   // const themeColors = getThemeColors();

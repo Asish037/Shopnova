@@ -7,7 +7,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import Header from '../Components/Header';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,15 +15,18 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
 import Toast from 'react-native-simple-toast';
+import { CartContext } from '../Context/CartContext';
 
 const PaymentScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cash');
 
-  const total = route.params?.grandTotal || '0.00';
+  const { cartItems, totalPrice, getTotalQuantity } = useContext(CartContext);
+
+  // const total = route.params?.totalPrice || '0.00';
   const selectedAddress = route.params?.selectedAddress;
-  const cartItems = route.params?.cartItems || [];
+  // const cartItems = route.params?.cartItems || [];
 
   console.log('PaymentScreen - Route params:', route.params);
   console.log('PaymentScreen - Selected address:', selectedAddress);
@@ -76,7 +79,7 @@ const PaymentScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
             <Text style={styles.summaryValue}>
-              {'\u20B9'}{parseFloat(total).toFixed(2)}
+              {'\u20B9'}{parseFloat(totalPrice).toFixed(2)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
@@ -87,7 +90,7 @@ const PaymentScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalValue}>
-              {'\u20B9'}{parseFloat(total).toFixed(2)}
+              {'\u20B9'}{parseFloat(totalPrice).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -106,7 +109,7 @@ const PaymentScreen = () => {
               onPress={() =>
                 navigation.navigate('AddressScreen', {
                   fromPayment: true,
-                  grandTotal: total,
+                  grandTotal: totalPrice,
                   selectedAddress,
                   cartItems,
                 })
@@ -149,7 +152,7 @@ const PaymentScreen = () => {
               onPress={() =>
                 navigation.navigate('AddressScreen', {
                   fromPayment: true,
-                  grandTotal: total,
+                  grandTotal: totalPrice,
                   cartItems,
                 })
               }>
@@ -185,14 +188,14 @@ const PaymentScreen = () => {
             // Handle payment processing
             console.log('Navigating to ConfirmOrder with params:', {
               selectedPaymentMethod,
-              total,
+              totalPrice,
               cartItems: cartItems.length,
               selectedAddress: selectedAddress ? 'selected' : 'none'
             });
             navigation.navigate('ConfirmOrder', {
               selectedPaymentMethod,
-              total,
-              cartItems,
+              // totalPrice,
+              // cartItems,
               selectedAddress,
             });
             console.log('Processing payment with:', selectedPaymentMethod);
@@ -203,7 +206,7 @@ const PaymentScreen = () => {
             styles.payButtonText,
             !selectedAddress && styles.payButtonTextDisabled
           ]}>
-            Pay {'\u20B9'}{parseFloat(total).toFixed(2)}
+            Pay {'\u20B9'}{parseFloat(totalPrice).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>

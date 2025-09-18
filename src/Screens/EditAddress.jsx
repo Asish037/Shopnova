@@ -38,6 +38,12 @@ const EditAddress = ({route}) => {
   const fromAddressScreen = route.params?.fromAddressScreen;
   const pageTitle = route.params?.pageTitle || 'Edit Address';
 
+  console.log('EditAddress - Screen loaded with params:', {
+    addressData: !!addressData,
+    fromAddressScreen,
+    pageTitle
+  });
+
   const [formData, setFormData] = useState({
     pincode: addressData?.zipCode || addressData?.zipcode || addressData?.pincode || '',
     houseNumber: addressData?.houseNumber || addressData?.addressLine1 || '',
@@ -63,16 +69,9 @@ const EditAddress = ({route}) => {
         return;
       }
 
-      // If no addressData, we're creating new - show loading briefly
-      setIsFetchingDetails(true);
-      try {
-        // Simulate API call delay for new address
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsFetchingDetails(false);
-      } catch (error) {
-        console.error('Error initializing new address:', error);
-        setIsFetchingDetails(false);
-      }
+      // If no addressData, we're creating new - no loading needed
+      console.log('Creating new address - no loading required');
+      setIsFetchingDetails(false);
     };
 
     initializeData();
@@ -185,8 +184,6 @@ const EditAddress = ({route}) => {
 
       //  payload in backend format
       const payload = {
-        id: addressData?.id || Date.now().toString(),
-        userId: addressData?.userId,
         address_line_1: formData.houseNumber,
         address_line_2: formData.roadName,
         cityId: null,
@@ -199,17 +196,29 @@ const EditAddress = ({route}) => {
         is_default: formData.isDefault ? 1 : 0,
       };
 
-
-      const response = await axios.put('/update-address', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-      });
+      let response;
+      if (addressData?.id) {
+        // Editing existing address
+        response = await axios.put('/update-address?addressId=' + addressData.id, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+      } else {
+        // Creating new address
+        response = await axios.post('/add-address', payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+      }
 
       console.log('API response:', response.data);
 
-      Toast.show('Address updated successfully!', Toast.SHORT);
+      const successMessage = addressData?.id ? 'Address updated successfully!' : 'Address added successfully!';
+      Toast.show(successMessage, Toast.SHORT);
 
       if (response.data && response.data.data) {
         const res = response.data.data;
@@ -227,7 +236,13 @@ const EditAddress = ({route}) => {
         };
 
         if (fromAddressScreen) {
-          navigation.navigate('AddressScreen', { updatedAddress: updated });
+          if (addressData?.id) {
+            // Editing existing address
+            navigation.navigate('AddressScreen', { updatedAddress: updated });
+          } else {
+            // Creating new address
+            navigation.navigate('AddressScreen', { newAddress: updated });
+          }
         } else {
           navigation.goBack();
         }
@@ -299,7 +314,7 @@ const EditAddress = ({route}) => {
     </View>
   );
 
-  // Loading component for fetching details
+  // Loading component for fetching details - only show if actually fetching
   if (isFetchingDetails) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -379,6 +394,7 @@ const EditAddress = ({route}) => {
                     }}
                     placeholder="Enter 6-digit pincode"
                     keyboardType="numeric"
+                    maxLength={6}
                     value={formData.pincode}
                     onChangeText={value => handleInputChange('pincode', value)}
                     editable={true}
@@ -599,6 +615,7 @@ const EditAddress = ({route}) => {
                     placeholder="Enter contact person name"
                     keyboardType="default"
                     value={formData.contactName}
+                  
                     onChangeText={value =>
                       handleInputChange('contactName', value)
                     }
@@ -645,6 +662,7 @@ const EditAddress = ({route}) => {
                     placeholder="Enter 10-digit phone number"
                     keyboardType="phone-pad"
                     value={formData.phoneNumber}
+                    maxLength={10}
                     onChangeText={value =>
                       handleInputChange('phoneNumber', value)
                     }

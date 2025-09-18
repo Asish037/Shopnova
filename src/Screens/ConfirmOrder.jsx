@@ -17,18 +17,20 @@ import {FONTS} from '../Constant/Font';
 import axios from '../Components/axios';
 import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
- 
+
+
 const ConfirmOrder = () => {
     const navigation = useNavigation();
     const route = useRoute();
     // const {cartItems: contextCartItems, totalPrice, user, token} = useContext(CartContext);
-    const {clearCart} = useContext(CartContext);
+    // const {clearCart} = useContext(CartContext);
   // Use cartItems from route params first, fallback to context
     // const cartItems = route.params?.cartItems || contextCartItems || [];
-    const selectedPaymentMethod =
-    route.params?.selectedPaymentMethod || 'Not Selected';
+    // const selectedPaymentMethod =
+    // route.params?.selectedPaymentMethod || 'Not Selected';
     // const total = route.params?.total || totalPrice || 0;
-    const {cartItems, totalPrice, user, token} = useContext(CartContext);
+    const {cartItems, totalPrice, user, token, clearCart} = useContext(CartContext);
+    const { selectedPaymentMethod, selectedAddress } = route.params;
  
     console.log('ConfirmOrder - Cart Items:', cartItems);
     console.log('ConfirmOrder - Items count:', cartItems.length);
@@ -64,6 +66,7 @@ const ConfirmOrder = () => {
                     product_offer_price: item.offerPrice || item.offer_price || item.price, // fallback if no offer
                 })),
                 payment_method: selectedPaymentMethod || 'cash',
+                address: selectedAddress || {},
             };
  
             console.log('Place Order Payload:', payload);
@@ -76,19 +79,20 @@ const ConfirmOrder = () => {
             });
  
             if (response.data.status === 1) {
-               
-                await clearCart();
+            
+                // await clearCart();
                 // Alert.alert('Order Placed', 'Your order has been placed successfully!');
                 console.log('Order Placed Successfully:', response.data);
                 const orderId = response.data?.data?.order_id || response.data?.data?.id;
                 if (orderId) {
                 //     navigation.navigate('OrderDetails', { orderId });
                 // }
-                    navigation.navigate('OrderConfirm', {
+                    navigation.navigate('PaymentMethod', {
                         orderId,
                         selectedPaymentMethod: 'Cash', // default Cash
-                        total: totalPrice,
-                        cartItems,
+                        selectedAddress,
+                        // total: totalPrice,
+                        // cartItems,
                     });
             } else {
                 console.warn("No orderId in response:", response.data);

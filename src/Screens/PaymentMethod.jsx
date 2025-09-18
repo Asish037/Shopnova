@@ -21,7 +21,7 @@ import { moderateScale, verticalScale } from '../PixelRatio';
 
 const PaymentMethod = ({route}) => {
   const navigation = useNavigation();
-  const {cartItems: contextCartItems} = useContext(CartContext);
+  const { cartItems, totalPrice, token, clearCart } = useContext(CartContext);
 
   // Payment form states
   const [cardNumber, setCardNumber] = useState('');
@@ -37,8 +37,8 @@ const PaymentMethod = ({route}) => {
   // const grandTotal = route.params?.grandTotal || '0.00';
   // const cartItems = route.params?.cartItems || [];
   // const selectedPaymentMethod = route.params?.selectedPaymentMethod || 'Card';
-  const { orderId, grandTotal, selectedPaymentMethod } = route.params || {};
-  const cartItems = route.params?.cartItems || contextCartItems || [];
+  const { orderId, selectedAddress, selectedPaymentMethod } = route.params || {};
+  // const cartItems = route.params?.cartItems || contextCartItems || [];
   
   // Calculate total from cart items if grandTotal is not provided
   const calculatedTotal = cartItems.reduce((total, item) => {
@@ -47,35 +47,36 @@ const PaymentMethod = ({route}) => {
     return total + (price * quantity);
   }, 0).toFixed(2);
   
-  const finalGrandTotal = grandTotal || calculatedTotal;
+  // const finalGrandTotal = totalPrice || calculatedTotal;
 
   console.log('PaymentMethod - Received params:', route.params);
-  console.log('PaymentMethod - Grand Total:', grandTotal);
-  console.log('PaymentMethod - Grand Total type:', typeof grandTotal);
-  console.log('PaymentMethod - Grand Total undefined?', grandTotal === undefined);
+  console.log('PaymentMethod - Grand Total:', totalPrice);
+  console.log('PaymentMethod - Grand Total type:', typeof totalPrice);
+  console.log('PaymentMethod - Grand Total undefined?', totalPrice === undefined);
   console.log('PaymentMethod - Calculated Total:', calculatedTotal);
-  console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
+  // console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
   console.log('PaymentMethod - Cart Items from params:', route.params?.cartItems?.length || 0);
-  console.log('PaymentMethod - Cart Items from context:', contextCartItems?.length || 0);
+  // console.log('PaymentMethod - Cart Items from context:', contextCartItems?.length || 0);
   console.log('PaymentMethod - Final Cart Items:', cartItems.length);
   console.log('PaymentMethod - Final Cart Items details:', cartItems);
   console.log('PaymentMethod - Payment Method:', selectedPaymentMethod);
 
   const handlePayment = () => {
-   
+
     console.log('PaymentMethod - Handle Payment clicked');
     console.log('PaymentMethod - Cart Items:', cartItems.length);
     console.log('PaymentMethod - Cart Items details:', cartItems);
-    console.log('PaymentMethod - Grand Total:', grandTotal);
-    console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
+    console.log('PaymentMethod - Grand Total:', totalPrice);
+    // console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
     console.log('PaymentMethod - Selected Payment Method:', selectedPaymentMethod);
     console.log('PaymentMethod - Selected Address:', route.params?.selectedAddress);
-    
-    // Navigate to ConfirmOrder to place the actual order
-    navigation.navigate('ConfirmOrder', {
+
+    // Navigate to OrderConfirm to place the actual order
+    navigation.navigate('OrderConfirm', {
+      orderId,
       selectedPaymentMethod,
-      total: finalGrandTotal,
-      cartItems,
+      total: totalPrice,
+      cartItems: cartItems,
       selectedAddress: route.params?.selectedAddress,
     });
   };
@@ -231,7 +232,7 @@ const PaymentMethod = ({route}) => {
             <View style={styles.codInfoContainer}>
               <Text style={styles.codInfoText}>💵</Text>
               <Text style={styles.codDescription}>
-                You will pay ${finalGrandTotal} in cash when your order is delivered
+                You will pay ${totalPrice} in cash when your order is delivered
                 to your doorstep.
               </Text>
             </View>
@@ -276,12 +277,12 @@ const PaymentMethod = ({route}) => {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>${finalGrandTotal}</Text>
+            <Text style={styles.summaryValue}>${totalPrice}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>${finalGrandTotal}</Text>
+            <Text style={styles.totalValue}>${totalPrice}</Text>
           </View>
         </View>
 
@@ -299,7 +300,7 @@ const PaymentMethod = ({route}) => {
       <View style={styles.bottomContainer}>
         <View style={styles.buttonContainer}>
                   <GradientButton
-                    title={isLoading ? 'Saving...' : `Pay ${finalGrandTotal || '0.00'}`}
+                    title={isLoading ? 'Saving...' : `Pay ${totalPrice || '0.00'}`}
                     onPress={handlePayment}
                     disabled={isLoading}
                     style={styles.saveButton}

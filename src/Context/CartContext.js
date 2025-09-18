@@ -261,6 +261,12 @@ export const CartProvider = ({children}) => {
     }
   };
 
+  const updateCart = (items) => {
+    setCartItems(items);
+    AsyncStorage.setItem("cartItems", JSON.stringify(items));
+  };
+
+
   const calculateTotalPrice = cartItems => {
     let totalSum = cartItems.reduce((total, item) => {
      // Convert offer_price to a floating-point number, check both field names
@@ -300,6 +306,7 @@ export const CartProvider = ({children}) => {
     deleteCartItem,
     updateCartItemQuantity,
     clearCart,
+    updateCart,
     totalPrice,
     getTotalQuantity,
     user,
