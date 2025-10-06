@@ -197,7 +197,7 @@ export default function EmailScreen() {
               }}>
               Already have an account?{' '}
               <Text
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.navigate('AuthStack')}
                 style={{
                   fontFamily: FONTS.title,
                   textDecorationLine: 'underline',

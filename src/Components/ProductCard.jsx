@@ -236,7 +236,11 @@ const ProductCard = ({item, handleProductClick, toggleFavorite, isCompact = fals
   });
 
   // Check if item is already in cart
-  const isInCart = cartItems.some(cartItem => cartItem.id === item.id);
+  const isInCart = cartItems.some(cartItem => 
+    cartItem.id === item.id || 
+    cartItem.productId === item.id || 
+    cartItem.product_id === item.id
+  );
 
   // Truncate description to 4 words
   const truncatedDescription =

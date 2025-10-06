@@ -53,6 +53,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
+    flexDirection: 'row',
+    flex: 1,
   },
   buttonText: {
     fontSize: Platform.OS === 'ios' ? moderateScale(19) : moderateScale(17),
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: 'center',
     lineHeight: Platform.OS === 'ios' ? moderateScale(24) : moderateScale(22),
-    alignSelf: 'center',
     letterSpacing: 0.5,
+    flex: 1,
   },
 });

@@ -14,6 +14,7 @@ import {
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import SimpleToast from 'react-native-simple-toast';
 import {useDispatch} from 'react-redux';
+import {useContext} from 'react';
 import GradientButton from '../../Components/Button/GradientButton';
 import GlobalStyles from '../../Components/GlobalStyle';
 import CustomImageBackground from '../../Components/ImageBackground/CustomImageBackground';
@@ -25,6 +26,7 @@ import {moderateScale, verticalScale} from '../../PixelRatio';
 import {setGuestLogin, setLogin, setUser} from '../../Redux/reducer/user';
 import Auth from '../../Service/Auth';
 import Navigation from '../../Service/Navigation';
+import {CartContext} from '../../Context/CartContext';
 
 const {width, height} = Dimensions.get('window');
 
@@ -69,9 +71,24 @@ export default function PhoneNumber() {
     const result = await Auth.guestLogin();
     console.log('guest login', result);
     if (result && result.status) {
-      await Auth.setToken(result?.data.token);
+      // Create guest user data with proper structure
+      const guestUserData = {
+        userId: 'guest_' + Date.now(),
+        id: 'guest_' + Date.now(),
+        name: 'Guest User',
+        phone: 'guest',
+        isGuest: true
+      };
+      
+      // Use the CartContext login function to properly set user data
+      const { login } = useContext(CartContext);
+      await login(guestUserData, result?.data.token);
+      
       dispatch(setLogin(true));
       dispatch(setGuestLogin(true));
+      
+      // Navigate to main app
+      Navigation.navigate('MainHome');
     }
   };
 
@@ -124,7 +141,7 @@ export default function PhoneNumber() {
               </TouchableOpacity>
             </View>
             <TouchableOpacity
-              onPress={() => Navigation.navigate('Login')}
+              onPress={() => Navigation.navigate('AuthStack')}
               style={{
                 flexDirection: 'row',
                 marginVertical: moderateScale(6),

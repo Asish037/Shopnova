@@ -13,41 +13,46 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import { CartContext } from '../Context/CartContext';
+import {CartContext} from '../Context/CartContext';
 import WishlistCard from '../Components/WishlistCard';
 import WishlistSkeleton from '../Components/WishlistSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../Components/axios';
-import { verticalScale } from '../PixelRatio';
-import { PADDING } from '../Constant/Padding';
+import {verticalScale} from '../PixelRatio';
+import {PADDING} from '../Constant/Padding';
 import AppLoader from '../Components/AppLoader';
+import Toast from 'react-native-simple-toast';
 
 const MyWishList = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const navigation = useNavigation();
-  const { user, token, removeFromWishlist: removeFromWishlistContext } = useContext(CartContext);
+  const {
+    user,
+    token,
+    removeFromWishlist: removeFromWishlistContext,
+    login,
+  } = useContext(CartContext);
 
   // Functions for WishlistCard
-  const handleProductDetails = (item) => {
+  const handleProductDetails = item => {
     console.log('Navigate to product details:', item.id);
-    navigation.navigate('PRODUCT_DETAILS', { productId: item.productId || item.id });
+    navigation.navigate('PRODUCT_DETAILS', {
+      productId: item.productId || item.id,
+    });
   };
 
-  const toggleFavorite = (item) => {
+  const toggleFavorite = item => {
     console.log('Toggle favorite:', item.id);
-    // This will be handled by the WishlistCard component
+    // Remove from wishlist when heart is clicked
+    removeFromWishlist(item);
   };
 
-  const removeFromWishlist = (item) => {
+  const removeFromWishlist = item => {
     console.log('Remove from wishlist:', item.id);
 
-    if (removeFromWishlistContext) {
-      removeFromWishlistContext(item.productId || item.id);
-    }
-
-    // Call API to remove from backend
+    // Call API to remove from backend (context update is handled in fetchRemoveLikeProducts)
     fetchRemoveLikeProducts(user.id, item.productId || item.id);
 
     // Update local state immediately for responsiveness
@@ -55,13 +60,11 @@ const MyWishList = () => {
     setFilteredProducts(prev => prev.filter(prod => prod.id !== item.id));
   };
 
-
-
   const normalizeWishlistItems = (wishlistItems = []) => {
     console.log('Normalizing items:', wishlistItems.length);
     return wishlistItems.map(prod => ({
-      id: prod.wishlist_id,
-      productId: prod.productId,
+      id: prod.productId,
+      wishlistId: prod.wishlist_id,
       title: prod.product_name,
       image: prod.product_image,
       offer_price: prod.product_offer_price || prod.product_price,
@@ -72,11 +75,11 @@ const MyWishList = () => {
     }));
   };
 
-  const fetchLikeProducts = async (userId) => {
+  const fetchLikeProducts = async userId => {
     try {
       console.log(`Fetching wishlist for userId: ${userId}`);
       setIsLoading(true);
-      
+
       const token = await AsyncStorage.getItem('userToken');
       if (!token) {
         console.log('No token found');
@@ -116,13 +119,89 @@ const MyWishList = () => {
     }
   };
 
-
   useEffect(() => {
-    console.log('MyWishList useEffect - User:', user?.id);
+    console.log('MyWishList useEffect - User:', user);
+    console.log('MyWishList useEffect - User ID:', user?.id);
+    console.log('MyWishList useEffect - Token:', token);
+
     if (user?.id) {
-      fetchLikeProducts(user.id);
+      fetchLikeProducts(user?.id);
+    } else {
+      // Force restore authentication if user is missing
+      forceRestoreAuth();
     }
-  }, [user]);
+  }, [user, token]);
+
+  // Force restore authentication when screen loads
+  const forceRestoreAuth = async () => {
+    try {
+      console.log('MyWishList - Force restoring authentication...');
+      const [userToken, userData] = await AsyncStorage.multiGet([
+        'userToken',
+        'userData',
+      ]);
+
+      console.log('MyWishList - Stored userToken:', userToken[1]);
+      console.log('MyWishList - Stored userData:', userData[1]);
+
+      if (userToken[1] && userData[1]) {
+        const parsedUser = JSON.parse(userData[1]);
+        console.log(
+          'MyWishList - Restored user from AsyncStorage:',
+          parsedUser,
+        );
+
+        // Handle both single user object and array of users
+        let userId = null;
+        if (Array.isArray(parsedUser)) {
+          const firstUser = parsedUser[0];
+          userId = firstUser?.id;
+        } else {
+          userId = parsedUser?.id;
+        }
+
+        console.log('MyWishList - Extracted userId:', userId);
+
+        if (userId) {
+          console.log('MyWishList - Using restored userId:', userId);
+          fetchLikeProducts(userId);
+        } else {
+          console.log('MyWishList - No userId found in user data');
+          Alert.alert(
+            'Authentication Error',
+            'User not found. Please log in again.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {
+                text: 'Login as Guest',
+                onPress: () => {
+                  // Create a temporary guest user for testing
+                  const guestUser = {
+                    userId: 'test_user_' + Date.now(),
+                    id: 'test_user_' + Date.now(),
+                    name: 'Test User',
+                    phone: '1234567890',
+                    isGuest: true,
+                  };
+                  const guestToken = 'test_token_' + Date.now();
+                  login(guestUser, guestToken);
+                },
+              },
+            ],
+          );
+        }
+      } else {
+        console.log('MyWishList - No stored authentication data found');
+        Alert.alert(
+          'Authentication Required',
+          'Please log in to view your wishlist.',
+        );
+      }
+    } catch (error) {
+      console.error('MyWishList - Error restoring auth:', error);
+      Alert.alert('Error', 'Failed to load user data. Please log in again.');
+    }
+  };
 
   /** Remove product from wishlist */
   const fetchRemoveLikeProducts = async (userId, productId) => {
@@ -133,25 +212,63 @@ const MyWishList = () => {
         return;
       }
 
-      // const payload = {
-      //   userId: String(userId),
-      //   productId: String(productId),
-      // };
+      // If userId is not provided, try to get it from context or AsyncStorage
+      let finalUserId = userId;
+      if (!finalUserId) {
+        if (user?.id) {
+          finalUserId = user.id;
+        } else {
+          // Try to restore from AsyncStorage
+          const userData = await AsyncStorage.getItem('userData');
+          if (userData) {
+            const parsedUser = JSON.parse(userData);
+            if (Array.isArray(parsedUser)) {
+              finalUserId = parsedUser[0]?.id;
+            } else {
+              finalUserId = parsedUser?.id;
+            }
+          }
+        }
+      }
+
+      if (!finalUserId) {
+        Alert.alert('Error', 'User ID not found. Please log in again.');
+        return;
+      }
+
+      console.log('Wishlist Remove - Using userId:', finalUserId);
 
       const response = await axios({
         method: 'delete',
-        url: `/remove-wishlist?userId=${userId}&productId=${productId}`,
+        url: `/remove-wishlist?userId=${finalUserId}&productId=${productId}`,
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        // data: payload,
       });
 
       console.log('Wishlist Remove Response:', response.data);
+
+      if (response.data.status === 1) {
+        // Update context wishlist state
+        removeFromWishlistContext && removeFromWishlistContext(productId);
+        Toast.show(
+          response.data.message || 'Item removed from wishlist.',
+          Toast.SHORT,
+        );
+      } else {
+        Toast.show(
+          response.data.message || 'Something went wrong on the server.',
+          Toast.SHORT,
+        );
+      }
     } catch (error) {
-      console.error('Error in fetchRemoveLikeProducts:', error.response?.data || error.message);
+      console.error(
+        'Error in fetchRemoveLikeProducts:',
+        error.response?.data || error.message,
+      );
+      Toast.show('Failed to remove item from wishlist.', Toast.SHORT);
     }
   };
 
@@ -162,26 +279,25 @@ const MyWishList = () => {
           colors={['#f54a00', '#F99266']}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 0}}
-          style={styles.header}
-        >
+          style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Image 
-              source={require('../assets/favoriteFilled.png')} 
+            <Image
+              source={require('../assets/favoriteFilled.png')}
               style={styles.headerIcon}
             />
             <Text style={styles.title}>My Wishlist</Text>
           </View>
           <View style={styles.placeholder} />
         </LinearGradient>
-        
+
         <View style={styles.skeletonContainer}>
           <FlatList
             data={[1, 2, 3, 4, 5, 6]} // Show 6 skeleton cards
             numColumns={2}
-            keyExtractor={(item) => item.toString()}
+            keyExtractor={item => item.toString()}
             renderItem={() => <WishlistSkeleton />}
             showsVerticalScrollIndicator={false}
             style={styles.flatList}
@@ -198,21 +314,20 @@ const MyWishList = () => {
           colors={['#f54a00', '#F99266']}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 0}}
-          style={styles.header}
-        >
+          style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Image 
-              source={require('../assets/favoriteFilled.png')} 
+            <Image
+              source={require('../assets/favoriteFilled.png')}
               style={styles.headerIcon}
             />
             <Text style={styles.title}>My Wishlist</Text>
           </View>
           <View style={styles.placeholder} />
         </LinearGradient>
-        
+
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <Text style={styles.emptyIcon}>💝</Text>
@@ -221,7 +336,7 @@ const MyWishList = () => {
           <Text style={styles.emptySubtitle}>
             Start adding items you love to your wishlist and they'll appear here
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.exploreButton}
             onPress={() => {
               console.log('Button clicked!');
@@ -240,8 +355,7 @@ const MyWishList = () => {
                   navigation.goBack();
                 }
               }
-            }}
-          >
+            }}>
             <Text style={styles.exploreButtonText}>Explore Products</Text>
           </TouchableOpacity>
         </View>
@@ -256,31 +370,31 @@ const MyWishList = () => {
           colors={['#f54a00', '#F99266']}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 0}}
-          style={styles.header}
-        >
+          style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Image 
-              source={require('../assets/favoriteFilled.png')} 
+            <Image
+              source={require('../assets/favoriteFilled.png')}
               style={styles.headerIcon}
             />
             <Text style={styles.title}>My Wishlist</Text>
           </View>
           <View style={styles.placeholder} />
         </LinearGradient>
-        
+
         <View style={styles.itemCountContainer}>
           <Text style={styles.itemCount}>
-            💖 {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'} in your wishlist
+            💖 {filteredProducts.length}{' '}
+            {filteredProducts.length === 1 ? 'item' : 'items'} in your wishlist
           </Text>
         </View>
-        
+
         <FlatList
           data={filteredProducts}
           numColumns={2}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={item => item.wishlistId?.toString()}
           renderItem={({item, index}) => {
             console.log(`Rendering item ${index}:`, item.title);
             return (

@@ -169,7 +169,7 @@ const AddressScreen = () => {
         
         return {
           id: uniqueId,
-          userId: addr.userId,
+          userId: addr.id,
           buildingNo: addr.building_name,
           contactName: addr.contact_name,
           type: addr.type,
@@ -325,7 +325,7 @@ const AddressScreen = () => {
       // Navigate back to payment screen with selected address
       navigation.navigate('Payment', {
         selectedAddress: address,
-        // grandTotal: route.params?.grandTotal,
+        grandTotal: route.params?.grandTotal,
       });
     } else {
       // Show confirmation when selecting in manage mode

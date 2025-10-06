@@ -360,8 +360,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Platform.OS === 'ios' ? moderateScale(10) : moderateScale(5),
   },
   headerContainer: {
-    marginBottom: PADDING.margin.xlarge,
+    marginBottom: moderateScale(24),
     paddingHorizontal: PADDING.header.horizontal,
+    marginTop: moderateScale(8),
   },
   title: {
     fontSize: moderateScale(23),
@@ -378,19 +379,22 @@ const styles = StyleSheet.create({
     lineHeight: moderateScale(20),
   },
   scrollContent: {
-    paddingBottom: moderateScale(16),
+    paddingBottom: moderateScale(20),
+    paddingTop: moderateScale(8),
   },
   sectionContainer: {
-    marginBottom: PADDING.margin.xlarge,
+    marginBottom: moderateScale(25),
     paddingHorizontal: PADDING.header.horizontal,
+    marginTop: moderateScale(8),
   },
   sectionTitle: {
     fontSize: moderateScale(18),
     fontWeight: '700',
     color: COLORS.button,
     fontFamily: FONTS.Bold,
-    marginBottom: PADDING.margin.medium,
+    marginBottom: moderateScale(16),
     paddingHorizontal: PADDING.margin.small,
+    marginTop: moderateScale(4),
   },
   menuContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -410,11 +414,12 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: PADDING.content.vertical,
+    paddingVertical: moderateScale(18),
     paddingHorizontal: PADDING.content.horizontal,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.05)',
     backgroundColor: 'transparent',
+    minHeight: moderateScale(70),
   },
   lastMenuItem: {
     borderBottomWidth: 0,

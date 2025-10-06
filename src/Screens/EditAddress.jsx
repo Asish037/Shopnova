@@ -225,7 +225,7 @@ const EditAddress = ({route}) => {
 
         const updated = {
           id: res.id,
-          userId: res.userId,
+          userId: res.id,
           addressLine1: res.address_line_1 || "",
           addressLine2: res.address_line_2 || "",
           contactName: res.contact_name || "",
@@ -834,7 +834,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: verticalScale(30),
     marginBottom: verticalScale(30),
-    paddingHorizontal: moderateScale(16),
+    paddingHorizontal: moderateScale(10),
   },
   saveButton: {
     width: '95%',
@@ -849,6 +849,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
     alignSelf: 'center',
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   buttonContainerKeyboard: {
     paddingBottom: verticalScale(5),

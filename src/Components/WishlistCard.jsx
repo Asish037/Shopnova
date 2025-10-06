@@ -1,8 +1,15 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View, Animated} from 'react-native';
-import React, {useContext, useRef, useEffect} from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Animated,
+} from 'react-native';
+import React, {useContext, useRef, useEffect, useState} from 'react';
 import {fonts} from '../utils/fonts';
 import {CartContext} from '../Context/CartContext';
-import { COLORS } from '../Constant/Colors';
+import {COLORS} from '../Constant/Colors';
 
 const WishlistCard = ({
   item,
@@ -13,9 +20,22 @@ const WishlistCard = ({
   const {cartItems, addToCartItem} = useContext(CartContext);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [isAdding, setIsAdding] = useState(false);
 
-  // Check if item is already in cart
-  const isInCart = cartItems.some(cartItem => cartItem.id === item.id);
+  // Check if item is actually in cart (persistent until purchasing is complete)
+  const itemId = item.id || item.productId || item.product_id;
+  const isInCart =
+    cartItems?.some(cartItem => {
+      const cartItemId =
+        cartItem.id || cartItem.productId || cartItem.product_id;
+      return cartItemId?.toString() === itemId?.toString();
+    }) || false;
+
+  // Debug logging for cart state
+  console.log(
+    `🛒 WishlistCard - Item ${item.id} (productId: ${item.productId}) - isInCart: ${isInCart}`,
+  );
+  console.log(`🛒 WishlistCard - Cart items count: ${cartItems?.length || 0}`);
 
   // Truncate description to 4 words
   const truncatedDescription =
@@ -37,9 +57,17 @@ const WishlistCard = ({
     return stars.join('') + ` (${rating})`;
   };
 
-  const handleAddToCart = () => {
-    if (!isInCart) {
-      addToCartItem(item);
+  const handleAddToCart = async () => {
+    console.log(
+      '🛒 WishlistCard - handleAddToCart called, isAdding:',
+      isAdding,
+    );
+    if (isAdding || isInCart) return; // Prevent multiple clicks if already adding or already in cart
+
+    try {
+      setIsAdding(true);
+      console.log('🛒 WishlistCard - Calling addToCartItem...');
+
       // Add success animation
       Animated.sequence([
         Animated.timing(scaleAnim, {
@@ -53,6 +81,18 @@ const WishlistCard = ({
           useNativeDriver: true,
         }),
       ]).start();
+
+      // Wait for the entire addToCartItem process to complete
+      await addToCartItem(item);
+
+      console.log('🛒 WishlistCard - addToCartItem completed successfully');
+
+      // No need to manually reset state - the isInCart check will handle display
+      // The button will show "Added" as long as the item remains in cart
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -77,7 +117,7 @@ const WishlistCard = ({
       style={[
         styles.container,
         {
-          transform: [{ scale: scaleAnim }],
+          transform: [{scale: scaleAnim}],
           opacity: fadeAnim,
         },
       ]}>
@@ -86,100 +126,99 @@ const WishlistCard = ({
         onPress={() => {
           handleProductClick(item);
         }}>
-      <Image source={{uri: item.image}} style={styles.coverImage} />
+        <Image source={{uri: item.image}} style={styles.coverImage} />
 
-      <View style={styles.contentContainer}>
-        <Text style={styles.title} numberOfLines={2}>
-          {item.title}
-        </Text>
+        <View style={styles.contentContainer}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            marginBottom: 6,
-            gap: 10,
-          }}>
-          <Text style={styles.productPrice}>
-            {'\u20B9'}
-            {item.offer_price}
-          </Text>
-          <Text style={styles.productOriginalPrice}>
-            {'\u20B9'}
-            {item.price}
-          </Text>
-        </View>
-        {/* <Text style={styles.description} numberOfLines={2}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              marginBottom: 6,
+              gap: 10,
+            }}>
+            <Text style={styles.productPrice}>
+              {'\u20B9'}
+              {item.offer_price}
+            </Text>
+            <Text style={styles.productOriginalPrice}>
+              {'\u20B9'}
+              {item.price}
+            </Text>
+          </View>
+          {/* <Text style={styles.description} numberOfLines={2}>
           {truncatedDescription}
         </Text> */}
 
-        {/* Rating Section */}
-        <View style={styles.ratingContainer}>
-          <Text style={styles.rating}>
-            {renderStars(
-              item.rating?.rate ||
-                item.rating ||
-                Math.floor(Math.random() * 5) + 1,
-            )}
-          </Text>
-          {(item.rating?.count || item.ratingCount) && (
-            <Text style={styles.ratingCount}>
-              ({item.rating?.count || item.ratingCount})
+          {/* Rating Section */}
+          <View style={styles.ratingContainer}>
+            <Text style={styles.rating}>
+              {renderStars(
+                item.rating?.rate ||
+                  item.rating ||
+                  Math.floor(Math.random() * 5) + 1,
+              )}
             </Text>
-          )}
+            {(item.rating?.count || item.ratingCount) && (
+              <Text style={styles.ratingCount}>
+                ({item.rating?.count || item.ratingCount})
+              </Text>
+            )}
+          </View>
+
+          {/* Add to Cart Button */}
+          <TouchableOpacity
+            style={[
+              styles.cartButton,
+              isInCart ? styles.cartButtonAdded : styles.cartButtonDefault,
+            ]}
+            onPress={handleAddToCart}
+            disabled={isAdding}>
+            <Image
+              source={require('../assets/focused/shopping_cart.png')}
+              style={[
+                styles.cartIcon,
+                isInCart ? styles.cartIconAdded : styles.cartIconDefault,
+              ]}
+            />
+            <Text
+              style={[
+                styles.cartButtonText,
+                isInCart
+                  ? styles.cartButtonTextAdded
+                  : styles.cartButtonTextDefault,
+              ]}>
+              {isAdding ? 'Adding...' : isInCart ? 'Added ✓' : 'Add to Cart'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Add to Cart Button */}
-        <TouchableOpacity
-          style={[
-            styles.cartButton,
-            isInCart ? styles.cartButtonAdded : styles.cartButtonDefault,
-          ]}
-          onPress={handleAddToCart}
-          disabled={isInCart}>
-          <Image
-            source={require('../assets/focused/shopping_cart.png')}
-            style={[
-              styles.cartIcon,
-              isInCart ? styles.cartIconAdded : styles.cartIconDefault,
-            ]}
-          />
-          <Text
-            style={[
-              styles.cartButtonText,
-              isInCart
-                ? styles.cartButtonTextAdded
-                : styles.cartButtonTextDefault,
-            ]}>
-            {isInCart ? 'Added' : 'Add to Cart'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {/* Favorite Button */}
+        <View style={styles.likeContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              toggleFavorite(item);
+            }}>
+            <Image
+              source={require('../assets/favoriteFilled.png')}
+              style={styles.faviorate}
+            />
+          </TouchableOpacity>
+        </View>
 
-      {/* Favorite Button */}
-      <View style={styles.likeContainer}>
-        <TouchableOpacity
-          onPress={() => {
-            toggleFavorite(item);
-          }}>
-          <Image
-            source={require('../assets/favoriteFilled.png')}
-            style={styles.faviorate}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Delete Button */}
-      <View style={styles.deleteContainer}>
-        <TouchableOpacity
-          onPress={handleRemoveFromWishlist}>
-          <Image
-            source={require('../assets/deleteIcon.png')}
-            style={styles.deleteIcon}
-          />
-        </TouchableOpacity>
-      </View>
+        {/* Delete Button */}
+        <View style={styles.deleteContainer}>
+          <TouchableOpacity onPress={handleRemoveFromWishlist}>
+            <Image
+              source={require('../assets/deleteIcon.png')}
+              style={styles.deleteIcon}
+            />
+          </TouchableOpacity>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );

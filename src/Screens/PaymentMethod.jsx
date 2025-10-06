@@ -21,17 +21,8 @@ import { moderateScale, verticalScale } from '../PixelRatio';
 
 const PaymentMethod = ({route}) => {
   const navigation = useNavigation();
-  const { cartItems, totalPrice, token, clearCart } = useContext(CartContext);
-  // const {  clearCart } = useContext(CartContext);
-  // const { orderId, selectedAddress, selectedPaymentMethod, total, cartItems } = route.params || {};
-  // if (!orderId || !total || !cartItems || cartItems.length === 0) {
-  //   return (
-  //     <View style={styles.emptyContainer}>
-  //       <Text style={styles.empty}>Error Loading Order Details</Text>
-  //       <Text style={styles.emptySubtext}>Please try placing your order again.</Text>
-  //     </View>
-  //   );
-  // }
+  const {cartItems: contextCartItems} = useContext(CartContext);
+
   // Payment form states
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -46,8 +37,8 @@ const PaymentMethod = ({route}) => {
   // const grandTotal = route.params?.grandTotal || '0.00';
   // const cartItems = route.params?.cartItems || [];
   // const selectedPaymentMethod = route.params?.selectedPaymentMethod || 'Card';
-  const { orderId, selectedAddress, selectedPaymentMethod } = route.params || {};
-  // const cartItems = route.params?.cartItems || contextCartItems || [];
+  const { orderId, grandTotal, selectedPaymentMethod } = route.params || {};
+  const cartItems = route.params?.cartItems || contextCartItems || [];
   
   // Calculate total from cart items if grandTotal is not provided
   const calculatedTotal = cartItems.reduce((total, item) => {
@@ -56,37 +47,50 @@ const PaymentMethod = ({route}) => {
     return total + (price * quantity);
   }, 0).toFixed(2);
   
-  // const finalGrandTotal = grandTotal || calculatedTotal;
+  const finalGrandTotal = grandTotal || calculatedTotal;
 
   console.log('PaymentMethod - Received params:', route.params);
-  console.log('PaymentMethod - Grand Total:', totalPrice);
-  console.log('PaymentMethod - Grand Total type:', typeof totalPrice);
-  console.log('PaymentMethod - Grand Total undefined?', totalPrice === undefined);
+  console.log('PaymentMethod - Grand Total:', grandTotal);
+  console.log('PaymentMethod - Grand Total type:', typeof grandTotal);
+  console.log('PaymentMethod - Grand Total undefined?', grandTotal === undefined);
   console.log('PaymentMethod - Calculated Total:', calculatedTotal);
-  // console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
+  console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
   console.log('PaymentMethod - Cart Items from params:', route.params?.cartItems?.length || 0);
-  // console.log('PaymentMethod - Cart Items from context:', contextCartItems?.length || 0);
+  console.log('PaymentMethod - Cart Items from context:', contextCartItems?.length || 0);
   console.log('PaymentMethod - Final Cart Items:', cartItems.length);
   console.log('PaymentMethod - Final Cart Items details:', cartItems);
   console.log('PaymentMethod - Payment Method:', selectedPaymentMethod);
 
- 
   const handlePayment = () => {
-
+   
     console.log('PaymentMethod - Handle Payment clicked');
     console.log('PaymentMethod - Cart Items:', cartItems.length);
     console.log('PaymentMethod - Cart Items details:', cartItems);
-    console.log('PaymentMethod - Grand Total:', totalPrice);
-    // console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
+    console.log('PaymentMethod - Grand Total:', grandTotal);
+    console.log('PaymentMethod - Final Grand Total:', finalGrandTotal);
     console.log('PaymentMethod - Selected Payment Method:', selectedPaymentMethod);
     console.log('PaymentMethod - Selected Address:', route.params?.selectedAddress);
-
-    // Navigate to OrderConfirm to place the actual order
-    navigation.navigate('OrderConfirm', {
-      orderId,
+    
+    // Validate required data before navigation
+    if (cartItems.length === 0) {
+      console.error('PaymentMethod - No cart items, cannot proceed');
+      Alert.alert('Error', 'Your cart is empty. Please add items before proceeding.');
+      return;
+    }
+    
+    if (!route.params?.selectedAddress) {
+      console.error('PaymentMethod - No selected address, cannot proceed');
+      Alert.alert('Error', 'Please select a delivery address before proceeding.');
+      return;
+    }
+    
+    console.log('PaymentMethod - All validations passed, navigating to ConfirmOrder');
+    
+    // Navigate to ConfirmOrder to place the actual order
+    navigation.navigate('ConfirmOrder', {
       selectedPaymentMethod,
-      total: totalPrice,
-      cartItems: cartItems,
+      total: finalGrandTotal,
+      cartItems,
       selectedAddress: route.params?.selectedAddress,
     });
   };
@@ -242,7 +246,7 @@ const PaymentMethod = ({route}) => {
             <View style={styles.codInfoContainer}>
               <Text style={styles.codInfoText}>💵</Text>
               <Text style={styles.codDescription}>
-                You will pay ${totalPrice} in cash when your order is delivered
+                You will pay {'\u20B9'}{finalGrandTotal} in cash when your order is delivered
                 to your doorstep.
               </Text>
             </View>
@@ -287,12 +291,12 @@ const PaymentMethod = ({route}) => {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>${totalPrice}</Text>
+            <Text style={styles.summaryValue}>{'\u20B9'}{finalGrandTotal}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
-            <Text style={styles.totalValue}>${totalPrice}</Text>
+            <Text style={styles.totalValue}>{'\u20B9'}{finalGrandTotal}</Text>
           </View>
         </View>
 
@@ -310,7 +314,7 @@ const PaymentMethod = ({route}) => {
       <View style={styles.bottomContainer}>
         <View style={styles.buttonContainer}>
                   <GradientButton
-                    title={isLoading ? 'Saving...' : `Pay ${totalPrice || '0.00'}`}
+                    title={isLoading ? 'Saving...' : `Pay \u20B9${finalGrandTotal || '0.00'}`}
                     onPress={handlePayment}
                     disabled={isLoading}
                     style={styles.saveButton}

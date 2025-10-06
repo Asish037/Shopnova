@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 // import {useTheme} from '../Context/ThemeContext';
 import {COLORS} from '../Constant/Colors';
@@ -32,6 +33,7 @@ const AccountScreen = () => {
   console.log("user AccountScreen", user);
   const { isAuthenticated, logout, getUserName, getUserPhone } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
   // const {getThemeColors} = useTheme();
   // const themeColors = getThemeColors();
   // const {user, token , loadUserData} = useContext(CartContext);
@@ -89,6 +91,7 @@ const AccountScreen = () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      console.log('AccountScreen focused, fetching user data...');
       fetchUserData();
     }, [])
   );
@@ -98,41 +101,78 @@ const AccountScreen = () => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
+        console.log(`[${Platform.OS}] Starting fetchUserData...`);
 
         const token = await AsyncStorage.getItem('userToken');
         if (!token) {
-          console.log("No auth token found in storage");
+          console.log(`[${Platform.OS}] No auth token found in storage`);
+          setIsLoading(false);
           return;
         }
-        const response = await axios.get('/get-profile', {
+        
+        console.log(`[${Platform.OS}] Fetching user data with token:`, token.substring(0, 20) + '...');
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
+        });
+
+        const apiPromise = axios.get('/get-profile', {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${token}`, 
           },
         });
 
-        console.log("Full Axios response:", response);
-        console.log("Raw API data:", response.data.data);
+        const response = await Promise.race([apiPromise, timeoutPromise]);
+
+        console.log(`[${Platform.OS}] Full Axios response:`, response);
+        console.log(`[${Platform.OS}] Raw API data:`, response.data.data);
+        console.log(`[${Platform.OS}] Profile image URL:`, response.data?.data?.img);
 
         const mappedData = {
           id: response.data?.data?.id,
-          fname: response.data?.data?.fname,
-          lname: response.data?.data?.lname,
-          fullname: `${response.data?.data?.fname} ${response.data?.data?.lname}`.trim(),
-          email: response.data?.data?.email,
-          phone: response.data?.data?.phone,
+          fname: response.data?.data?.fname || '',
+          lname: response.data?.data?.lname || '',
+          fullname: `${response.data?.data?.fname || ''} ${response.data?.data?.lname || ''}`.trim(),
+          email: response.data?.data?.email || '',
+          phone: response.data?.data?.phone || '',
+          img: response.data?.data?.img || null,
         };
 
+        console.log(`[${Platform.OS}] Mapped user data:`, mappedData);
 
-        loadAuthData(mappedData);
+        // Ensure we have at least some data
+        if (mappedData.id || mappedData.email) {
+          loadAuthData(mappedData, token);
+          console.log(`[${Platform.OS}] User data loaded successfully`);
+        } else {
+          console.log(`[${Platform.OS}] No valid user data found in API response`);
+        }
 
       } catch (error) {
+        console.log(`[${Platform.OS}] API call failed:`, error.message);
         if (error.response) {
-          console.log("API error:", error.response.data);
+          console.log(`[${Platform.OS}] API error response:`, error.response.data);
         } else {
-          console.log("Network/Setup error:", error.message);
+          console.log(`[${Platform.OS}] Network/Setup error:`, error.message);
+        }
+        
+        // Try to load existing data from AsyncStorage as fallback
+        try {
+          const existingUserData = await AsyncStorage.getItem('userData');
+          if (existingUserData) {
+            const parsedData = JSON.parse(existingUserData);
+            console.log(`[${Platform.OS}] Using fallback data from AsyncStorage:`, parsedData);
+            loadAuthData(parsedData, token);
+          } else {
+            console.log(`[${Platform.OS}] No fallback data available`);
+          }
+        } catch (fallbackError) {
+          console.log(`[${Platform.OS}] Fallback data also failed:`, fallbackError.message);
         }
       } finally {
+        console.log(`[${Platform.OS}] Setting loading to false`);
         setIsLoading(false);
       }
     };
@@ -161,14 +201,35 @@ const AccountScreen = () => {
           <View style={styles.profileImageContainer}>
             <Image
               style={styles.profileImage}
-              source={require('../assets/girl1.png')}
+              source={user?.img ? {uri: user.img} : require('../assets/girl1.png')}
+              defaultSource={Platform.OS === 'ios' ? require('../assets/girl1.png') : undefined}
+              onLoadStart={() => {
+                console.log('Profile image loading started');
+                setImageLoading(true);
+              }}
+              onLoadEnd={() => {
+                console.log('Profile image loading completed');
+                setImageLoading(false);
+              }}
+              onError={(error) => {
+                console.log('Profile image loading error:', error);
+                setImageLoading(false);
+              }}
             />
+            {imageLoading && (
+              <View style={styles.imageLoadingOverlay}>
+                <ActivityIndicator size="small" color={COLORS.button} />
+              </View>
+            )}
           </View>
           <View style={styles.profileInfoContainer}>
-            <Text style={styles.userName}>{user?.name}</Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
+            <Text style={styles.userName}>
+              {user?.fullname || `${user?.fname || ''} ${user?.lname || ''}`.trim() || user?.name || 'User'}
+            </Text>
+            <Text style={styles.userEmail}>{user?.email || 'No email'}</Text>
           </View>
         </View>
+
 
         {/* Stats Section */}
         <View style={styles.statsContainer}>
@@ -433,6 +494,17 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(40),
     // borderWidth: 3,
     // borderColor: '#f8f9fa',
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: moderateScale(40),
   },
   profileInfoContainer: {
     flex: 1,

@@ -7,7 +7,7 @@ import {COLORS} from '../Constant/Colors';
 
 const CartCard = ({item, handleDelete}) => {
   console.log('CartCard item:', JSON.stringify(item));
-  console.log('Price fields - offer_price:', item.offer_price, 'offerPrice:', item.offer_price, 'price:', item.price);
+  console.log('Price fields - offer_price:', item.offer_price, 'offerPrice:', item.offerPrice, 'price:', item.price);
   const {updateCartItemQuantity} = useContext(CartContext);
   // const {getThemeColors} = useTheme();
   // const themeColors = getThemeColors();
@@ -141,7 +141,7 @@ const CartCard = ({item, handleDelete}) => {
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
-        <Image source={{uri: item.image}} style={styles.image} />
+        <Image source={{uri: item.product_image || item.image}} style={styles.image} />
       </View>
 
       <View style={styles.content}>
@@ -151,7 +151,7 @@ const CartCard = ({item, handleDelete}) => {
           </Text>
           <TouchableOpacity
             style={styles.deleteButton}
-            onPress={() => handleDelete(item.id)}>
+            onPress={() => handleDelete(item.cart_id || item.id)}>
             <Image
               source={require('../assets/deleteIcon.png')}
               style={styles.deleteIcon}

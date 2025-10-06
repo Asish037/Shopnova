@@ -24,6 +24,7 @@ import axios from '../Components/axios';
 import AppLoader from '../Components/AppLoader';
 import GeneralLoader from '../Components/GeneralLoader';
 import qs from 'qs';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const {width} = Dimensions.get('window');
 
@@ -464,16 +465,16 @@ const CategoriesScreen = () => {
   // Render category item for left side
   const renderCategoryItem = ({item}) => (
     <TouchableOpacity
-      style={[
-        styles.categoryItem,
-        selectedCategory?.id === item.id && styles.selectedCategoryItem,
-      ]}
+      style={styles.categoryItem}
       onPress={() => handleCategoryPress(item)}
       activeOpacity={0.7}>
-      
+
       <View style={styles.categoryContent}>
         {/* Image placeholder */}
-        <View style={styles.categoryImageContainer}>
+        <View style={[
+          styles.categoryImageContainer,
+          selectedCategory?.id === item.id && styles.selectedCategoryImageContainer
+        ]}>
           {item.image_url ? (
             <Image
               source={{uri: item.image_url}}
@@ -501,6 +502,7 @@ const CategoriesScreen = () => {
       </View>
     </TouchableOpacity>
   );
+
 
 
   // Render subcategory item for right side
@@ -563,171 +565,173 @@ const CategoriesScreen = () => {
   }
 
   return (
-    <LinearGradient colors={COLORS.gradient} style={styles.container}>
-      <Header />
-      
-      {/* Main Subcontainer with 95% width */}
-      <View style={styles.subContainer}>
-        {/* Search Input */}
-        <View style={styles.searchContainer}>
-        <View style={styles.inputContainer}>
-          <Image
-            source={require('../assets/search.png')}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            ref={searchInputRef}
-            placeholder="Search categories, products..."
-            style={styles.textInput}
-            value={searchText}
-            onChangeText={handleSearchChange}
-            onFocus={() => {
-              if (searchText.length >= 2) {
-                setShowSuggestions(suggestions.length > 0);
-              }
-            }}
-            onBlur={() => {
-              // Delay hiding suggestions to allow for tap on suggestion
-              setTimeout(() => setShowSuggestions(false), 150);
-            }}
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity
-              onPress={() => {
-                setSearchText('');
-                setShowSuggestions(false);
-                // Reset to current view's products
-                if (currentView === 'products' && selectedCategory) {
-                  fetchProductsByCategory(
-                    selectedCategory,
-                    selectedSubCategory,
-                  );
-                } else {
-                  setFilteredProducts([]);
+    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white, paddingTop: Platform.OS === 'android' ? 10 : 20}}>
+      <LinearGradient colors={COLORS.gradient} style={styles.container}>
+        {/* <Header /> */}
+        
+        {/* Main Subcontainer with 95% width */}
+        <View style={styles.subContainer}>
+          {/* Search Input */}
+          <View style={styles.searchContainer}>
+          <View style={styles.inputContainer}>
+            <Image
+              source={require('../assets/search.png')}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              ref={searchInputRef}
+              placeholder="Search categories, products..."
+              style={styles.textInput}
+              value={searchText}
+              onChangeText={handleSearchChange}
+              onFocus={() => {
+                if (searchText.length >= 2) {
+                  setShowSuggestions(suggestions.length > 0);
                 }
               }}
-              style={styles.clearButton}>
-              <Text style={styles.clearText}>×</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Auto-suggestions Dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
-          <FlatList
-            data={suggestions}
-            renderItem={renderSuggestionItem}
-            keyExtractor={(item, index) => `suggestion-${index}`}
-            style={styles.suggestionsList}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-          />
-        </View>
-      )}
-
-      {/* Main Content - Side by side layout */}
-      <View style={styles.mainContent}>
-        {/* Left Side - Categories */}
-        <View style={styles.leftPanel}>
-          <Text style={styles.panelTitle} numberOfLines={1}>Categories</Text>
-          <FlatList
-            data={categories}
-            renderItem={renderCategoryItem}
-            keyExtractor={item => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.categoryList}
-          />
+              onBlur={() => {
+                // Delay hiding suggestions to allow for tap on suggestion
+                setTimeout(() => setShowSuggestions(false), 150);
+              }}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchText('');
+                  setShowSuggestions(false);
+                  // Reset to current view's products
+                  if (currentView === 'products' && selectedCategory) {
+                    fetchProductsByCategory(
+                      selectedCategory,
+                      selectedSubCategory,
+                    );
+                  } else {
+                    setFilteredProducts([]);
+                  }
+                }}
+                style={styles.clearButton}>
+                <Text style={styles.clearText}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        {/* Right Side - Subcategories or Products */}
-        <View style={styles.rightPanel}>
-          {currentView === 'categories' && subCategories.length > 0 ? (
-            // Show subcategories when they exist
-            <>
-              <Text style={styles.panelTitle} numberOfLines={1}>
-                {selectedCategory ? selectedCategory.name : 'Subcategories'}
-              </Text>
-              {isLoading ? (
-                <GeneralLoader 
-                  message="Loading subcategories..." 
-                  size="small"
-                  containerStyle={styles.rightPanelLoading}
-                  textStyle={styles.rightPanelLoadingText}
-                />
-              ) : (
-                <FlatList
-                  data={subCategories}
-                  renderItem={renderSubCategoryItem}
-                  keyExtractor={item => item.id.toString()}
-                  numColumns={2}
-                  columnWrapperStyle={{ justifyContent: 'flex-start' }}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.subCategoryList}
-                />
-              )}
-            </>
-          ) : (
-            // Show products when no subcategories OR when in products view
-            <>
-              <Text style={styles.panelTitle} numberOfLines={1}>
-                {selectedSubCategory
-                  ? selectedSubCategory.name
-                  : selectedCategory
-                  ? `${selectedCategory.name} Products`
-                  : 'Products'}
-              </Text>
-              {isLoading ? (
-                <View style={styles.rightPanelLoading}>
-                  <ActivityIndicator size="small" color={COLORS.button} />
-                  <Text style={styles.rightPanelLoadingText}>
-                    Loading products...
-                  </Text>
-                </View>
-              ) : filteredProducts.length > 0 ? (
-                <FlatList
-                  data={filteredProducts}
-                  renderItem={renderProductCard}
-                  numColumns={2}
-                  columnWrapperStyle={{ justifyContent: 'space-between' }}
-                  keyExtractor={item => item.id.toString()}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.productsGrid}
-                />
-              ) : (
-                <View style={styles.emptyState}>
-                  <View style={styles.emptyIconContainer}>
-                    <Text style={styles.emptyIcon}>📦</Text>
+        {/* Auto-suggestions Dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            <FlatList
+              data={suggestions}
+              renderItem={renderSuggestionItem}
+              keyExtractor={(item, index) => `suggestion-${index}`}
+              style={styles.suggestionsList}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled={true}
+            />
+          </View>
+        )}
+
+        {/* Main Content - Side by side layout */}
+        <View style={styles.mainContent}>
+          {/* Left Side - Categories */}
+          <View style={styles.leftPanel}>
+            <Text style={styles.panelTitle} numberOfLines={1}>Categories</Text>
+            <FlatList
+              data={categories}
+              renderItem={renderCategoryItem}
+              keyExtractor={item => item.id.toString()}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.categoryList}
+            />
+          </View>
+
+          {/* Right Side - Subcategories or Products */}
+          <View style={styles.rightPanel}>
+            {currentView === 'categories' && subCategories.length > 0 ? (
+              // Show subcategories when they exist
+              <>
+                <Text style={styles.panelTitle} numberOfLines={1}>
+                  {selectedCategory ? selectedCategory.name : 'Subcategories'}
+                </Text>
+                {isLoading ? (
+                  <GeneralLoader 
+                    message="Loading subcategories..." 
+                    size="small"
+                    containerStyle={styles.rightPanelLoading}
+                    textStyle={styles.rightPanelLoadingText}
+                  />
+                ) : (
+                  <FlatList
+                    data={subCategories}
+                    renderItem={renderSubCategoryItem}
+                    keyExtractor={item => item.id.toString()}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'flex-start' }}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.subCategoryList}
+                  />
+                )}
+              </>
+            ) : (
+              // Show products when no subcategories OR when in products view
+              <>
+                <Text style={styles.panelTitle} numberOfLines={1}>
+                  {selectedSubCategory
+                    ? selectedSubCategory.name
+                    : selectedCategory
+                    ? `${selectedCategory.name} Products`
+                    : 'Products'}
+                </Text>
+                {isLoading ? (
+                  <View style={styles.rightPanelLoading}>
+                    <ActivityIndicator size="small" color={COLORS.button} />
+                    <Text style={styles.rightPanelLoadingText}>
+                      Loading products...
+                    </Text>
                   </View>
-                  <Text style={styles.emptyStateTitle}>No products found</Text>
-                  <Text style={styles.emptyStateSubtitle}>
-                    {selectedSubCategory 
-                      ? `No products available in "${selectedSubCategory.name}"`
-                      : 'Try selecting a different category or subcategory'
-                    }
-                  </Text>
-                  {selectedSubCategory && (
-                    <TouchableOpacity
-                      style={styles.backToSubcategoriesButton}
-                      onPress={() => {
-                        setCurrentView('categories');
-                        setSelectedSubCategory(null);
-                        setFilteredProducts([]);
-                      }}>
-                      <Text style={styles.backToSubcategoriesText}>
-                        ← Back to Subcategories
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </>
-          )}
+                ) : filteredProducts.length > 0 ? (
+                  <FlatList
+                    data={filteredProducts}
+                    renderItem={renderProductCard}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: 'space-between' }}
+                    keyExtractor={item => item.id.toString()}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.productsGrid}
+                  />
+                ) : (
+                  <View style={styles.emptyState}>
+                    <View style={styles.emptyIconContainer}>
+                      <Text style={styles.emptyIcon}>📦</Text>
+                    </View>
+                    <Text style={styles.emptyStateTitle}>No products found</Text>
+                    <Text style={styles.emptyStateSubtitle}>
+                      {selectedSubCategory 
+                        ? `No products available in "${selectedSubCategory.name}"`
+                        : 'Try selecting a different category or subcategory'
+                      }
+                    </Text>
+                    {selectedSubCategory && (
+                      <TouchableOpacity
+                        style={styles.backToSubcategoriesButton}
+                        onPress={() => {
+                          setCurrentView('categories');
+                          setSelectedSubCategory(null);
+                          setFilteredProducts([]);
+                        }}>
+                        <Text style={styles.backToSubcategoriesText}>
+                          ← Back to Subcategories
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </>
+            )}
+          </View>
         </View>
-      </View>
-      </View>
-    </LinearGradient>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
@@ -745,7 +749,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchContainer: {
-    marginBottom: PADDING.margin.large,
+    marginBottom: PADDING.margin.medium,
     paddingHorizontal: PADDING.header.horizontal,
     paddingTop: PADDING.margin.medium,
     paddingBottom: PADDING.margin.medium,
@@ -883,7 +887,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245, 74, 0, 0.15)',
   },
   panelTitle: {
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(16),
     fontFamily: 'Poppins-Bold',
     color: COLORS.button,
     paddingHorizontal: PADDING.margin.medium,
@@ -895,7 +899,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: moderateScale(20),
     borderTopRightRadius: moderateScale(20),
     flexWrap: 'wrap',
-    minHeight: 60,
+    minHeight: 50,
   },
 
   // category part`
@@ -908,18 +912,8 @@ const styles = StyleSheet.create({
     paddingVertical: PADDING.margin.medium,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: moderateScale(20),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(245, 74, 0, 0.1)',
     marginHorizontal: PADDING.margin.medium,
     marginVertical: PADDING.margin.medium,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    minHeight: 150,
   },
   selectedCategoryItem: {
     backgroundColor: 'rgba(245, 74, 0, 0.15)',
@@ -939,34 +933,44 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.05 }],
     marginBottom: 4,
   },
+  selectedCategoryImageContainer: {
+    borderWidth: 3,
+    borderColor: COLORS.button,
+    shadowColor: COLORS.button,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    transform: [{ scale: 1.05 }],
+  },
   categoryContent: {
     alignItems: 'center',
   },
   categoryText: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontFamily: 'Poppins-Medium',
     color: COLORS.black,
     textAlign: 'center',
-    lineHeight: moderateScale(18),
+    lineHeight: moderateScale(16),
     marginTop: PADDING.margin.small,
     flexWrap: 'wrap',
     paddingHorizontal: 8,
   },
+
   selectedCategoryText: {
     fontFamily: 'Poppins-Bold',
     color: COLORS.button,
   },
   categoryImageContainer: {
-    width: moderateScale(90),
-    height: moderateScale(90),
-    borderRadius: moderateScale(45),
+    width: moderateScale(70),
+    height: moderateScale(70),
+    borderRadius: moderateScale(35),
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 74, 0, 0.1)',
-    marginBottom: PADDING.margin.medium,
-    elevation: 4,
-    shadowColor: '#f54a00',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // moved here
+    elevation: 4,                                 // moved here
+    shadowColor: '#000',                          // moved here
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -979,13 +983,13 @@ const styles = StyleSheet.create({
   categoryImagePlaceholder: {
     width: '100%',
     height: '100%',
-    borderRadius: moderateScale(40),
+    borderRadius: moderateScale(35),
     backgroundColor: 'rgba(245, 74, 0, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   categoryImageText: {
-    fontSize: moderateScale(32),
+    fontSize: moderateScale(24),
     fontFamily: 'Poppins-Bold',
     color: COLORS.button,
     textAlign: 'center',
@@ -1037,9 +1041,9 @@ const styles = StyleSheet.create({
     color: COLORS.button,
   },
   subCategoryImageContainer: {
-    width: moderateScale(80),
-    height: moderateScale(80),
-    borderRadius: moderateScale(40),
+    width: moderateScale(65),
+    height: moderateScale(65),
+    borderRadius: moderateScale(32),
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1051,9 +1055,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   subCategoryImage: {
-    width: moderateScale(70),
-    height: moderateScale(70),
-    borderRadius: moderateScale(35),
+    width: moderateScale(55),
+    height: moderateScale(55),
+    borderRadius: moderateScale(27),
   },
   subCategoryImagePlaceholder: {
     width: '100%',
@@ -1064,13 +1068,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subCategoryImageText: {
-    fontSize: moderateScale(24),
+    fontSize: moderateScale(18),
     fontFamily: 'Poppins-Bold',
     color: COLORS.button,
     textAlign: 'center',
   },
   subCategoryText:{
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontFamily: 'Poppins-Medium',
     color: COLORS.black,
     textAlign: 'center',
@@ -1078,7 +1082,7 @@ const styles = StyleSheet.create({
   },
   // Product grid && loading
   productCount: {
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(10),
     fontFamily: 'Poppins-Regular',
     color: COLORS.grey,
     marginTop: PADDING.margin.small,
@@ -1090,7 +1094,7 @@ const styles = StyleSheet.create({
     paddingVertical: PADDING.margin.xlarge,
   },
   rightPanelLoadingText: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontFamily: 'Poppins-Medium',
     color: COLORS.black,
     marginTop: PADDING.margin.small,
@@ -1123,14 +1127,14 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   emptyStateTitle: {
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(18),
     fontFamily: 'Poppins-Bold',
     color: '#2C2C2C',
     textAlign: 'center',
     marginBottom: 12,
   },
   emptyStateSubtitle: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14),
     fontFamily: 'Poppins-Medium',
     color: COLORS.grey,
     textAlign: 'center',
@@ -1150,7 +1154,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   backToSubcategoriesText: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontFamily: 'Poppins-Bold',
     color: COLORS.white,
   },

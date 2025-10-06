@@ -14,31 +14,24 @@ import LinearGradient from 'react-native-linear-gradient';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import { CartContext } from '../Context/CartContext';
 
 const {width, height} = Dimensions.get('window');
 
 const OrderConfirm = ({route}) => {
   const navigation = useNavigation();
-   const { clearCart } = React.useContext(CartContext);
 
   // Get dynamic data from route parameters
   // const selectedPaymentMethod =
   //   route.params?.selectedPaymentMethod || 'Not specified';
   // const total = route.params?.total || '0.00';
   // const cartItems = route.params?.cartItems || [];
-  const { orderId, selectedPaymentMethod, total, cartItems } = route.params || {};
+  const { orderId, selectedPaymentMethod, total, cartItems = [] } = route.params || {};
 
-  React.useEffect(() => {
-    // You can also add a condition to only clear if an orderId is present.
-    if (orderId) {
-      clearCart();
-    }
-  }, []);
+
   console.log('OrderConfirm - Received params:', route.params);
   console.log('OrderConfirm - Payment Method:', selectedPaymentMethod);
   console.log('OrderConfirm - Total Amount:', total);
-  console.log('OrderConfirm - Cart Items:', cartItems.length);
+  console.log('OrderConfirm - Cart Items:', cartItems?.length || 0);
 
   return (
     <LinearGradient colors={COLORS.gradient} style={styles.container}>
@@ -75,7 +68,7 @@ const OrderConfirm = ({route}) => {
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Items Ordered:</Text>
-                <Text style={styles.detailValue}>{cartItems.length} items</Text>
+                <Text style={styles.detailValue}>{cartItems?.length || 0} items</Text>
               </View>
             </View>
           </View>

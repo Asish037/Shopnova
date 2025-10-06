@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   Platform,
   PermissionsAndroid,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
@@ -23,7 +24,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import GradientButton from '../Components/Button/GradientButton';
 import Toast from 'react-native-simple-toast';
 import CustomInput from '../Components/CustomInput';
@@ -32,7 +33,8 @@ import {CartContext} from '../Context/CartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../Components/axios';
 import qs from 'qs';
-import { launchImageLibrary } from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-crop-picker';
+// import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 const EditProfile = () => {
   const navigation = useNavigation();
@@ -46,16 +48,144 @@ const EditProfile = () => {
   );
   const [fname, setFname] = useState(user?.fname || '');
   const [lname, setLname] = useState(user?.lname || '');
-  const [fullname, setFullname] = useState(user?.name || 'John Henry');
-  const [disabled, setdisabled] = useState(false);
-  const [profileImageUri, setProfileImageUri] = useState(
-    user?.profileImage ||
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTE_5aeaS13y24e1D7KBOIPNUwGflPnLR8AuQQUQ6tHDnycRg_2woHNm3fX1K_UYtxizZw&usqp=CAU',
+  
+  // Debug user data
+  console.log('EditProfile - User data:', user);
+  console.log('EditProfile - fname:', user?.fname, 'lname:', user?.lname);
+  const [fullname, setFullname] = useState(
+    user?.fullname || 
+    (user?.fname && user?.lname ? `${user.fname} ${user.lname}` : '') ||
+    user?.name || 'John Henry'
   );
 
+  // Update form fields when user data changes
+  useEffect(() => {
+    if (user) {
+      console.log('EditProfile - Updating form fields with user data:', user);
+      setFname(user.fname || '');
+      setLname(user.lname || '');
+      setemail(user.email || '');
+      setMobileNumber(user.phone || '');
+      
+      // Combine fname and lname into fullname for the form
+      const combinedName = user.fullname || 
+        (user.fname && user.lname ? `${user.fname} ${user.lname}` : '') ||
+        user.name || '';
+      setFullname(combinedName);
+      
+      setProfileImageUri(user.img || user.profileImage || null);
+    }
+  }, [user]);
+
+  // Refresh user data when screen is focused - fetch fresh data from API
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('EditProfile focused, fetching fresh user data...');
+      fetchFreshUserData();
+    }, [])
+  );
+
+  // Function to fetch fresh user data from API
+  const fetchFreshUserData = async () => {
+    try {
+      setIsRefreshing(true);
+      console.log('EditProfile - Fetching fresh user data from API...');
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        console.log('EditProfile - No auth token found');
+        setIsRefreshing(false);
+        return;
+      }
+
+      const response = await axios.get('/get-profile', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('EditProfile - Fresh API response:', response.data);
+      
+      if (response.data && response.data.data) {
+        const freshUserData = {
+          id: response.data.data.id,
+          fname: response.data.data.fname || '',
+          lname: response.data.data.lname || '',
+          fullname: `${response.data.data.fname || ''} ${response.data.data.lname || ''}`.trim(),
+          email: response.data.data.email || '',
+          phone: response.data.data.phone || '',
+          img: response.data.data.img || null,
+        };
+
+        console.log('EditProfile - Fresh user data:', freshUserData);
+        
+        // Update form fields with fresh data
+        setFname(freshUserData.fname);
+        setLname(freshUserData.lname);
+        setemail(freshUserData.email);
+        setMobileNumber(freshUserData.phone);
+        setFullname(freshUserData.fullname);
+        setProfileImageUri(freshUserData.img);
+        
+        // Update context with fresh data
+        await login(freshUserData);
+      }
+    } catch (error) {
+      console.error('EditProfile - Error fetching fresh user data:', error);
+      // Fallback to existing user data if API fails
+      if (user) {
+        console.log('EditProfile - Using existing user data as fallback');
+        setFname(user.fname || '');
+        setLname(user.lname || '');
+        setemail(user.email || '');
+        setMobileNumber(user.phone || '');
+        
+        const combinedName = user.fullname || 
+          (user.fname && user.lname ? `${user.fname} ${user.lname}` : '') ||
+          user.name || '';
+        setFullname(combinedName);
+        
+        setProfileImageUri(user.img || user.profileImage || null);
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+  const [disabled, setdisabled] = useState(false);
+  const [profileImageUri, setProfileImageUri] = useState(
+    user?.img || user?.profileImage || null
+  );
+  const [profileImageBase64, setProfileImageBase64] = useState(null);
+  const [profileImageType, setProfileImageType] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Preload the static image for faster loading
+  React.useEffect(() => {
+    if (!profileImageUri) {
+      // Preload the static image
+      Image.prefetch(Image.resolveAssetSource(require('../assets/account.png')).uri);
+    }
+  }, [profileImageUri]);
+
     const saveDetails = async () => {
+      console.log('profile_img', profileImageUri);
       if (!email || !mobileNumber || !fullname) {
         Toast.show('Please fill all required fields!');
+        return;
+      }
+
+      // Client-side email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        Toast.show('Please enter a valid email address');
+        return;
+      }
+
+      // Client-side mobile number validation
+      const mobileRegex = /^[0-9]{10}$/;
+      if (!mobileRegex.test(mobileNumber.replace(/\D/g, ''))) {
+        Toast.show('Please enter a valid 10-digit mobile number');
         return;
       }
 
@@ -73,7 +203,35 @@ const EditProfile = () => {
         const [firstName, ...lastNameParts] = fullname.trim().split(" ");
         const fnameValue = firstName || "";
         const lnameValue = lastNameParts.join(" ") || "NA";
-
+        // Add proper data URI prefix to base64 data
+        let profile_img;
+        if (profileImageBase64 && profileImageType) {
+          // Use the MIME type directly from the image picker
+          profile_img = `data:${profileImageType};base64,${profileImageBase64}`;
+          console.log('=== Profile Image Data for API ===');
+          console.log('Using base64 data with prefix:', !!profileImageBase64);
+          console.log('Image MIME type:', profileImageType);
+          console.log('Final data URI length:', profile_img.length);
+          console.log('Data URI preview:', profile_img.substring(0, 50) + '...');
+        } else {
+          console.log('No new image selected, keeping existing profile image');
+          // Don't send profile_img if no new image was selected
+          // This will keep the existing profile image on the server
+          profile_img = null; // or omit this field entirely
+        }
+        
+        const data_to_pass = {
+          fname: fnameValue,
+          lname: lnameValue,
+          email: email,
+          phone: mobileNumber, 
+        };
+        
+        // Only include profile_img if a new image was selected
+        if (profile_img) {
+          data_to_pass.profile_img = profile_img;
+        }
+        console.log('data_to_pass', data_to_pass);
         const config = {
           method: 'put',
           url: '/update-profile',
@@ -82,12 +240,7 @@ const EditProfile = () => {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          data: {
-            fname: fnameValue,
-            lname: lnameValue,
-            email: email,
-            phone: mobileNumber, 
-          },
+          data: data_to_pass,
         };
 
         const response = await axios(config);
@@ -115,16 +268,52 @@ const EditProfile = () => {
             navigation.goBack();
           }, 1000);
         } else {
-          Toast.show(response.data.message || 'Failed to update profile');
+          // Handle validation errors
+          if (response.data.errors) {
+            const errorMessages = [];
+            Object.keys(response.data.errors).forEach(field => {
+              if (response.data.errors[field] && response.data.errors[field].length > 0) {
+                errorMessages.push(`${field}: ${response.data.errors[field][0]}`);
+              }
+            });
+            const errorText = errorMessages.join('\n');
+            Toast.show(errorText || response.data.message || 'Validation failed');
+          } else {
+            Toast.show(response.data.message || 'Failed to update profile');
+          }
           setdisabled(false);
         }
       } catch (error) {
         console.error('Error updating profile:', error);
-        Toast.show('Failed to update profile. Please try again.');
+        
+        // Handle different types of errors
+        if (error.response && error.response.data) {
+          const errorData = error.response.data;
+          if (errorData.errors) {
+            // Handle validation errors from catch block
+            const errorMessages = [];
+            Object.keys(errorData.errors).forEach(field => {
+              if (errorData.errors[field] && errorData.errors[field].length > 0) {
+                errorMessages.push(`${field}: ${errorData.errors[field][0]}`);
+              }
+            });
+            const errorText = errorMessages.join('\n');
+            Toast.show(errorText || errorData.message || 'Validation failed');
+          } else {
+            Toast.show(errorData.message || 'Failed to update profile');
+          }
+        } else if (error.message) {
+          Toast.show(error.message);
+        } else {
+          Toast.show('Failed to update profile. Please try again.');
+        }
+        
         setdisabled(false);
       }
   };
 
+
+  // No need for manual base64 conversion - react-native-image-crop-picker provides it directly
 
   const requestGalleryPermission = async () => {
     if (Platform.OS === 'android') {
@@ -162,12 +351,16 @@ const EditProfile = () => {
         console.warn(err);
         return false;
       }
+    } else {
+      // iOS - Let the image picker handle permissions automatically
+      // The Info.plist already has NSPhotoLibraryUsageDescription
+      console.log('iOS - Using image picker built-in permission handling');
+      return true; // Let image picker handle the permission request
     }
-    return true; // iOS doesn't need runtime permission
   };
 
 
-  // Here you can add image picker logic
+  // Image picker using react-native-image-crop-picker
   const handleImagePicker = async () => {
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
@@ -175,25 +368,37 @@ const EditProfile = () => {
       return;
     }
 
-    launchImageLibrary(
-      {
+    try {
+      console.log('Opening image picker with react-native-image-crop-picker...');
+      
+      const image = await ImagePicker.openPicker({
         mediaType: 'photo',
         quality: 0.7,
-      },
-      (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorCode) {
-          console.log('ImagePicker Error: ', response.errorMessage);
-          Toast.show('Error picking image. Please try again.');
-        } else if (response.assets && response.assets.length > 0) {
-          const uri = response.assets[0].uri;
-          setProfileImageUri(uri);
-          Toast.show('Profile image updated locally. Save changes to upload.');
-          console.log('response', response);
-        }
-      },
-    );
+        includeBase64: true, // This gives us base64 data directly!
+        compressImageQuality: 0.7,
+        cropping: false, // Set to true if you want cropping functionality
+      });
+
+      console.log('✅ Image selected successfully!');
+      console.log('Image URI:', image.path);
+      console.log('Image base64 available:', !!image.data);
+      console.log('Base64 length:', image.data ? image.data.length : 'N/A');
+    
+      // Set both URI and base64 data
+      setProfileImageUri(image.path);
+      setProfileImageBase64(image.data);
+      setProfileImageType(image.mime || 'image/jpeg'); // Store the MIME type
+      
+      Toast.show('Profile image updated locally. Save changes to upload.');
+      
+    } catch (error) {
+      if (error.code === 'E_PICKER_CANCELLED') {
+        console.log('User cancelled image picker');
+      } else {
+        console.error('❌ Error with image picker:', error);
+        Toast.show('Error picking image. Please try again.');
+      }
+    }
   };
 
 
@@ -209,16 +414,48 @@ const EditProfile = () => {
             <View style={styles.greetingContainer}>
               <Text style={styles.greetingText}>Welcome back,</Text>
               <Text style={styles.userName}>{fullname}</Text>
-              <Text style={styles.subText}>Let's update your profile</Text>
+              <Text style={styles.subText}>
+                {isRefreshing ? 'Refreshing profile data...' : "Let's update your profile"}
+              </Text>
+              {isRefreshing && (
+                <ActivityIndicator 
+                  size="small" 
+                  color={COLORS.button} 
+                  style={styles.refreshIndicator}
+                />
+              )}
             </View>
           </View>
 
           <View style={styles.profileImageContainer}>
             <View style={styles.profileImageWrapper}>
               <Image
-                source={{uri: profileImageUri}}
+                source={profileImageUri ? {uri: profileImageUri} : require('../assets/account.png')}
                 style={styles.profileImage}
+                resizeMode="cover"
+                defaultSource={Platform.OS === 'ios' ? require('../assets/account.png') : undefined}
+                onLoadStart={() => {
+                  console.log('Image loading started');
+                  setImageLoading(true);
+                }}
+                onLoadEnd={() => {
+                  console.log('Image loading completed');
+                  setImageLoading(false);
+                }}
+                onError={(error) => {
+                  console.log('Image loading error:', error);
+                  setImageLoading(false);
+                  // Fallback to static image on error
+                  if (profileImageUri) {
+                    setProfileImageUri(null);
+                  }
+                }}
               />
+              {imageLoading && (
+                <View style={styles.imageLoadingOverlay}>
+                  <ActivityIndicator size="small" color={COLORS.button} />
+                </View>
+              )}
               <LinearGradient
                 colors={['rgba(194, 54, 54, 0.8)', 'rgba(194, 54, 54, 0.6)']}
                 style={styles.imageOverlay}
@@ -392,6 +629,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.Regular,
     letterSpacing: 0.2,
   },
+  refreshIndicator: {
+    marginTop: verticalScale(4),
+  },
   profileImageContainer: {
     position: 'relative',
   },
@@ -423,6 +663,17 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     opacity: 0.1,
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: moderateScale(35),
   },
   editImageButton: {
     position: 'absolute',

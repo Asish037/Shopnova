@@ -27,7 +27,7 @@ const AuthGuard = ({ children, fallback = null }) => {
           </Text>
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('AuthStack')}
           >
             <Text style={styles.loginButtonText}>Go to Login</Text>
           </TouchableOpacity>

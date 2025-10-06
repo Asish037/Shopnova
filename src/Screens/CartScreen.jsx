@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../Components/axios';
 import Toast from 'react-native-simple-toast';
@@ -25,66 +25,68 @@ import { PADDING } from '../Constant/Padding';
 import { moderateScale, verticalScale } from '../PixelRatio';
 
 const CartScreen = () => {
-  const { cartItems, deleteCartItem, totalPrice, user, token } = useContext(CartContext);
+  const { cartItems, deleteCartItem, totalPrice, user, token, refreshCartData, debugCartState } = useContext(CartContext);
   const navigation = useNavigation();
+
+  console.log('CartScreen - User:', user);
+  console.log('CartScreen - Token:', token);
 
   // constants for totals
   const shippingCost = 0.0;
   const grandTotal = (parseFloat(totalPrice) + shippingCost).toFixed(2);
 
-    const handleCheckout = async () => {
-      try {
-        const token = await AsyncStorage.getItem('userToken');
-        if (!token) {
-          Toast.show('No auth token found. Please log in again.');
-          return;
+  // Refresh cart data when screen loads (only if cart is empty or we need to sync with server)
+  useEffect(() => {
+    console.log('CartScreen - Component mounted, checking if cart refresh is needed...');
+    console.log('CartScreen - Current cartItems length:', cartItems.length);
+    console.log('CartScreen - Current cartItems:', cartItems);
+    
+    // Only refresh if cart is empty or if we need to sync with server
+    const shouldRefresh = cartItems.length === 0;
+    
+    if (shouldRefresh) {
+      console.log('CartScreen - Cart is empty, refreshing from server...');
+      const forceRefresh = async () => {
+        try {
+          await refreshCartData();
+          console.log('CartScreen - Cart data refreshed successfully');
+        } catch (error) {
+          console.log('CartScreen - Error refreshing cart data:', error);
         }
+      };
+      
+      forceRefresh();
+    } else {
+      console.log('CartScreen - Cart has items, skipping automatic refresh');
+    }
+  }, []);
 
-        if (cartItems.length === 0) {
-          Toast.show('Please add items to your cart before proceeding.');
-          return;
-        }
 
-        const userData = await AsyncStorage.getItem('userData');
-        const parsedUser = userData ? JSON.parse(userData) : null;
-        const userId = parsedUser?.id;
+  // Debug cart items changes
+  useEffect(() => {
+    console.log('CartScreen - cartItems changed:', {
+      length: cartItems.length,
+      items: cartItems,
+      user: user?.id,
+      token: !!token
+    });
+  }, [cartItems, user, token]);
 
-        const payload = {
-          userId: user?.id || userId,
-          totalAmount: grandTotal,
-          items: cartItems.map(item => ({
-            productId: item.id || item.productId, 
-            quantity: item.quantity,
-            offer_price: item.offer_price || item.offerPrice,
-          })),
-        };
-
-        console.log('Checkout payload:', payload);
-
-        const response = await axios.post('/add-cart', payload, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        console.log('Add to cart response:', response.data);
-
-        if (response.data.status === 1) {
-          navigation.navigate('Payment', 
-            // { grandTotal, cartItems }
-          );
-        } else {
-          Toast.show(response.data.message || 'Something went wrong on the server.');
-        }
-      } catch (error) {
-        console.error('Error during checkout:', error);
-        Toast.show('Checkout failed. Please try again.');
+    const handleCheckout = () => {
+      // Check if cart has items
+      if (cartItems.length === 0) {
+        Toast.show('Please add items to your cart before proceeding.');
+        return;
       }
-  };
+
+      // Navigate directly to Payment screen with cart data
+      console.log('Proceeding to checkout with cart items:', cartItems.length);
+      navigation.navigate('Payment', { grandTotal, cartItems });
+    };
 
 
   const handleDeleteItem = async itemId => {
+    console.log('Deleting cart item:', itemId);
     try {
       const token = await AsyncStorage.getItem('userToken');
       if (!token) {
@@ -92,20 +94,31 @@ const CartScreen = () => {
         return;
       }
 
-      const response = await axios.delete(`/delete-cart?cartId=${itemId}`, {
+      // Ensure cartId is an integer
+      const cartId = parseInt(itemId);
+      console.log('Deleting cart item with cartId:', cartId);
+
+      const response = await axios.delete('/delete-cart', {
+        data: {
+          cartId: cartId,
+        },
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log('Delete cart item response:', response.data);
 
-      if (response.status === 200) {
-        deleteCartItem(itemId);
+      if (response.data && response.data.status === 1) {
+        // Item deleted from server, now refresh cart from server
+        await refreshCartData();
         Toast.show('Item removed from cart.');
       } else {
         Toast.show(response.data.message || 'Could not remove item.');
       }
     } catch (error) {
       console.error('Error deleting cart item:', error);
+      console.error('Error details:', error.response?.data);
       Toast.show('Failed to remove item. Please try again.');
     }
   };
@@ -141,6 +154,18 @@ const CartScreen = () => {
               <Text style={styles.wishlistButtonText}>View Wishlist</Text>
             </View>
           </TouchableOpacity>
+          
+          {/* <TouchableOpacity
+            style={[styles.shopNowButton, {backgroundColor: COLORS.primary, marginTop: 10}]}
+            onPress={() => {
+              debugCartState();
+              refreshCartData();
+            }}>
+            <View style={styles.buttonContent}>
+              <Icon name="refresh" size={moderateScale(18)} color={COLORS.white} />
+              <Text style={styles.shopNowButtonText}>Debug & Refresh Cart</Text>
+            </View>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>

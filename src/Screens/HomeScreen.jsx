@@ -26,6 +26,7 @@ import axios from '../Components/axios';
 import qs from 'qs';
 import AppLoader from '../Components/AppLoader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-simple-toast';
 
 const HomeScreen = () => {
   // const [products, setProducts] = useState(data.products);
@@ -76,7 +77,15 @@ const HomeScreen = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [wishlist?.length]);
+  }, [wishlist?.length, wishlist]);
+
+  // Also refresh products when wishlist changes
+  useEffect(() => {
+    if (wishlist && wishlist.length > 0) {
+      console.log('Wishlist updated, refreshing products...');
+      fetchProducts();
+    }
+  }, [wishlist]);
 
   /** Add product to wishlist */
   const fetchAddLikeProducts = async (productId) => {
@@ -88,13 +97,29 @@ const HomeScreen = () => {
         return;
       }
 
-      if (!user?.id) {
+      // Get userId from context or AsyncStorage
+      let userId = user?.id;
+      if (!userId) {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          if (Array.isArray(parsedUser)) {
+            userId = parsedUser[0]?.id;
+          } else {
+            userId = parsedUser?.id;
+          }
+        }
+      }
+
+      if (!userId) {
         Alert.alert('Error', 'User not found. Please log in again.');
         return;
       }
 
+      console.log('HomeScreen - Wishlist Add - Using userId:', userId);
+
       const payload = {
-        userId: String(user.id),
+        userId: String(userId),
         productIds: [String(productId)],
       };
 
@@ -110,6 +135,11 @@ const HomeScreen = () => {
       });
 
       console.log('Wishlist Add Response:', response.data);
+        if (response.data.status === 1) {
+          Toast.show(response.data.message || 'Item added to wishlist.', Toast.SHORT);
+        } else {
+          Toast.show(response.data.message || 'Something went wrong on the server.', Toast.SHORT);
+        }
     } catch (error) {
       console.error('Error in fetchAddLikeProducts:', error.response?.data || error.message);
     }
@@ -142,6 +172,13 @@ const HomeScreen = () => {
       });
 
       console.log('Wishlist Remove Response:', response.data);
+        if (response.data.status === 1) {
+          // Update context wishlist state
+          removeFromWishlist && removeFromWishlist(productId);
+          Toast.show(response.data.message || 'Item removed from wishlist.', Toast.SHORT);
+        } else {
+          Toast.show(response.data.message || 'Something went wrong on the server.', Toast.SHORT);
+        }
     } catch (error) {
       console.error('Error in fetchRemoveLikeProducts:', error.response?.data || error.message);
     }
@@ -163,7 +200,6 @@ const HomeScreen = () => {
 
       if (item.isFavorite) {
         await fetchRemoveLikeProducts(user.id, item.id);
-        removeFromWishlist && removeFromWishlist(item.productId);
       } else {
         await fetchAddLikeProducts(item.id);
         addToWishlist && addToWishlist({ productId: item.id });
@@ -222,6 +258,7 @@ const HomeScreen = () => {
     </LinearGradient>
   ); 
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

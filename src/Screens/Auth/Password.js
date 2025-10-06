@@ -229,7 +229,7 @@ export default function Password(props) {
               }}>
               Already have an account?{' '}
               <Text
-                onPress={() => Navigation.navigate('Login')}
+                onPress={() => Navigation.navigate('AuthStack')}
                 style={{
                   fontFamily: FONTS.title,
                   textDecorationLine: 'underline',

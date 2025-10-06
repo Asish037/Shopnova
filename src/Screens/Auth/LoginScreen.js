@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useContext} from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,11 +20,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import CustomInput from '../../Components/CustomInput';
+import {CartContext} from '../../Context/CartContext';
 // import model1 from '../../assets/model1.jpg';
 
 export default function LoginScreen() {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { login } = useContext(CartContext);
 
   const [email, setemail] = useState('');
   const [pass, setpass] = useState('');
@@ -35,17 +37,34 @@ export default function LoginScreen() {
   const passwordInput = useRef();
 
   const loginUser = async () => {
-    // TODO: Implement login logic here, e.g., API call, validation, etc.
-    // Example:
-    // setdisabled(true);
-    // try {
-    //   await dispatch(loginAction({ email, pass }));
-    //   navigation.navigate('Home');
-    // } catch (error) {
-    //   Toast.show('Login failed');
-    // } finally {
-    //   setdisabled(false);
-    // }
+    if (!email || !pass) {
+      Toast.show('Please enter both email and password');
+      return;
+    }
+    
+    setdisabled(true);
+    try {
+      // Simple login for testing - create a mock user
+      const mockUser = {
+        id: '12',
+        userId: '12', 
+        name: 'Test User',
+        email: email,
+        phone: '1234567890'
+      };
+      
+      const mockToken = 'mock_token_12345|12';
+      
+      // Use the CartContext login function
+      await login(mockUser, mockToken);
+      
+      Toast.show('Login successful!');
+      navigation.navigate('MainHome');
+    } catch (error) {
+      Toast.show('Login failed: ' + error.message);
+    } finally {
+      setdisabled(false);
+    }
   };
 
   return (

@@ -59,15 +59,27 @@ export default function Register() {
   const {login} = useContext(CartContext);
 
   React.useEffect(() => {
-    // First request permission and generate FCM token, then get it from storage
-    requestNotificationPermission().then(() => {
-      // After permission is granted and token is generated, get it from storage
-      getStoredFcmToken();
-    }).catch((error) => {
-      console.log('Notification permission error:', error);
-      // Even if permission fails, try to get existing token
-      getStoredFcmToken();
-    });
+    // Request notification permission with better error handling
+    const setupNotifications = async () => {
+      try {
+        console.log('🔔 Setting up notifications in Register screen...');
+        const success = await requestNotificationPermission();
+        
+        if (success) {
+          console.log('✅ Notification permission granted, getting stored token...');
+          await getStoredFcmToken();
+        } else {
+          console.log('⚠️ Notification permission failed, trying to get existing token...');
+          await getStoredFcmToken();
+        }
+      } catch (error) {
+        console.log('❌ Notification setup error:', error);
+        // Even if permission fails, try to get existing token
+        await getStoredFcmToken();
+      }
+    };
+
+    setupNotifications();
   }, []);
 
   const getStoredFcmToken = async () => {

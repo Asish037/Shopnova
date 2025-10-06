@@ -22,6 +22,7 @@ import { Alert } from 'react-native';
 import ProductLoader from '../Components/ProductLoader';
 import ProductDetailsSkeleton from '../Components/ProductDetailsSkeleton';
 import ProductDetailsLoader from '../Components/ProductDetailsLoader';
+import Toast from 'react-native-simple-toast';
 
 
 const { width } = Dimensions.get('window');
@@ -118,6 +119,28 @@ const ProductDetailsScreen = () => {
 
 
 
+  // Function to strip HTML tags and clean up text
+  const stripHtmlTags = (htmlString) => {
+    if (!htmlString) return '';
+    
+    // Remove HTML tags
+    let cleanText = htmlString.replace(/<[^>]*>/g, '');
+    
+    // Decode HTML entities
+    cleanText = cleanText
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ');
+    
+    // Clean up extra whitespace
+    cleanText = cleanText.replace(/\s+/g, ' ').trim();
+    
+    return cleanText;
+  };
+
   const parseColors = keyFeatures => {
     if (!keyFeatures) return [];
     return keyFeatures
@@ -204,14 +227,14 @@ const ProductDetailsScreen = () => {
           image: productData.img || '',  // backend gives "img"
           price: productData.price || 0,
           offerPrice: productData.offer_price || productData.price || 0,
-          description: productData.description || 'No description available',
+          description: stripHtmlTags(productData.description) || 'No description available',
           slug: productData.slug || '',
           sku: productData.SKU || '',
-          rulingDeity: productData.ruling_deity || '',
-          benefits: productData.benefits || '',
-          howToUse: productData.how_to_use || '',
-          keyFeatures: productData.key_features || '',
-          safetyInformation: productData.safty_information || '',
+          rulingDeity: stripHtmlTags(productData.ruling_deity) || '',
+          benefits: stripHtmlTags(productData.benefits) || '',
+          howToUse: stripHtmlTags(productData.how_to_use) || '',
+          keyFeatures: stripHtmlTags(productData.key_features) || '',
+          safetyInformation: stripHtmlTags(productData.safty_information) || '',
           categoryName: productData.category_name || '',
           vendorName: productData.vendor_name || '',
           colors,
@@ -316,13 +339,29 @@ const ProductDetailsScreen = () => {
         return;
       }
 
-      if (!user?.id) {
+      // Get userId from context or AsyncStorage
+      let userId = user?.id;
+      if (!userId) {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          if (Array.isArray(parsedUser)) {
+            userId = parsedUser[0]?.id;
+          } else {
+            userId = parsedUser?.id;
+          }
+        }
+      }
+
+      if (!userId) {
         Alert.alert('Error', 'User not found. Please log in again.');
         return;
       }
 
+      console.log('ProductDetails - Wishlist Add - Using userId:', userId);
+
       const payload = {
-        userId: String(user.id),
+        userId: String(userId),
         productIds: [String(productId)],
       };
 
@@ -338,6 +377,11 @@ const ProductDetailsScreen = () => {
       });
 
       console.log('Wishlist Add Response:', response.data);
+      if (response.data.status === 1) {
+        Toast.show(response.data.message || 'Item added to wishlist.', Toast.SHORT);
+      } else {
+        Toast.show(response.data.message || 'Something went wrong on the server.', Toast.SHORT);
+      }
     } catch (error) {
       console.error('Error in fetchAddLikeProducts:', error.response?.data || error.message);
     }
@@ -367,12 +411,18 @@ const ProductDetailsScreen = () => {
       });
 
       console.log('Wishlist Remove Response:', response.data);
+      if (response.data.status === 1) {
+        Toast.show(response.data.message || 'Item removed from wishlist.', Toast.SHORT);
+      } else {
+        Toast.show(response.data.message || 'Something went wrong on the server.', Toast.SHORT);
+      }
     } catch (error) {
       console.error('Error in fetchRemoveLikeProducts:', error.response?.data || error.message);
     }
   };
 
   const handleWishlistToggle = async () => {
+    console.log('User:', user);
     console.log('Wishlist button clicked!');
     console.log('Product details:', productDetails);
     

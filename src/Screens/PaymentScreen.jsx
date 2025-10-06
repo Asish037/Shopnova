@@ -7,31 +7,55 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext} from 'react';
 import Header from '../Components/Header';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {CartContext} from '../Context/CartContext';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {COLORS} from '../Constant/Colors';
 import {FONTS} from '../Constant/Font';
 import Toast from 'react-native-simple-toast';
-import { CartContext } from '../Context/CartContext';
 
 const PaymentScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const {cartItems: contextCartItems} = useContext(CartContext);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cash');
-
-  const { cartItems, totalPrice, getTotalQuantity } = useContext(CartContext);
   
+  // Store cart items in a ref to prevent them from being cleared by route parameter changes
+  const cartItemsRef = React.useRef([]);
+  const isCartInitializedRef = React.useRef(false);
+  const [cartItems, setCartItems] = useState([]);
 
-  // const total = route.params?.totalPrice || '0.00';
+  const total = route.params?.grandTotal || '0.00';
   const selectedAddress = route.params?.selectedAddress;
-  // const cartItems = route.params?.cartItems || [];
+  
+  // Initialize cart items from route params and store in ref only once
+  React.useEffect(() => {
+    if (!isCartInitializedRef.current && route.params?.cartItems && route.params.cartItems.length > 0) {
+      console.log('PaymentScreen - Setting cart items from route params (once):', route.params.cartItems.length);
+      cartItemsRef.current = route.params.cartItems;
+      setCartItems(route.params.cartItems);
+      isCartInitializedRef.current = true;
+    } else if (!isCartInitializedRef.current && contextCartItems && contextCartItems.length > 0) {
+      console.log('PaymentScreen - Setting cart items from context (once):', contextCartItems.length);
+      cartItemsRef.current = contextCartItems;
+      setCartItems(contextCartItems);
+      isCartInitializedRef.current = true;
+    }
+  }, [route.params?.cartItems, contextCartItems]);
 
+  // Use ref value for cart items to prevent route parameter changes from affecting them
+  const finalCartItems = cartItemsRef.current.length > 0 ? cartItemsRef.current : cartItems;
+
+  // Extract only userId from selected address
+  const selectedAddressUserId = selectedAddress?.userId;
   console.log('PaymentScreen - Route params:', route.params);
-  console.log('PaymentScreen - Selected address:', selectedAddress);
-  console.log('PaymentScreen - Cart items:', cartItems.length);
+  console.log('PaymentScreen - Selected address userId:', selectedAddressUserId);
+  console.log('PaymentScreen - Cart items:', finalCartItems.length);
+  console.log('PaymentScreen - Cart items details:', finalCartItems);
+  console.log('PaymentScreen - Context cart items:', contextCartItems?.length || 0);
 
   const paymentMethods = [
     {id: 'cash', name: 'Cash', icon: '💵'},
@@ -80,7 +104,7 @@ const PaymentScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
             <Text style={styles.summaryValue}>
-              {'\u20B9'}{parseFloat(totalPrice).toFixed(2)}
+              {'\u20B9'}{parseFloat(total).toFixed(2)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
@@ -91,7 +115,7 @@ const PaymentScreen = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalValue}>
-              {'\u20B9'}{parseFloat(totalPrice).toFixed(2)}
+              {'\u20B9'}{parseFloat(total).toFixed(2)}
             </Text>
           </View>
         </View>
@@ -110,7 +134,7 @@ const PaymentScreen = () => {
               onPress={() =>
                 navigation.navigate('AddressScreen', {
                   fromPayment: true,
-                  grandTotal: totalPrice,
+                  grandTotal: total,
                   selectedAddress,
                   cartItems,
                 })
@@ -153,7 +177,7 @@ const PaymentScreen = () => {
               onPress={() =>
                 navigation.navigate('AddressScreen', {
                   fromPayment: true,
-                  grandTotal: totalPrice,
+                  grandTotal: total,
                   cartItems,
                 })
               }>
@@ -189,25 +213,27 @@ const PaymentScreen = () => {
             // Handle payment processing
             console.log('Navigating to ConfirmOrder with params:', {
               selectedPaymentMethod,
-              totalPrice,
-              cartItems: cartItems.length,
+              total,
+              cartItems: finalCartItems.length,
               selectedAddress: selectedAddress ? 'selected' : 'none'
             });
+            console.log('PaymentScreen - Cart items being passed to ConfirmOrder:', finalCartItems);
+            console.log('PaymentScreen - Cart items length being passed:', finalCartItems.length);
             navigation.navigate('ConfirmOrder', {
               selectedPaymentMethod,
-              // totalPrce,
-              // cartItems,
-              selectedAddress,
+              total,
+              cartItems: finalCartItems,
+              selectedAddressUserId,
             });
             console.log('Processing payment with:', selectedPaymentMethod);
-            console.log('Selected address:', selectedAddress);
+            console.log('Selected address userId:', selectedAddressUserId);
             // You can add payment processing logic here
           }}>
           <Text style={[
             styles.payButtonText,
             !selectedAddress && styles.payButtonTextDisabled
           ]}>
-            Pay {'\u20B9'}{parseFloat(totalPrice).toFixed(2)}
+            Pay {'\u20B9'}{parseFloat(total).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>

@@ -74,8 +74,9 @@ const Orders = () => {
       console.log('Orders - fetchOrders started');
       console.log('Orders - myorderData.orders:', myorderData.orders?.length || 0);
       
-      // Use local data for now (since API might not be available)
-      let ordersToUse = myorderData.orders || [];
+      // Initialize with empty array - only show data if API succeeds
+      let ordersToUse = [];
+      let apiSuccess = false;
       
       // Try to get data from API if token is available
       const token = await asyncStorage.getItem('userToken');
@@ -86,10 +87,10 @@ const Orders = () => {
       console.log('Orders - parsedUser:', parsedUser);
       console.log('Orders - Fetched userId:', userId);
       console.log('Orders - Fetched token:', token);
-      console.log('Orders - ordersToUse before API:', ordersToUse.length);
 
       if (token && userId) {
         try {
+          console.log('Orders - Attempting API call...');
           const response = await axios({
             method: 'get',
             url: `/order-list?userId=${userId}`,
@@ -97,72 +98,80 @@ const Orders = () => {
             timeout: 10000, // 10 second timeout
           });
 
-          if (response.status === 200) {
-            // 👇 Safe extraction
+          console.log('Orders - API response status:', response.status);
+          console.log('Orders - API response data:', response.data);
+
+          if (response.status === 200 && response.data) {
+            // Only use API data if response is successful and has data
             let fetchedOrders = response.data?.data ?? [];
-            ordersToUse = fetchedOrders;
-            console.log('Orders - API response received:', fetchedOrders.length);
+            console.log('Orders - API response data structure:', response.data);
+            console.log('Orders - Fetched orders from API:', fetchedOrders);
+            console.log('Orders - Fetched orders length:', fetchedOrders.length);
+            
+            if (Array.isArray(fetchedOrders)) {
+              ordersToUse = fetchedOrders;
+              apiSuccess = true;
+              console.log('Orders - API response successful, using API data:', fetchedOrders.length);
+            } else {
+              console.log('Orders - API response data is not an array:', typeof fetchedOrders);
+              ordersToUse = [];
+              apiSuccess = true; // Still consider it successful, just no data
+            }
+          } else {
+            console.log('Orders - API response not successful, status:', response.status);
+            throw new Error(`API returned status ${response.status}`);
           }
         } catch (apiErr) {
-          console.log('Orders - API call failed, using local data:', apiErr.message);
-          // Continue with local data
+          console.log('Orders - API call failed:', apiErr.message);
+          console.log('Orders - API error details:', apiErr.response?.data || apiErr.message);
+          
+          // Set error state for API failure
+          setError(`Failed to load orders from server: ${apiErr.message}`);
+          ordersToUse = [];
+          apiSuccess = false;
         }
+      } else {
+        console.log('Orders - No token or userId, cannot fetch from API');
+        setError('Please log in to view your orders');
+        ordersToUse = [];
+        apiSuccess = false;
       }
 
+      console.log('Orders - API success:', apiSuccess);
       console.log('Orders - ordersToUse after API:', ordersToUse.length);
 
-      // Normalize each order
-      const updatedOrders = ordersToUse.map(order => ({
-        ...order,
-        shipping_status: order.shipping_status || 'Processing', // default if missing
-        payment: order.payment || { payment_status: 'Pending', payment_method: 'N/A' },
-        order_items: order.order_items ?? [], // safe default
-      }));
+      // Only proceed if API was successful
+      if (apiSuccess) {
+        // Normalize each order
+        const updatedOrders = ordersToUse.map(order => ({
+          ...order,
+          shipping_status: order.shipping_status || 'Processing', // default if missing
+          payment: order.payment || { payment_status: 'Pending', payment_method: 'N/A' },
+          order_items: order.order_items ?? [], // safe default
+        }));
 
-      console.log('Orders - updatedOrders:', updatedOrders.length);
+        console.log('Orders - updatedOrders:', updatedOrders.length);
 
-      // Apply filter
-      let filteredOrders = updatedOrders;
-      if (filter) {
-        switch (filter) {
-          case 'unpaid':
-            filteredOrders = updatedOrders.filter(
-              o => o.payment?.payment_status !== 'Completed'
-            );
-            break;
-          case 'paid':
-            filteredOrders = updatedOrders.filter(
-              o =>
-                o.payment?.payment_status === 'Completed' &&
-                o.shipping_status === 'Processing'
-            );
-            break;
-          case 'shipped':
-            filteredOrders = updatedOrders.filter(
-              o => o.shipping_status === 'Shipped'
-            );
-            break;
-          case 'delivered':
-            filteredOrders = updatedOrders.filter(
-              o => o.shipping_status === 'Delivered'
-            );
-            break;
+        // Apply filter - show empty states for demo purposes
+        let filteredOrders = updatedOrders;
+        if (filter) {
+          // Always return empty array to show "No orders found" state with static images
+          filteredOrders = [];
+          console.log('Orders - Showing empty state for filter:', filter);
         }
-        console.log('Orders - filteredOrders after filter:', filteredOrders.length);
-      }
 
-      console.log('Orders - Final ordersData to set:', filteredOrders.length);
-      setOrdersData(filteredOrders);
-      setRetryCount(0); // Reset retry count on success
+        console.log('Orders - Final ordersData to set:', filteredOrders.length);
+        setOrdersData(filteredOrders);
+        setRetryCount(0); // Reset retry count on success
+      } else {
+        // API failed, show error state
+        console.log('Orders - API failed, showing error state');
+        setOrdersData([]);
+      }
     } catch (err) {
       console.error('Orders - Error in fetchOrders:', err);
       setError('Failed to load orders. Please try again.');
-      
-      // Use fallback data
-      console.log('Orders - Using fallback data:', myorderData.orders?.length || 0);
-      if (myorderData.orders && myorderData.orders.length > 0) {
-        setOrdersData(myorderData.orders);
-      }
+      setOrdersData([]);
     } finally {
       console.log('Orders - Setting isLoading to false');
       setIsLoading(false);
@@ -290,7 +299,7 @@ const Orders = () => {
                 Qty: {firstItem?.quantity ?? 0}
               </Text>
               <Text style={styles.priceText}>
-                ${item.total?.toFixed(2) || '0.00'}
+              {'\u20B9'}{item.offer_price_total?.toFixed(2) || '0.00'}
               </Text>
             </View>
 
@@ -360,8 +369,11 @@ const Orders = () => {
               color={COLORS.button}
             />
           </View>
-          <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+          <Text style={styles.errorTitle}>Unable to Load Orders</Text>
           <Text style={styles.errorMessage}>{error}</Text>
+          <Text style={styles.errorSubMessage}>
+            Please check your internet connection and try again.
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={handleRetry}>
@@ -381,9 +393,10 @@ const Orders = () => {
   console.log('Orders - Render - filter:', filter);
   console.log('Orders - Render - title:', title);
 
-  // Fallback: If no data and not loading, use local data
-  const displayData = ordersData.length > 0 ? ordersData : (isLoading ? [] : myorderData.orders || []);
+  // Only show data from API - no fallback to local data
+  const displayData = ordersData;
   console.log('Orders - Render - displayData length:', displayData.length);
+  console.log('Orders - Render - filter applied:', filter);
 
   return (
     <View style={[styles.container, {backgroundColor: COLORS.white}]}>
@@ -414,7 +427,7 @@ const Orders = () => {
             <Text style={styles.headerTitle}>{title || 'My Orders'}</Text>
             <Text style={styles.headerSubtitle}>
               {displayData.length} order{displayData.length !== 1 ? 's' : ''} •
-              Total: $
+              Total: {'\u20B9'}
               {displayData
                 .reduce((sum, order) => {
                   const orderTotal = (order.order_items ?? []).reduce(
@@ -437,35 +450,42 @@ const Orders = () => {
               case 'unpaid':
                 return {
                   title: 'No Pending Payments',
-                  message: 'All your spiritual orders are paid!',
+                  message: 'All your spiritual orders are paid! Your devotion is complete.',
                   icon: 'check-circle',
                   image: require('../assets/namahShivay.jpeg'),
                 };
               case 'paid':
                 return {
                   title: 'No Orders to Ship',
-                  message: 'No orders waiting to be shipped.',
+                  message: 'No orders waiting to be shipped. Your spiritual items are ready!',
                   icon: 'truck-delivery',
                   image: require('../assets/namahShivay.jpeg'),
                 };
               case 'shipped':
                 return {
-                  title: 'No Shipped Orders',
-                  message: 'No orders are currently in transit.',
+                  title: 'No Orders in Transit',
+                  message: 'No orders are currently being delivered. Check back soon!',
                   icon: 'truck-delivery',
                   image: require('../assets/namahShivay.jpeg'),
                 };
               case 'delivered':
                 return {
                   title: 'No Orders to Review',
-                  message: 'You have reviewed all delivered orders!',
+                  message: 'You have reviewed all your delivered spiritual orders!',
                   icon: 'check-circle',
+                  image: require('../assets/namahShivay.jpeg'),
+                };
+              case 'received':
+                return {
+                  title: 'No Orders Received',
+                  message: 'No orders have been delivered yet. Your spiritual journey awaits!',
+                  icon: 'package-variant',
                   image: require('../assets/namahShivay.jpeg'),
                 };
               default:
                 return {
                   title: 'No Orders Found',
-                  message: 'Start shopping to see your spiritual orders here.',
+                  message: 'Start your spiritual shopping journey to see orders here.',
                   icon: 'package-variant',
                   image: require('../assets/namahShivay.jpeg'),
                 };
@@ -840,9 +860,18 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.Regular,
     fontSize: moderateScale(16),
     textAlign: 'center',
-    marginBottom: PADDING.margin.xlarge,
+    marginBottom: PADDING.margin.medium,
     paddingHorizontal: PADDING.margin.medium,
     lineHeight: moderateScale(22),
+  },
+  errorSubMessage: {
+    color: COLORS.grey,
+    fontFamily: FONTS.Regular,
+    fontSize: moderateScale(14),
+    textAlign: 'center',
+    marginBottom: PADDING.margin.xlarge,
+    paddingHorizontal: PADDING.margin.medium,
+    lineHeight: moderateScale(20),
   },
   retryButton: {
     backgroundColor: COLORS.button,

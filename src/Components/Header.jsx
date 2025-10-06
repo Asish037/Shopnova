@@ -13,6 +13,7 @@ import {fonts} from '../utils/fonts';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {addToCart} from '../utils/helper';
 import {CartContext} from '../Context/CartContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import { COLORS } from '../Constant/Colors';
 import { PADDING } from '../Constant/Padding';
@@ -24,7 +25,7 @@ import LinearGradient from 'react-native-linear-gradient';
 const Header = ({isCart, onSearchChange}) => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {getTotalQuantity} = useContext(CartContext);
+  const {getTotalQuantity, refreshCartData, syncCartData, forceRefreshCartFromAPI, cartItems, user, token} = useContext(CartContext);
   const [showSearchInput, setShowSearchInput] = useState(false);
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
@@ -56,6 +57,39 @@ const Header = ({isCart, onSearchChange}) => {
       }).start();
     }
   }, [showSearchInput, searchAnimation]);
+
+  // Sync cart data when Header mounts (only if cart is empty and user is logged in)
+  useEffect(() => {
+    console.log(`[${Platform.OS}] Header - Component mounted, checking if cart refresh is needed...`);
+    console.log(`[${Platform.OS}] Header - Current cart items:`, cartItems.length);
+    console.log(`[${Platform.OS}] Header - User logged in:`, !!user);
+    console.log(`[${Platform.OS}] Header - Token available:`, !!token);
+    
+    // Only refresh from API if cart is empty AND user is logged in
+    if (cartItems.length === 0 && user && token) {
+      console.log(`[${Platform.OS}] Header - Cart is empty and user is logged in, refreshing from API...`);
+      forceRefreshCartFromAPI().catch(error => {
+        console.log(`[${Platform.OS}] Header - Cart API refresh failed, using fallback:`, error.message);
+        // Don't show error to user, just log it and continue
+      });
+    } else {
+      console.log(`[${Platform.OS}] Header - Cart has items or user not logged in, skipping API refresh`);
+    }
+  }, [user, token]);
+
+  // Debug function to add test cart items (only in development)
+  const addTestCartItems = async () => {
+    if (__DEV__) {
+      console.log(`[${Platform.OS}] Adding test cart items...`);
+      const testItems = [
+        { id: 'test-1', name: 'Test Product 1', price: 100, quantity: 1 },
+        { id: 'test-2', name: 'Test Product 2', price: 200, quantity: 1 }
+      ];
+      await AsyncStorage.setItem('cart', JSON.stringify(testItems));
+      await syncCartData();
+      console.log(`[${Platform.OS}] Test cart items added`);
+    }
+  };
 
   const handleSearchPress = () => {
     if (inlineSearchScreens.includes(route.name)) {
@@ -128,11 +162,17 @@ const Header = ({isCart, onSearchChange}) => {
   // Cart Icon Component with Badge
   const CartIconWithBadge = ({style, onPress}) => {
     const totalQuantity = getTotalQuantity();
-    console.log('Header - Cart total quantity:', totalQuantity);
+    console.log(`[${Platform.OS}] Header - Cart total quantity:`, totalQuantity);
+    console.log(`[${Platform.OS}] Header - Cart items from context:`, cartItems.length);
+    console.log(`[${Platform.OS}] Header - Cart items details:`, cartItems.map(item => ({id: item.id, quantity: item.quantity})));
     
     return (
       <TouchableOpacity 
-      onPress={() => handleIconPress('cart')}
+      onPress={async () => {
+        console.log(`[${Platform.OS}] Header - Cart icon pressed, navigating to cart...`);
+        // Don't refresh cart when clicking cart icon - just navigate
+        handleIconPress('cart');
+      }}
         style={[style, {padding: 4}]}
         activeOpacity={0.7}
       >
